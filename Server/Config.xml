@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Configuration>
+	<Server>
+		<Name>Server1</Name>
+		<IP>127.0.0.1</IP>
+		<Port>10001</Port>
+	</Server>
+	<Remote>
+		<Active>false</Active>
+		<IP>127.0.0.1</IP>
+		<Port>10010</Port>
+		<User>remote</User>
+		<Pass>pass</Pass>
+	</Remote>
+</Configuration>

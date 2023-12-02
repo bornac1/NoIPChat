@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "Server1",
+    "LocalIP": "127.0.0.1",
+    "RemoteIP": "127.0.0.1",
+    "RemotePort": 10001,
+    "TimeOut":  15
+  },
+  {
+    "Name": "Server2",
+    "LocalIP": "127.0.0.1",
+    "RemoteIP": "127.0.0.1",
+    "RemotePort": 10002,
+    "TimeOut":  15
+  }
+]

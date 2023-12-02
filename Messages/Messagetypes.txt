@@ -1,0 +1,55 @@
+﻿From client to server:
+1)LOGIN: CV= 1, User= username@server, Pass= password
+2)SEND MESSAGE: CV= 1, Sender= username@server, Receiver= receiver1@server;receiver2@server, Msg= text_message, Data= binary_data
+	//Multiple Receivers by separated by ';'
+3)DISCONNECT: CV= 1, Disconnect= true
+//4)REQUEST UPDATE: CV= 1, Update= true
+	//Send to server after message 3) is received from server
+
+From server to client:
+1)AUTH: Auth= true
+2)RELAY MESSAGE FROM OTHER CLIENT: CV= 1, Sender= username@server, Receiver= receiver1@server, Msg= text_message, Data= binary_data
+	//Only one Receiver
+3)DISCONNECT: Disconnect= true
+	//Send when Server initiates disconnection of the client
+//4)OFFER UPDATE TO CLIENT: CVU= 2
+	//Sends current available version info to client, if it's higher than CV
+//5)SEND UPDATE: Update= true, Data= File
+	//File is serialized and sent in Data field
+	//Send as many files as needed
+
+From server to server:
+1)WELCOME: SV= 1, Name= server_name, Server= true, Users= user1@server;user1@server
+	//Send list of users that have this home server, vut are connected to server_name
+2)RELAY MESSAGE TO OTHER SERVER: CV= 1, Sender= username@server, Receiver= receiver@server_name, Msg= text_message, Data= binary_data
+	//Only one Receiver
+
+3)LOGIN: CV= 1, Sender=server, Receiver= server_name, User= username@server_name, Pass= password //relay login message to remote server
+					//Sender is current server name and Receiver is destination server from User by splitting '@'
+						// Added by current server
+						//Send to Receiver
+4)AUTH: Sender= server_name, Receiver= username@server_name, Auth= true // to authenticate client connected to remote server
+					//Sender is current server name, receiver is User from login
+						//Send inside same Client class, so we know to which server it needs to be send to
+5)DISCONNECT: CV= 1, Sender= server, Receiver= server_name, User= user@server_name, Disconnect= true 
+					//Sender is current server name, receiver is remote server
+						//User is added by current server
+//6)MULTI HOP RELAY
+	//If it's not possible direct to destination server
+		//Send to know one
+		//It will relay further
+	//Example:
+		//Sender is on server1, Receiver is on server3
+		//Both know server2
+		//CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data // is recived on server1
+		//CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data //server1 sends to server2
+		//CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data //server2 sends to server3
+		//server3 uses From server to client 2)
+
+		//Sender is on server1, needs login on server3
+		//Both know server2
+		//CV= 1, Sender=server1, Receiver= server3, User= username@server3, Pass= password //after doing From server to server 3)
+		//CV= 1, Sender=server1, Receiver= server2, User= username@server3, Pass= password
+			//server1 changes receiver to server2
+			//server1 sends to server2
+		//CV= 1, Sender=server2
