@@ -2,18 +2,8 @@
 using System.Net.Sockets;
 using Messages;
 using System.Collections.Concurrent;
-<<<<<<< Updated upstream
 using System.Text.Json;
-using System;
 using System.Text;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-=======
-using System.Drawing.Text;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Text.Json;
->>>>>>> Stashed changes
 
 namespace Client
 {
@@ -22,16 +12,7 @@ namespace Client
         public int CV = 1;
         public bool? auth;
         public bool connected = false;
-<<<<<<< Updated upstream
-        public string Username;
-        public string Password;
-        public string Server;
-        public TcpClient client;
-        public NetworkStream stream;
-        Processing processing;
         public ConcurrentBag<Messages.Message> messages;
-        private byte[] buffer = new byte[1024];
-=======
         public string? Username;
         public string? Password;
         public string? Server;
@@ -39,18 +20,12 @@ namespace Client
         public NetworkStream? stream;
         private readonly Processing processing;
         private readonly byte[] buffer = new byte[1024];
->>>>>>> Stashed changes
         private int bytesRead;
         private int bufferOffset;
-        //public ConcurrentDictionary<string, Servers> servers;
         public BindingSource servers;
-<<<<<<< Updated upstream
-
-=======
         public List<Messages.Message> messages_rec;
         private readonly StringBuilder value;
         public bool ischatready = false;
->>>>>>> Stashed changes
         public Main main;
         private bool disconnectstarted;
         public Messages.Message message;
@@ -59,46 +34,29 @@ namespace Client
             this.main = main;
             disconnectstarted = false;
             processing = new Processing();
-<<<<<<< Updated upstream
-            messages = new ConcurrentBag<Messages.Message>();
-            //servers = new ConcurrentDictionary<string, Servers>();
-            servers = new BindingSource();
-            LoadServers();
-=======
+            messages = [];
+            servers = [];
             messages_rec = [];
             servers = [];
             value = new StringBuilder();
             _ = LoadServers();
             client = new TcpClient();
             message = new Messages.Message();
->>>>>>> Stashed changes
         }
         public async Task Connect(Servers srv)
         {
             try
-<<<<<<< Updated upstream
                 {
                     client = new TcpClient();
-                    client.Connect(IPAddress.Parse(srv.IP), srv.Port);
+                    await client.ConnectAsync(IPAddress.Parse(srv.IP), srv.Port);
                     stream = client.GetStream();
                     connected = true;
-                } catch (Exception ex)
-                {
-                    //Error connecting
-                    await Disconnect();
-                }
-=======
-            {
-                await client.ConnectAsync(IPAddress.Parse(srv.IP), srv.Port);
-                stream = client.GetStream();
-                connected = true;
             }
             catch (Exception ex)
             {
                 //Error connecting
                 await Disconnect();
             }
->>>>>>> Stashed changes
         }
         private async Task Receive()
         {
@@ -218,11 +176,6 @@ namespace Client
                     return (server.IP, server.Port);
                 }
             }
-            //Get server info
-            /*if(servers.TryGetValue(name, out var server))
-            {
-                return (server.IP, server.Port);
-            }*/
             return (null, 0);
         }
         private async Task ProcessMessage(Messages.Message message)
@@ -243,13 +196,6 @@ namespace Client
         {
             if (main.chat != null)
             {
-<<<<<<< Updated upstream
-                StringBuilder value = new StringBuilder(current);
-                value.AppendLine($"{message.Sender}:{message.Msg}");
-                return value.ToString();
-            });
-            main.chat.display.Text = newvalue;
-=======
                 string current = main.chat.display.Text;
                 string newvalue = await Task.Run(() =>
                 {
@@ -265,7 +211,6 @@ namespace Client
             {
                 MessageBox.Show("Error printing message.");
             }
->>>>>>> Stashed changes
         }
         public async Task Disconnect(bool force= false)
         {
@@ -275,13 +220,6 @@ namespace Client
                 try
                 {
                     connected = false;
-<<<<<<< Updated upstream
-                    await stream.FlushAsync();
-                    stream.Close();
-                    await stream.DisposeAsync();
-                    client.Close();
-                    client.Dispose();
-=======
                     if (stream != null)
                     {
                         await stream.FlushAsync();
@@ -293,7 +231,6 @@ namespace Client
                         client.Close();
                         client.Dispose();
                     }
->>>>>>> Stashed changes
                     await processing.Close();
                     //start new client
                     main.client = new Client(main);
