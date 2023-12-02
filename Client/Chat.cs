@@ -15,23 +15,23 @@ namespace Client
 {
     public partial class Chat : Form
     {
-        private Main main;
         public Client client;
         public Chat(Main main)
         {
             InitializeComponent();
-            this.main = main;
             client = main.client;
         }
         private async Task SendMessage()
         {
             //Enter only is used to send
             //Shift+Entre is for new line
-            Messages.Message message = new Messages.Message();
-            message.CV = client.CV;
-            message.Sender = client.Username;
-            message.Receiver = receivers.Text;
-            message.Msg = this.message.Text;
+            Messages.Message message = new()
+            {
+                CV = client.CV,
+                Sender = client.Username,
+                Receiver = receivers.Text,
+                Msg = this.message.Text
+            };
             if (await client.SendMessage(message))
             {
                 //empty after sending
@@ -48,12 +48,12 @@ namespace Client
             message.Text = string.Empty;
         }
 
-        private async void button1_Click(object sender, EventArgs e)
+        private async void Button1_Click(object sender, EventArgs e)
         {
             await SendMessage();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void Button2_Click(object sender, EventArgs e)
         {
             ReturnDefault();
         }

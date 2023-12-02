@@ -8,37 +8,28 @@ namespace Server
 {
     public partial class Server
     {
-<<<<<<< Updated upstream
-        public int SV = 1;
-        private TcpListener listener;
-=======
         public float SV = 1;
         private readonly TcpListener listener;
->>>>>>> Stashed changes
         public string name;
         private bool active;
         private readonly string ip;
         public ConcurrentDictionary<string, Client> clients; //Connected clients
         public ConcurrentDictionary<string, Client> remoteservers; //Connected remote servers
-        public ConcurrentDictionary<string, ConcurrentBag<Message>> messages; //Messages to be sent to users who's home server is this
-        public ConcurrentDictionary<string, ConcurrentBag<Message>> messages_server; //Messages to be sent to remote server
+        public ConcurrentDictionary<string, ConcurrentQueue<Message>> messages; //Messages to be sent to users who's home server is this
+        public ConcurrentDictionary<string, ConcurrentQueue<Message>> messages_server; //Messages to be sent to remote server
         public ConcurrentDictionary<string, string> remoteusers; //Users whos home server is this, but are connected to remote one
         public ConcurrentDictionary<string, Servers> servers; //Know servers
         public Server(string name, string IP, int port)
         {
             this.name = name.ToLower();
-            this.ip = IP;
-<<<<<<< Updated upstream
-            listener = new TcpListener(IPAddress.Parse(IP), port);
-=======
+            ip = IP;
             listener = new TcpListener(IPAddress.Parse(ip), port);
->>>>>>> Stashed changes
             listener.Start();
             active = true;
             clients = new ConcurrentDictionary<string, Client>();
-            messages = new ConcurrentDictionary<string, ConcurrentBag<Message>>();
+            messages = new ConcurrentDictionary<string, ConcurrentQueue<Message>>();
             remoteservers = new ConcurrentDictionary<string, Client>();
-            messages_server = new ConcurrentDictionary<string, ConcurrentBag<Message>>();
+            messages_server = new ConcurrentDictionary<string, ConcurrentQueue<Message>>();
             remoteusers = new ConcurrentDictionary<string, string>();
             servers = new ConcurrentDictionary<string, Servers>();
             _ = Accept();
@@ -49,11 +40,7 @@ namespace Server
             await LoadServers();
             while (active)
             {
-<<<<<<< Updated upstream
-                new Client(this, await listener.AcceptTcpClientAsync());
-=======
                 _ = new Client(this, await listener.AcceptTcpClientAsync());
->>>>>>> Stashed changes
             }
         }
         public async Task SendMessage(string user, Message message)
@@ -98,13 +85,8 @@ namespace Server
                 if (srv_data.Item1)
                 {
                     //We found server IP and port
-<<<<<<< Updated upstream
-                    Client remote = new Client(this, server, srv_data.Item2, srv_data.Item3, srv_data.Item4, srv_data.Item5);
-                    if(remoteservers.TryAdd(server.ToLower(), remote))
-=======
                     Client remote = new(this, server, srv_data.Item2, srv_data.Item3, srv_data.Item4, srv_data.Item5);
                     if (remoteservers.TryAdd(server.ToLower(), remote))
->>>>>>> Stashed changes
                     {
                         Console.WriteLine("Error add client.");
                     }
@@ -175,22 +157,13 @@ namespace Server
         {
             if (messages_server.TryGetValue(server.ToLower(), out var mssg))
             {
-<<<<<<< Updated upstream
-                mssg.Add(message);
-=======
                 _ = mssg.Append(message);
->>>>>>> Stashed changes
                 return true;
             }
             else
             {
-<<<<<<< Updated upstream
-                mssg = new ConcurrentBag<Message>();
-                mssg.Add(message);
-=======
                 mssg = new ConcurrentQueue<Message>();
                 _ = mssg.Append(message);
->>>>>>> Stashed changes
                 if (!messages_server.TryAdd(server, mssg))
                 {
                     return false;
@@ -202,22 +175,13 @@ namespace Server
         {
             if (messages.TryGetValue(user.ToLower(), out var mssg))
             {
-<<<<<<< Updated upstream
-                mssg.Add(message);
-=======
                 _ = mssg.Append(message);
->>>>>>> Stashed changes
                 return true;
             }
             else
             {
-<<<<<<< Updated upstream
-                mssg = new ConcurrentBag<Message>();
-                mssg.Add(message);
-=======
                 mssg = new ConcurrentQueue<Message>();
                 _ = mssg.Append(message);
->>>>>>> Stashed changes
                 if (!messages.TryAdd(user.ToLower(), mssg))
                 {
                     return false;
@@ -229,10 +193,7 @@ namespace Server
         {
             active = false;
             listener.Stop();
-<<<<<<< Updated upstream
-=======
             listener.Dispose();
->>>>>>> Stashed changes
             //Disconnect clients
             foreach (var client in clients)
             {

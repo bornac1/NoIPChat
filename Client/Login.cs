@@ -16,7 +16,7 @@ namespace Client
     {
         public Client client;
         private bool loginclicked;
-        private Main main;
+        private readonly Main main;
         public Login(Main main)
         {
             this.main = main;

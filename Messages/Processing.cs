@@ -22,7 +22,7 @@ namespace Messages
         /// Serialise given message into bytes.
         /// </summary>
         /// <param name="message">Message to be serialised.</param>
-        public async Task<byte[]> Serialize(Message message)
+        public async Task<byte[]?> Serialize(Message message)
         {
             try
             {

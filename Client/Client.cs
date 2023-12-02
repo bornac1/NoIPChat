@@ -9,7 +9,7 @@ namespace Client
 {
     public class Client
     {
-        public int CV = 1;
+        public float CV = 1;
         public bool? auth;
         public bool connected = false;
         public ConcurrentBag<Messages.Message> messages;
@@ -258,9 +258,10 @@ namespace Client
                 {
                 foreach (Servers server in servers_list)
                     {
-                        server.Name = server.Name.ToLower();
+                        Servers srv = server;
+                        srv.Name = srv.Name.ToLower();
                         //servers.TryAdd(server.Name.ToLower(), server);
-                        servers.Add(server);
+                        servers.Add(srv);
                     }
                 }
         }

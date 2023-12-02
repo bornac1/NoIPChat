@@ -2,18 +2,18 @@
 namespace Messages
 {
     [MessagePackObject(keyAsPropertyName: true)]
-    public class Message
+    public struct Message
     {
         /// <summary>
         /// CLient version.
         /// </summary>
-        public int? CV { get; set; }
-        public int? CVU { get; set; }
+        public float? CV { get; set; }
+        public float? CVU { get; set; }
         /// <summary>
         /// Server version.
         /// </summary>
-        public int? SV { get; set; }
-        public int? SVU { get; set; }
+        public float? SV { get; set; }
+        public float? SVU { get; set; }
         public bool? Update {  get; set; }
         /// <summary>
         /// Username.
@@ -61,7 +61,7 @@ namespace Messages
         public byte[]? Data { get; set; }
     }
     [MessagePackObject(keyAsPropertyName: true)]
-    public class File
+    public struct File
     {
         /// <summary>
         /// Name of the file.
@@ -73,7 +73,7 @@ namespace Messages
         public byte[]? Content { get; set; }
     }
     [MessagePackObject(keyAsPropertyName: true)]
-    public class APIMessage
+    public struct APIMessage
     {
         public string? Command { get; set; }
         public byte[]? Message { get; set; }
