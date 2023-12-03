@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace Server
 {
-    public class Client
+    public partial class Client
     {
         private string user = "";
         private string name = "";
@@ -29,7 +29,7 @@ namespace Server
             connected = true;
             processing = new Processing();
             _ = Receive();
-            Console.WriteLine("Accepted.");
+            //Console.WriteLine("Accepted.");
         }
         public Client(Server server, string name, string localip, string ip, int port, int timeout)
         {
@@ -51,21 +51,38 @@ namespace Server
         }
         private async Task Connect(string name, string ip, int port)
         {
-            //to do: try, catch
-            await client.ConnectAsync(IPAddress.Parse(ip), port);
-            stream = client.GetStream();
-            connected = true;
-            isremote = true;
-            //Send welcome
-            Message message = new()
+            try
             {
-                Name = server.name.ToLower(),
-                Server = true,
-                SV = server.SV,
-                Users = server.GetUsersServer(name)
-            };
-            await SendMessage(message);
-            _ = Receive();
+                await client.ConnectAsync(IPAddress.Parse(ip), port);
+                stream = client.GetStream();
+                connected = true;
+                isremote = true;
+                //Send welcome
+                Message message = new()
+                {
+                    Name = server.name.ToLower(),
+                    Server = true,
+                    SV = server.SV,
+                    Users = server.GetUsersServer(name)
+                };
+                await SendMessage(message);
+                _ = Receive();
+            } catch (Exception ex) { 
+                //Exception should be logged
+                if(ex is SocketException)
+                {
+                    //Problem connecting
+                    //No need for logging
+                    await Disconnect();
+                }
+                else
+                {
+                    //Other problem
+                    //Should be logged
+                    await Disconnect();
+                    await server.WriteLog(ex);
+                }
+            }
         }
         private async Task Receive()
         {
@@ -102,8 +119,9 @@ namespace Server
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine("Message deseialization error");
-                                Console.WriteLine(ex.ToString());
+                                //Can't be fixed
+                                //There is error with the message
+                                //Just give up
                             }
                         }
                     }
@@ -130,294 +148,355 @@ namespace Server
                     }
                 }
                 catch (Exception ex)
-                { //assume disconnection
-                    connected = false;
-                    await Disconnect();
+                {
+                    if (ex is IOException)
+                    {
+                        //assume disconnection
+                        //No need for logging
+                        connected = false;
+                        await Disconnect();
+                    }
+                    else
+                    {
+                        //Should be logged
+                        connected = false;
+                        await Disconnect();
+                        await server.WriteLog(ex);
+                    }
                 }
             }
         }
         private async Task Login(Message message)
         {
-            if (!isserver && !isremote)
+            try
             {
-                //Client is connected
-                if (message.User != null)
+                if (!isserver && !isremote)
                 {
-                    user = message.User.ToLower();
-                    if (!server.clients.TryAdd(user, this))
+                    //Client is connected
+                    if (message.User != null)
                     {
-                        //Already exsists
-                        if (server.clients.TryGetValue(user, out var cli) && cli != null)
+                        user = message.User.ToLower();
+                        if (!server.clients.TryAdd(user, this))
                         {
-                            await cli.Disconnect();
-                            if (!server.clients.TryAdd(user, this))
+                            if (server.clients.TryGetValue(user, out var cli) && cli != null)
                             {
-                                //Fails once again
-                                //Don't know why
-                                Console.WriteLine("Error add to clients list");
+                                //Already exsists
+                                await cli.Disconnect();
+                                if (!server.clients.TryAdd(user, this))
+                                {
+                                    //Fails once again
+                                    //Don't know why
+                                    //Console.WriteLine("Error add to clients list");
+                                }
                             }
+                            else
+                            {
+                                //Doesn't exsist already
+                                //Why it fails??????
+                                //Console.WriteLine("Error add to clients list");
+                            }
+                        }
+                        var usr = user.Split("@");
+
+                        if (usr[1] == server.name)
+                        {
+                            //User home is current server
+                            Message msg = new()
+                            {
+                                Auth = true
+                            };
+                            //Console.WriteLine("Autheticated");
+                            await SendMessage(msg);
+                            await SendAllMessages();
                         }
                         else
                         {
-                            Console.WriteLine("Error add to clients list");
+                            //User home is other server
+                            message.Sender = server.name;
+                            message.Receiver = usr[1];
+                            await server.SendMessageRemote(usr[1], message);
                         }
                     }
-                    var usr = user.Split("@");
-
-                    if (usr[1] == server.name)
-                    {
-                        //User home is current server
-                        Message msg = new()
-                        {
-                            Auth = true
-                        };
-                        Console.WriteLine("Autheticated");
-                        await SendMessage(msg);
-                        await SendAllMessages();
-                    }
-                    else
-                    {
-                        //User home is other server
-                        message.Sender = server.name;
-                        message.Receiver = usr[1];
-                        await server.SendMessageRemote(usr[1], message);
-                    }
                 }
-            }
-            else
-            {
-                //We got a login from remote server
-                if (message.User != null)
+                else
                 {
-                    var usr = message.User.Split("@");
-                    if (usr[1].Equals(server.name, StringComparison.CurrentCultureIgnoreCase))
+                    //We got a login from remote server
+                    if (message.User != null)
                     {
-                        //User home is this server
-                        Message msg = new()
+                        var usr = message.User.Split("@");
+                        if (usr[1].Equals(server.name, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Auth = true,
-                            Sender = server.name,
-                            Receiver = message.User
-                        };
-                        if (!server.remoteusers.TryAdd(message.User.ToLower(), server.name))
-                        {
-                            //Already exsists
-                            Console.WriteLine("Error add to remote users list");
+                            //User home is this server
+                            Message msg = new()
+                            {
+                                Auth = true,
+                                Sender = server.name,
+                                Receiver = message.User
+                            };
+                            if (!server.remoteusers.TryAdd(message.User.ToLower(), server.name))
+                            {
+                                //Already exsists
+                                //Console.WriteLine("Error add to remote users list");
+                            }
+                            await SendMessage(msg);
+                            await SendAllMessagesRemoteUser(message.User);
                         }
-                        await SendMessage(msg);
-                        await SendAllMessagesRemoteUser(message.User);
-                    }
-                    else
-                    {
-                        //User home is other server
-                        //Used for multi-hop relay
-                        /*message.Sender = server.name;
-                        message.Receiver = usr[1];
-                        await server.SendMessageRemote(usr[1], message);*/
+                        else
+                        {
+                            //User home is other server
+                            //Used for multi-hop relay
+                            /*message.Sender = server.name;
+                            message.Receiver = usr[1];
+                            await server.SendMessageRemote(usr[1], message);*/
+                        }
                     }
                 }
+            } catch (Exception ex) {
+                //Should be logged
+                await server.WriteLog(ex);
             }
         }
         public async Task Disconnect(bool force = false)
         {
-            if (!disconnectstarted)
+            try
             {
-                disconnectstarted = true;
-                if (!isserver)
+                if (!disconnectstarted)
                 {
-                    if (force && connected)
+                    disconnectstarted = true;
+                    if (!isserver)
                     {
-                        Message message1 = new()
+                        if (force && connected)
                         {
-                            Disconnect = true
-                        };
-                        await SendMessage(message1);
-                    }
-                    Console.WriteLine(server.clients.Count);
-                    if (!server.clients.TryRemove(user.ToLower(), out _))
-                    {
-                        Console.WriteLine("Error remove client from list");
-                    }
-                    var usr = user.Split("@");
-                    if (usr[1] != server.name)
-                    {
-                        //User home server is remote
-                        Message message = new()
-                        {
-                            Disconnect = true,
-                            User = user,
-                            Sender = server.name,
-                            Receiver = usr[1]
-                        };
-                        await server.SendMessageRemote(usr[1], message);
-                    }
-                }
-                else if (isserver || isremote)
-                {
-                    if (!server.remoteservers.TryRemove(name.ToLower(), out _))
-                    {
-                        Console.WriteLine("Error remove remote server from list");
-                    }
-                    foreach (string user in server.remoteusers.Keys)
-                    {
-                        if (server.remoteusers.TryGetValue(user.ToLower(), out string? srv))
-                        {
-                            if (srv == name)
+                            Message message1 = new()
                             {
-                                if (!server.remoteusers.TryRemove(user.ToLower(), out _))
+                                Disconnect = true
+                            };
+                            await SendMessage(message1);
+                        }
+                        Console.WriteLine(server.clients.Count);
+                        if (!server.clients.TryRemove(user.ToLower(), out _))
+                        {
+                            //Probably already removed or not added at all
+                            //Console.WriteLine("Error remove client from list");
+                        }
+                        var usr = user.Split("@");
+                        if (usr[1] != server.name)
+                        {
+                            //User home server is remote
+                            Message message = new()
+                            {
+                                Disconnect = true,
+                                User = user,
+                                Sender = server.name,
+                                Receiver = usr[1]
+                            };
+                            await server.SendMessageRemote(usr[1], message);
+                        }
+                    }
+                    else if (isserver || isremote)
+                    {
+                        if (!server.remoteservers.TryRemove(name.ToLower(), out _))
+                        {
+                            //Remote server is already removed?
+                            //Console.WriteLine("Error remove remote server from list");
+                        }
+                        foreach (string user in server.remoteusers.Keys)
+                        {
+                            if (server.remoteusers.TryGetValue(user.ToLower(), out string? srv))
+                            {
+                                if (srv == name)
                                 {
-                                    Console.WriteLine("Error remove remote user from list by server");
+                                    if (!server.remoteusers.TryRemove(user.ToLower(), out _))
+                                    {
+                                        //Is it already removed?
+                                        //Console.WriteLine("Error remove remote user from list by server");
+                                    }
                                 }
                             }
                         }
                     }
+                    connected = false;
+                    if (stream != null)
+                    {
+                        await stream.FlushAsync();
+                        stream.Close();
+                        await stream.DisposeAsync();
+                    }
+                    if (client != null)
+                    {
+                        client.Close();
+                        client.Dispose();
+                    }
+                    await processing.Close();
+                    if (isserver || isremote)
+                    {
+                        //Try to reconnect to remote server
+                    }
                 }
-                connected = false;
-                if (stream != null)
-                {
-                    await stream.FlushAsync();
-                    stream.Close();
-                    await stream.DisposeAsync();
-                }
-                client.Close();
-                client.Dispose();
-                await processing.Close();
-                if (isserver || isremote)
-                {
-                    //Try to reconnect to remote server
-                }
+            } catch (Exception ex) {
+                //Should be logged
+                await server.WriteLog(ex);
             }
         }
         private void DisconnectRemoteUser(Message message)
         {
             if (isserver || isremote)
                 {
-                    Console.WriteLine("Deleting " + message.User);
                     if (message.User != null)
                     {
                         if (!server.remoteusers.TryRemove(message.User.ToLower(), out _))
                         {
-                            Console.WriteLine("Error remove remote user from list");
+                            //User wasn't even in dictionary
                         }
-                        Console.WriteLine("Done disconnect remote" + server.remoteusers.Count);
                     }
                 }
         }
         private async Task ProcessMessage(Message message)
         {
-            if (message.Server == true)
+            try
             {
-                isserver = true;
-                //Process from server's welcome message
-                if (message.Name != null)
+                if (message.Server == true)
                 {
-                    name = message.Name;
-                    if (message.Users != null)
+                    isserver = true;
+                    //Process from server's welcome message
+                    if (message.Name != null)
                     {
-                        foreach (string usr in message.Users.Split(";"))
+                        name = message.Name.ToLower();
+                        if (message.Users != null)
                         {
-                            if (usr != null && usr != "")
+                            foreach (string usr in message.Users.Split(";"))
                             {
-                                if (!server.remoteusers.TryAdd(usr.ToLower(), name))
+                                if (usr != null && usr != "")
                                 {
-                                    Console.WriteLine("Error add to remote users list");
+                                    string usrl = usr.ToLower();
+                                    if (!server.remoteusers.TryAdd(usrl, name))
+                                    {
+                                        //Already exsists in dictionary
+                                        if(server.remoteusers.TryGetValue(usrl, out string? srv_name))
+                                        {
+                                            //Try to get it
+                                            if(srv_name != null && srv_name != name)
+                                            {
+                                                //Change to current server name if it isn't
+                                                server.remoteusers.TryUpdate(usrl,name,srv_name);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        //to implement: version checking
+                        if (!server.remoteservers.TryAdd(name.ToLower(), this))
+                        {
+                            //Already exsists
+                            //Disconnect previous one
+                            if(server.remoteservers.TryGetValue(name.ToLower(), out Client? cli))
+                            {
+                                if(cli != null)
+                                {
+                                    //Disconnect also deleted current one
+                                    await cli.Disconnect();
+                                    //Try once again
+                                    if(!server.remoteservers.TryAdd(name.ToLower(), this))
+                                    {
+                                        //Don't know why
+                                    }
+                                }
+                            }
+                        }
+                        if (!isremote)
+                        {
+                            //Send welcome message to remote server
+                            Message msg = new()
+                            {
+                                Name = server.name,
+                                Server = true,
+                                SV = server.SV
+                            };
+                            await SendMessage(msg);
+                        }
+                        await SendAllMessagesServer();
+                    }
+                }
+                else if (isserver)
+                {
+                    //Server is connected
+                    if (message.Disconnect == true && message.User != null)
+                    {
+                        //Dsiconnect user on remote server
+                        DisconnectRemoteUser(message);
+                    }
+                    else if (message.Disconnect == true && message.User == null)
+                    {
+                        //Disconnect remote server
+                        await Disconnect();
+                    }
+                    else if (message.User != null && message.Pass != null)
+                    {
+                        //Login message received
+                        await Login(message);
+                    }
+                    else if (message.Auth != null)
+                    {
+                        //Authentication message
+                        if (message.Receiver != null)
+                        {
+                            await server.SendMessage(message.Receiver, message);
+                        }
+                    }
+                    else if (message.Msg != null || message.Data != null)
+                    {
+                        //Normal message
+                        if (message.Receiver != null)
+                        {
+                            await server.SendMessage(message.Receiver, message);
+                        }
+                    }
+                }
+                if (!isserver)
+                {
+                    //Client is connected
+                    if (message.User != null && message.Pass != null)
+                    {
+                        await Login(message);
+                    }
+                    else if (message.Disconnect == true)
+                    {
+                        await Disconnect();
+                    }
+                    else if (message.Msg != null || message.Data != null)
+                    {
+                        //Will send whole message to recivers (Msg+Data)
+                        message.Auth = null;
+                        message.User = null;
+                        message.Pass = null;
+                        message.Disconnect = null;
+                        if (message.Receiver != null)
+                        {
+                            string[] recivers = message.Receiver.Split(';');
+                            //Split messages for each receiver
+                            foreach (string reciver in recivers)
+                            {
+                                message.Receiver = reciver;
+                                string[] rcv = reciver.Split("@");
+                                if (rcv[1].Equals(server.name, StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    //Receiver is on the same server
+                                    await server.SendMessage(reciver, message);
+                                }
+                                else
+                                {
+                                    //Receiver is on the other server
+                                    await server.SendMessageRemote(rcv[1], message);
                                 }
                             }
                         }
                     }
-                    //to implement: version checking
-                    if (!server.remoteservers.TryAdd(name.ToLower(), this))
-                    {
-                        Console.WriteLine("Error add to remote servers list");
-                    }
-                    if (!isremote)
-                    {
-                        //Send welcome message to remote server
-                        Message msg = new()
-                        {
-                            Name = server.name,
-                            Server = true,
-                            SV = server.SV
-                        };
-                        await SendMessage(msg);
-                    }
-                    await SendAllMessagesServer();
                 }
-            }
-            else if (isserver)
+            } catch (Exception ex)
             {
-                //Server is connected
-                if (message.Disconnect == true && message.User != null)
-                {
-                    //Dsiconnect user on remote server
-                    DisconnectRemoteUser(message);
-                }
-                else if (message.Disconnect == true && message.User == null)
-                {
-                    //Disconnect remote server
-                    await Disconnect();
-                }
-                else if (message.User != null && message.Pass != null)
-                {
-                    //Login message received
-                    await Login(message);
-                }
-                else if (message.Auth != null)
-                {
-                    //Authentication message
-                    if (message.Receiver != null)
-                    {
-                        await server.SendMessage(message.Receiver, message);
-                    }
-                }
-                else if (message.Msg != null || message.Data != null)
-                {
-                    //Normal message
-                    if (message.Receiver != null)
-                    {
-                        await server.SendMessage(message.Receiver, message);
-                    }
-                }
-            }
-            if (!isserver)
-            {
-                //Client is connected
-                if (message.User != null && message.Pass != null)
-                {
-                    await Login(message);
-                }
-                else if (message.Disconnect == true)
-                {
-                    await Disconnect();
-                }
-                else if (message.Msg != null || message.Data != null)
-                {
-                    //Will send whole message to recivers (Msg+Data)
-                    message.Auth = null;
-                    message.User = null;
-                    message.Pass = null;
-                    message.Disconnect = null;
-                    if (message.Receiver != null)
-                    {
-                        string[] recivers = message.Receiver.Split(';');
-                        //Split messages for each receiver
-                        foreach (string reciver in recivers)
-                        {
-                            message.Receiver = reciver;
-                            string[] rcv = reciver.Split("@");
-                            if (rcv[1].Equals(server.name, StringComparison.CurrentCultureIgnoreCase))
-                            {
-                                //Receiver is on the same server
-                                await server.SendMessage(reciver, message);
-                            }
-                            else
-                            {
-                                //Receiver is on the other server
-                                await server.SendMessageRemote(rcv[1], message);
-                            }
-                        }
-                    }
-                }
+                //Should be logged
+                await server.WriteLog(ex);
             }
         }
         public async Task<bool> SendMessage(Message message)
@@ -427,7 +506,7 @@ namespace Server
                 bool msgerror = false;
                 try
                 {
-                    byte[] data = await processing.Serialize(message);
+                    byte[]? data = await processing.Serialize(message);
                     if (data != null)
                     {
                         byte[] length = BitConverter.GetBytes(data.Length);
@@ -448,7 +527,7 @@ namespace Server
                     else
                     {
                         msgerror = true;
-                        Console.WriteLine("Message error");
+                        //Console.WriteLine("Message error");
                     }
                 }
                 catch (Exception ex)
@@ -461,7 +540,7 @@ namespace Server
                         //Save message to be sent later
                         if (!server.AddMessages(user, message))
                         {
-                            Console.WriteLine("Error adding to messages list.");
+                            //Don't know why
                         }
                     }
                 }
@@ -474,16 +553,16 @@ namespace Server
             {
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
-                    foreach (Message message in messages)
+                    for (int i =0; i< messages.Count; i++)
                     {
+                        messages.TryDequeue(out Message message);
                         await SendMessage(message);
                     }
-                    Console.WriteLine("Done send all");
                     if (messages.IsEmpty)
                     {
                         if (!server.messages.TryRemove(user.ToLower(), out _))
                         {
-                            Console.WriteLine("All sent, error removing");
+                            //Doesn't exsist anymore
                         }
                     }
                 }
@@ -495,21 +574,16 @@ namespace Server
             {
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
-                    foreach (Message message in messages)
+                    for (int i = 0; i< messages.Count; i++)
                     {
+                        messages.TryDequeue(out Message message);
                         await SendMessage(message);
-                        //Debug start
-                        Console.WriteLine("sending");
-#pragma warning disable CS8604 // Possible null reference argument.
-                        Console.WriteLine(message.Sender, message.Receiver, message.Msg);
-#pragma warning restore CS8604 // Possible null reference argument.
-                        //Debug end
                     }
                     if (messages.IsEmpty)
                     {
                         if (!server.messages.TryRemove(user.ToLower(), out _))
                         {
-                            Console.WriteLine("All sent, error removing");
+                            //Doesn't exsists anymore
                         }
                     }
                 }
@@ -521,15 +595,16 @@ namespace Server
             {
                 if (server.messages_server.TryGetValue(name.ToLower(), out var messages))
                 {
-                    foreach (Message message in messages)
+                    for (int i = 0; i < messages.Count; i++)
                     {
+                        messages.TryDequeue(out Message message);
                         await SendMessage(message);
                     }
                     if (messages.IsEmpty)
                     {
                         if (!server.messages.TryRemove(user.ToLower(), out _))
                         {
-                            Console.WriteLine("All sent, error removing by server");
+                            //Doesn't exsisst anymore
                         }
                     }
                 }
@@ -537,44 +612,51 @@ namespace Server
         }
         private async Task DisconnectNoUse()
         {
-            //Disconnect server for which there is no longer need
-            //Called after timeout
-            if (isserver || isremote)
+            try
             {
-                bool disc = true;
-                foreach (string user in server.remoteusers.Keys)
+                //Disconnect server for which there is no longer need
+                //Called after timeout
+                if (isserver || isremote)
                 {
-                    if (server.remoteusers.TryGetValue(user.ToLower(), out string? srv))
+                    bool disc = true;
+                    foreach (string user in server.remoteusers.Keys)
                     {
-                        if (srv == name)
+                        if (server.remoteusers.TryGetValue(user.ToLower(), out string? srv))
                         {
-                            //This is user's home server
-                            //But user is connected to remote one
+                            if (srv == name)
+                            {
+                                //This is user's home server
+                                //But user is connected to remote one
+                                disc = false;
+                                break;
+                            }
+                        }
+                    }
+                    foreach (string user in server.clients.Keys)
+                    {
+                        if (user.Split("@")[1].Equals(name, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            //User is connected to this server
+                            //But user's home server is remote
                             disc = false;
                             break;
                         }
                     }
-                }
-                foreach (string user in server.clients.Keys)
-                {
-                    if (user.Split("@")[1].Equals(name, StringComparison.CurrentCultureIgnoreCase))
+                    if (disc)
                     {
-                        //User is connected to this server
-                        //But user's home server is remote
-                        disc = false;
-                        break;
+                        Message message = new()
+                        {
+                            SV = server.SV,
+                            Disconnect = true
+                        };
+                        await SendMessage(message);
+                        await Disconnect();
                     }
                 }
-                if (disc)
-                {
-                    Message message = new()
-                    {
-                        SV = server.SV,
-                        Disconnect = true
-                    };
-                    await SendMessage(message);
-                    await Disconnect();
-                }
+            } catch (Exception ex)
+            {
+                //Logging just in case
+                await server.WriteLog(ex);
             }
         }
         private void TimeoutHanlder(Object? source, System.Timers.ElapsedEventArgs e)

@@ -20,6 +20,8 @@ namespace Client
         {
             InitializeComponent();
             client = main.client;
+            client.ischatready = true;
+           _ =  client.PrintReceivedMessages();
         }
         private async Task SendMessage()
         {
@@ -39,6 +41,8 @@ namespace Client
             }
             else
             {
+                //Error sending message
+                //Let's save it
                 MessageBox.Show("Message not sent.");
             }
         }
@@ -50,7 +54,14 @@ namespace Client
 
         private async void Button1_Click(object sender, EventArgs e)
         {
-            await SendMessage();
+            if (receivers.Text != string.Empty && message.Text != string.Empty)
+            {
+                await SendMessage();
+            }
+            else
+            {
+                ReturnDefault();
+            }
         }
 
         private void Button2_Click(object sender, EventArgs e)

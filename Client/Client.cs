@@ -12,7 +12,7 @@ namespace Client
         public float CV = 1;
         public bool? auth;
         public bool connected = false;
-        public ConcurrentBag<Messages.Message> messages;
+        public ConcurrentQueue<Messages.Message> messages;
         public string? Username;
         public string? Password;
         public string? Server;
@@ -23,7 +23,7 @@ namespace Client
         private int bytesRead;
         private int bufferOffset;
         public BindingSource servers;
-        public List<Messages.Message> messages_rec;
+        public ConcurrentQueue<Messages.Message> messages_rec;
         private readonly StringBuilder value;
         public bool ischatready = false;
         public Main main;
@@ -54,8 +54,17 @@ namespace Client
             }
             catch (Exception ex)
             {
-                //Error connecting
-                await Disconnect();
+                if (ex is SocketException)
+                {
+                    //Error connecting
+                    await Disconnect();
+                }
+                else
+                {
+                    //Clean all
+                    await Disconnect();
+                    //Logging
+                }
             }
         }
         private async Task Receive()
@@ -93,8 +102,9 @@ namespace Client
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine("Message deseialization error");
-                                Console.WriteLine(ex.ToString());
+                                //Can't be fixed
+                                //There is error with the message
+                                //Just give up
                             }
                         }
                     }
@@ -115,8 +125,18 @@ namespace Client
                     }
                 }
                 catch (Exception ex)
-                { //assume disconnection
-                    await Disconnect();
+                {
+                    if (ex is IOException)
+                    {
+                        //assume disconnection
+                        await Disconnect();
+                    }
+                    else
+                    {
+                        //Logging
+                        //Clean all
+                        await Disconnect();
+                    }
                 }
             }
         }
@@ -156,12 +176,24 @@ namespace Client
             }
             catch (Exception ex)
             {
-                //Assume disconnection
-                await Disconnect();
-                //Save message to be sent later
-                if (!msgerror)
+                if (ex is IOException)
                 {
-                    messages.Add(message);
+                    //Assume disconnection
+                    await Disconnect();
+                    //Save message to be sent later
+                    if (!msgerror)
+                    {
+                        messages.Enqueue(message);
+                    }
+                    else
+                    {
+                        //Message error
+                        //Give up
+                    }
+                }
+                else
+                {
+                    //Logging
                 }
             }
             return false;
@@ -194,22 +226,53 @@ namespace Client
         }
         public async Task PrintMessage(Messages.Message message)
         {
-            if (main.chat != null)
+            if (ischatready)
             {
-                string current = main.chat.display.Text;
-                string newvalue = await Task.Run(() =>
+                //Chat is ready
+                if (main.chat != null)
                 {
-                    value.Append(current);
-                    value.AppendLine($"{message.Sender}:{message.Msg}");
-                    string str = value.ToString();
-                    value.Clear();
-                    return str;
-                });
-                main.chat.display.Text = newvalue;
+                    string current = main.chat.display.Text;
+                    string newvalue = await Task.Run(() =>
+                    {
+                        value.Append(current);
+                        value.AppendLine($"{message.Sender}:{message.Msg}");
+                        string str = value.ToString();
+                        value.Clear();
+                        return str;
+                    });
+                    main.chat.display.Text = newvalue;
+                }
+                else
+                {
+                    //Was called at the wrong time
+                    //Let's save the message
+                    messages_rec.Enqueue(message);
+                }
             }
             else
             {
-                MessageBox.Show("Error printing message.");
+                //Chat isn't ready
+                //Let's save the message
+                messages_rec.Enqueue(message);
+            }
+        }
+        public async Task PrintReceivedMessages()
+        {
+            if (main.chat != null && ischatready && !messages_rec.IsEmpty)
+            {
+                string current = main.chat.display.Text;
+                value.Append(current);
+                for (int i = 0; i < messages_rec.Count; i++)
+                {
+                    messages_rec.TryDequeue(out var message);
+                    await Task.Run(() =>
+                    {
+                        value.AppendLine($"{message.Sender}:{message.Msg}");
+                    });
+                }
+                string newvalue = value.ToString();
+                value.Clear();
+                main.chat.display.Text = newvalue;
             }
         }
         public async Task Disconnect(bool force= false)
@@ -241,22 +304,24 @@ namespace Client
                 }
                 catch (Exception ex)
                 {
-                    //Nothing to do
+                    //Logging
                 }
             }
         }
         public async Task LoadServers()
         {
-            //Load servers from Servers.json
-            servers.Clear();
-            string jsonString = await System.IO.File.ReadAllTextAsync("Servers.json");
-            var servers_list = await Task.Run(() =>
+            try
             {
-                return JsonSerializer.Deserialize<Servers[]>(jsonString);
-            });
-            if (servers_list != null)
+                //Load servers from Servers.json
+                servers.Clear();
+                string jsonString = await System.IO.File.ReadAllTextAsync("Servers.json");
+                var servers_list = await Task.Run(() =>
                 {
-                foreach (Servers server in servers_list)
+                    return JsonSerializer.Deserialize<Servers[]>(jsonString);
+                });
+                if (servers_list != null)
+                {
+                    foreach (Servers server in servers_list)
                     {
                         Servers srv = server;
                         srv.Name = srv.Name.ToLower();
@@ -264,21 +329,32 @@ namespace Client
                         servers.Add(srv);
                     }
                 }
+            } catch (Exception ex)
+            {
+                //Logging
+            }
         }
         public async Task SaveServers()
         {
-            string jsonString = await Task.Run(() =>
+            try
             {
-                List<Servers> servers_list = [];
-                foreach (Servers server in servers)
+                string jsonString = await Task.Run(() =>
                 {
-                    /*server.Value.Name = server.Value.Name.ToLower();
-                    servers_list.Add(server.Value);*/
-                    servers_list.Add(server);
-                }
-                return JsonSerializer.Serialize(servers_list);
-            });
-            await System.IO.File.WriteAllTextAsync("Servers.json", jsonString);
+                    List<Servers> servers_list = [];
+                    foreach (Servers server in servers)
+                    {
+                        /*server.Value.Name = server.Value.Name.ToLower();
+                        servers_list.Add(server.Value);*/
+                        servers_list.Add(server);
+                    }
+                    return JsonSerializer.Serialize(servers_list);
+                });
+                await System.IO.File.WriteAllTextAsync("Servers.json", jsonString);
+            }
+            catch (Exception ex)
+            {
+                //Logging
+            }
         }
     }
 }

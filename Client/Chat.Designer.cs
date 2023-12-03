@@ -40,28 +40,31 @@
             // display
             // 
             display.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            display.Location = new Point(12, 43);
+            display.Location = new Point(10, 32);
+            display.Margin = new Padding(3, 2, 3, 2);
             display.Name = "display";
             display.ReadOnly = true;
-            display.Size = new Size(949, 217);
+            display.Size = new Size(831, 164);
             display.TabIndex = 0;
             display.Text = "";
             // 
             // message
             // 
             message.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            message.Location = new Point(92, 347);
+            message.Location = new Point(80, 260);
+            message.Margin = new Padding(3, 2, 3, 2);
             message.Name = "message";
-            message.Size = new Size(869, 110);
+            message.Size = new Size(761, 84);
             message.TabIndex = 2;
             message.Text = "";
             // 
             // receivers
             // 
             receivers.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            receivers.Location = new Point(92, 293);
+            receivers.Location = new Point(80, 220);
+            receivers.Margin = new Padding(3, 2, 3, 2);
             receivers.Name = "receivers";
-            receivers.Size = new Size(869, 48);
+            receivers.Size = new Size(761, 37);
             receivers.TabIndex = 1;
             receivers.Text = "";
             // 
@@ -69,9 +72,9 @@
             // 
             label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label1.AutoSize = true;
-            label1.Location = new Point(12, 296);
+            label1.Location = new Point(10, 222);
             label1.Name = "label1";
-            label1.Size = new Size(74, 20);
+            label1.Size = new Size(59, 15);
             label1.TabIndex = 1;
             label1.Text = "Receivers:";
             // 
@@ -79,18 +82,19 @@
             // 
             label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label2.AutoSize = true;
-            label2.Location = new Point(16, 392);
+            label2.Location = new Point(14, 294);
             label2.Name = "label2";
-            label2.Size = new Size(70, 20);
+            label2.Size = new Size(56, 15);
             label2.TabIndex = 3;
             label2.Text = "Message:";
             // 
             // button1
             // 
             button1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            button1.Location = new Point(92, 463);
+            button1.Location = new Point(80, 347);
+            button1.Margin = new Padding(3, 2, 3, 2);
             button1.Name = "button1";
-            button1.Size = new Size(94, 29);
+            button1.Size = new Size(82, 22);
             button1.TabIndex = 3;
             button1.Text = "Send";
             button1.UseVisualStyleBackColor = true;
@@ -99,9 +103,10 @@
             // button2
             // 
             button2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button2.Location = new Point(867, 463);
+            button2.Location = new Point(759, 347);
+            button2.Margin = new Padding(3, 2, 3, 2);
             button2.Name = "button2";
-            button2.Size = new Size(94, 29);
+            button2.Size = new Size(82, 22);
             button2.TabIndex = 4;
             button2.Text = "Cancel";
             button2.UseVisualStyleBackColor = true;
@@ -109,9 +114,9 @@
             // 
             // Chat
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(973, 505);
+            ClientSize = new Size(851, 379);
             Controls.Add(button2);
             Controls.Add(button1);
             Controls.Add(label2);
@@ -119,6 +124,7 @@
             Controls.Add(receivers);
             Controls.Add(message);
             Controls.Add(display);
+            Margin = new Padding(3, 2, 3, 2);
             Name = "Chat";
             Text = "Chat";
             ResumeLayout(false);

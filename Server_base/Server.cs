@@ -65,7 +65,9 @@ namespace Server
             {
                 if (!AddMessages(user, message))
                 {
-                    Console.WriteLine("Error adding to messages list.");
+                    //Don't know why
+                }
+                else {
                 }
             }
         }
@@ -88,16 +90,30 @@ namespace Server
                     Client remote = new(this, server, srv_data.Item2, srv_data.Item3, srv_data.Item4, srv_data.Item5);
                     if (remoteservers.TryAdd(server.ToLower(), remote))
                     {
-                        Console.WriteLine("Error add client.");
+                        //Key already exsists
+                        if(remoteservers.TryGetValue(server.ToLower(),out Client? cli))
+                        {
+                            if (cli != null)
+                            {
+                                //Disconnect previous one
+                                //This will also delete it
+                                await cli.Disconnect();
+                                //Try once again
+                                if (remoteservers.TryAdd(server.ToLower(), remote))
+                                {
+                                    //Don't know why
+                                }
+                            }
+                        }
                     }
                     bool sent = await remote.SendMessage(message);
                     if (!sent)
                     {
-                        Console.WriteLine("Not sent to remote server");
+                        //Console.WriteLine("Not sent to remote server");
                         //Not sent, save message
                         if (!AddMessages_server(server, message))
                         {
-                            Console.WriteLine("Error adding to messages_server list.");
+                            //Don't know why
                         }
                     }
                 }
@@ -107,7 +123,7 @@ namespace Server
                     Console.WriteLine("No idea what to do");
                     if (!AddMessages_server(server, message))
                     {
-                        Console.WriteLine("Error adding to messages_server list.");
+                        //Don't know why
                     }
                     //to implement: asking all know servers, giving up
                 }
@@ -124,48 +140,64 @@ namespace Server
         }
         public async Task LoadServers()
         {
-            //Load servers from Servers.json
-            string jsonString = await System.IO.File.ReadAllTextAsync("Servers.json");
-            await Task.Run(() =>
-             {
-                 var servers_list = JsonSerializer.Deserialize<Servers[]>(jsonString);
-                 if (servers_list != null)
+            try
+            {
+                //Load servers from Servers.json
+                string jsonString = await System.IO.File.ReadAllTextAsync("Servers.json");
+                await Task.Run(() =>
                  {
-                     foreach (Servers server in servers_list)
+                     var servers_list = JsonSerializer.Deserialize<Servers[]>(jsonString);
+                     if (servers_list != null)
                      {
-                         server.Name = server.Name.ToLower();
-                         servers.TryAdd(server.Name.ToLower(), server);
+                         foreach (Servers server in servers_list)
+                         {
+                             server.Name = server.Name.ToLower();
+                             servers.TryAdd(server.Name.ToLower(), server);
+                         }
                      }
-                 }
-             });
+                 });
+            } catch (Exception ex)
+            {
+                //Logging
+                await WriteLog(ex);
+            }
         }
         public async Task SaveServers()
         {
-            string jsonString = await Task.Run(() =>
+            try
             {
-                List<Servers> servers_list = [];
-                foreach (var server in servers)
+                string jsonString = await Task.Run(() =>
                 {
-                    server.Value.Name = server.Value.Name.ToLower();
-                    servers_list.Add(server.Value);
-                }
-                return JsonSerializer.Serialize(servers_list);
-            });
-            await System.IO.File.WriteAllTextAsync("Servers.json", jsonString);
+                    List<Servers> servers_list = [];
+                    foreach (var server in servers)
+                    {
+                        server.Value.Name = server.Value.Name.ToLower();
+                        servers_list.Add(server.Value);
+                    }
+                    return JsonSerializer.Serialize(servers_list);
+                });
+                await System.IO.File.WriteAllTextAsync("Servers.json", jsonString);
+            } catch (Exception ex)
+            {
+                //Logging
+                await WriteLog(ex);
+            }
         }
         public bool AddMessages_server(string server, Message message)
         {
             if (messages_server.TryGetValue(server.ToLower(), out var mssg))
             {
-                _ = mssg.Append(message);
+                mssg.Enqueue(message);
                 return true;
             }
             else
             {
                 mssg = new ConcurrentQueue<Message>();
-                _ = mssg.Append(message);
+                mssg.Enqueue(message);
                 if (!messages_server.TryAdd(server, mssg))
                 {
+                    //Key already exsists in dictionary
+                    //This shouldn't happen
                     return false;
                 }
                 return true;
@@ -175,61 +207,76 @@ namespace Server
         {
             if (messages.TryGetValue(user.ToLower(), out var mssg))
             {
-                _ = mssg.Append(message);
-                return true;
+                if (mssg != null)
+                {
+                    mssg.Enqueue(message);
+                    return true;
+                }
+                return false;
             }
             else
             {
                 mssg = new ConcurrentQueue<Message>();
-                _ = mssg.Append(message);
+                mssg.Enqueue(message);
                 if (!messages.TryAdd(user.ToLower(), mssg))
                 {
+                    //Key already exsists in dictionary
+                    //This shouldn't happen
                     return false;
                 }
-                return true;
+                else
+                {
+                    return true;
+                }
             }
         }
         public async Task Close()
         {
-            active = false;
-            listener.Stop();
-            listener.Dispose();
-            //Disconnect clients
-            foreach (var client in clients)
+            try
             {
-                await client.Value.Disconnect(true);
-            }
-            //Disconnect remore servers
-            foreach (var remotes in remoteservers)
-            {
-                await remotes.Value.Disconnect(true);
-            }
-            //Delete remore users
-            foreach (var remoteu in remoteusers)
-            {
-                if (!remoteusers.TryRemove(remoteu))
+                active = false;
+                listener.Stop();
+                listener.Dispose();
+                //Disconnect clients
+                foreach (var client in clients)
                 {
-                    Console.WriteLine("Error remove remote user.");
+                    await client.Value.Disconnect(true);
                 }
-            }
-            //Save servers to the file
-            await SaveServers();
-            //Do something with messages
-            //For now, just delete
-            foreach (var message in messages)
-            {
-                if (!messages.TryRemove(message))
+                //Disconnect remore servers
+                foreach (var remotes in remoteservers)
                 {
-                    Console.WriteLine("Error remove message.");
+                    await remotes.Value.Disconnect(true);
                 }
-            }
-            //Do something with messages for remote servers
-            foreach (var rmessage in messages_server)
-            {
-                if (!messages_server.TryRemove(rmessage))
+                //Delete remore users
+                foreach (var remoteu in remoteusers)
                 {
-                    Console.WriteLine("Error remore message for other server.");
+                    if (!remoteusers.TryRemove(remoteu))
+                    {
+                        //User wasn't even in the dictionary
+                    }
                 }
+                //Save servers to the file
+                await SaveServers();
+                //Do something with messages
+                //For now, just delete
+                foreach (var message in messages)
+                {
+                    if (!messages.TryRemove(message))
+                    {
+                        Console.WriteLine("Error remove message.");
+                    }
+                }
+                //Do something with messages for remote servers
+                foreach (var rmessage in messages_server)
+                {
+                    if (!messages_server.TryRemove(rmessage))
+                    {
+                        Console.WriteLine("Error remore message for other server.");
+                    }
+                }
+            } catch (Exception ex)
+            {
+                await WriteLog(ex);
             }
         }
         public string? GetUsersServer(string server)
@@ -252,6 +299,11 @@ namespace Server
                 return string.Join(";", [.. users]);
             }
             return null;
+        }
+        public async Task WriteLog(Exception ex)
+        {
+            string log = DateTime.Now.ToString("d.M.yyyy. H:m:s") + " " + ex.ToString() + Environment.NewLine;
+            await System.IO.File.AppendAllTextAsync("Server.log", log);
         }
     }
 }
