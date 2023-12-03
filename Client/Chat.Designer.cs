@@ -35,6 +35,7 @@
             label2 = new Label();
             button1 = new Button();
             button2 = new Button();
+            button3 = new Button();
             SuspendLayout();
             // 
             // display
@@ -112,11 +113,24 @@
             button2.UseVisualStyleBackColor = true;
             button2.Click += Button2_Click;
             // 
+            // button3
+            // 
+            button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            button3.Location = new Point(294, 6);
+            button3.Margin = new Padding(3, 2, 3, 2);
+            button3.Name = "button3";
+            button3.Size = new Size(82, 22);
+            button3.TabIndex = 5;
+            button3.Text = "Refresh";
+            button3.UseVisualStyleBackColor = true;
+            button3.Click += button3_Click;
+            // 
             // Chat
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(851, 379);
+            Controls.Add(button3);
             Controls.Add(button2);
             Controls.Add(button1);
             Controls.Add(label2);
@@ -139,5 +153,6 @@
         private Button button1;
         private Button button2;
         public RichTextBox display;
+        private Button button3;
     }
 }

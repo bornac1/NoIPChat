@@ -21,7 +21,7 @@ namespace Client
             InitializeComponent();
             client = main.client;
             client.ischatready = true;
-           _ =  client.PrintReceivedMessages();
+            _ = client.PrintReceivedMessages();
         }
         private async Task SendMessage()
         {
@@ -31,7 +31,7 @@ namespace Client
             {
                 CV = client.CV,
                 Sender = client.Username,
-                Receiver = receivers.Text,
+                Receiver = receivers.Text.Trim(),
                 Msg = this.message.Text
             };
             if (await client.SendMessage(message))
@@ -67,6 +67,12 @@ namespace Client
         private void Button2_Click(object sender, EventArgs e)
         {
             ReturnDefault();
+        }
+
+        private async void button3_Click(object sender, EventArgs e)
+        {
+            await client.PrintReceivedMessages();
+            display.Update();
         }
     }
 }

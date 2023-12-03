@@ -226,28 +226,20 @@ namespace Client
         }
         public async Task PrintMessage(Messages.Message message)
         {
-            if (ischatready)
+            if (main.chat != null && ischatready)
             {
+                await PrintReceivedMessages();
                 //Chat is ready
-                if (main.chat != null)
+                string current = main.chat.display.Text;
+                string newvalue = await Task.Run(() =>
                 {
-                    string current = main.chat.display.Text;
-                    string newvalue = await Task.Run(() =>
-                    {
-                        value.Append(current);
-                        value.AppendLine($"{message.Sender}:{message.Msg}");
-                        string str = value.ToString();
-                        value.Clear();
-                        return str;
-                    });
-                    main.chat.display.Text = newvalue;
-                }
-                else
-                {
-                    //Was called at the wrong time
-                    //Let's save the message
-                    messages_rec.Enqueue(message);
-                }
+                    value.Append(current);
+                    value.AppendLine($"{message.Sender}:{message.Msg}");
+                    string str = value.ToString();
+                    value.Clear();
+                    return str;
+                });
+                main.chat.display.Text = newvalue;
             }
             else
             {
@@ -260,19 +252,13 @@ namespace Client
         {
             if (main.chat != null && ischatready && !messages_rec.IsEmpty)
             {
-                string current = main.chat.display.Text;
-                value.Append(current);
+                MessageBox.Show("We have " + messages_rec.Count);
                 for (int i = 0; i < messages_rec.Count; i++)
                 {
+                    MessageBox.Show("printing "+i);
                     messages_rec.TryDequeue(out var message);
-                    await Task.Run(() =>
-                    {
-                        value.AppendLine($"{message.Sender}:{message.Msg}");
-                    });
+                    await PrintMessage(message);
                 }
-                string newvalue = value.ToString();
-                value.Clear();
-                main.chat.display.Text = newvalue;
             }
         }
         public async Task Disconnect(bool force= false)
@@ -354,6 +340,19 @@ namespace Client
             catch (Exception ex)
             {
                 //Logging
+            }
+        }
+        public async Task WriteLog(Exception ex)
+        {
+            string log = DateTime.Now.ToString("d.M.yyyy. H:m:s") + " " + ex.ToString() + Environment.NewLine;
+            try
+            {
+                await System.IO.File.AppendAllTextAsync("Client.log", log);
+            }
+            catch (Exception _)
+            {
+                MessageBox.Show("Can't save log to file.");
+               // Console.WriteLine(log);
             }
         }
     }

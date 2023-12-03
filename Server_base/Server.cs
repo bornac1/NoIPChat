@@ -207,12 +207,8 @@ namespace Server
         {
             if (messages.TryGetValue(user.ToLower(), out var mssg))
             {
-                if (mssg != null)
-                {
-                    mssg.Enqueue(message);
-                    return true;
-                }
-                return false;
+                mssg.Enqueue(message);
+                return true;
             }
             else
             {
@@ -303,7 +299,14 @@ namespace Server
         public async Task WriteLog(Exception ex)
         {
             string log = DateTime.Now.ToString("d.M.yyyy. H:m:s") + " " + ex.ToString() + Environment.NewLine;
-            await System.IO.File.AppendAllTextAsync("Server.log", log);
+            try
+            {
+                await System.IO.File.AppendAllTextAsync("Server.log", log);
+            } catch (Exception _)
+            {
+                Console.WriteLine("Can't save log to file.");
+                Console.WriteLine(log);
+            }
         }
     }
 }

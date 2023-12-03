@@ -153,16 +153,18 @@ namespace Server
                     {
                         //assume disconnection
                         //No need for logging
-                        connected = false;
-                        await Disconnect();
+                    } else if (ex is ObjectDisposedException)
+                    {
+                        //already disposed
+                        //No need for logging
                     }
                     else
                     {
                         //Should be logged
-                        connected = false;
-                        await Disconnect();
                         await server.WriteLog(ex);
                     }
+                    connected = false;
+                    await Disconnect();
                 }
             }
         }
@@ -273,7 +275,6 @@ namespace Server
                             };
                             await SendMessage(message1);
                         }
-                        Console.WriteLine(server.clients.Count);
                         if (!server.clients.TryRemove(user.ToLower(), out _))
                         {
                             //Probably already removed or not added at all
@@ -501,49 +502,59 @@ namespace Server
         }
         public async Task<bool> SendMessage(Message message)
         {
-            if (connected)
+            bool msgerror = false;
+            try
             {
-                bool msgerror = false;
-                try
+                byte[]? data = await processing.Serialize(message);
+                if (data != null)
                 {
-                    byte[]? data = await processing.Serialize(message);
-                    if (data != null)
+                    byte[] length = BitConverter.GetBytes(data.Length);
+                    if (connected && stream != null)
                     {
-                        byte[] length = BitConverter.GetBytes(data.Length);
-                        if (stream != null)
+                        //connected
+                        await stream.WriteAsync(length);
+                        await stream.WriteAsync(data);
+                        Console.WriteLine("sent " + message.Msg + " to " + message.Receiver);
+                        //Reset timer
+                        if (timer != null)
                         {
-                            await stream.WriteAsync(length);
-                            await stream.WriteAsync(data);
-                            //Reset timer
-                            if (timer != null)
-                            {
-                                timer.Stop();
-                                timer.Start();
-                            }
-                            return true;
+                            timer.Stop();
+                            timer.Start();
                         }
-                        return false;
+                        return true;
                     }
                     else
                     {
-                        msgerror = true;
-                        //Console.WriteLine("Message error");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    //Assume disconnection
-                    connected = false;
-                    await Disconnect();
-                    if (!msgerror)
-                    {
-                        //Save message to be sent later
+                        //Not connected
+                        //Save message
                         if (!server.AddMessages(user, message))
                         {
-                            //Don't know why
+                            return false;
                         }
+                        Console.WriteLine("saved " + message.Msg + " for " + message.Receiver);
+                        return true;
                     }
                 }
+                else
+                {
+                    msgerror = true;
+                    return false;
+                    //Console.WriteLine("Message error");
+                }
+            }
+            catch (Exception ex)
+            {
+                //Assume disconnection
+                if (!msgerror)
+                {
+                    //Save message to be sent later
+                    if (!server.AddMessages(user, message))
+                    {
+                        //Don't know why
+                    }
+                }
+                connected = false;
+                await Disconnect();
             }
             return false;
         }
@@ -553,8 +564,10 @@ namespace Server
             {
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
+                    Console.WriteLine("have to send " + messages.Count);
                     for (int i =0; i< messages.Count; i++)
                     {
+                        Console.WriteLine("sending " + i);
                         messages.TryDequeue(out Message message);
                         await SendMessage(message);
                     }
