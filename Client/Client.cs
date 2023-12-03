@@ -37,7 +37,6 @@ namespace Client
             messages = [];
             servers = [];
             messages_rec = [];
-            servers = [];
             value = new StringBuilder();
             _ = LoadServers();
             client = new TcpClient();
