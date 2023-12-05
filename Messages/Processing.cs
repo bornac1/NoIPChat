@@ -66,6 +66,7 @@ namespace Messages
         {
             try
             {
+                stream.Position = 0;
                 Message message = await MessagePackSerializer.DeserializeAsync<Message>(stream);
                 stream.Position = 0;
                 stream.SetLength(0);

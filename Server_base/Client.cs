@@ -106,9 +106,10 @@ namespace Server
                             // Check if the entire message is already in the buffer
                             if (totalMessageSize <= availableBytes)
                             {
-                                //Copy message to messageBytes
-                                byte[] messageBytes = new byte[messageSize];
-                                Array.Copy(buffer, bufferOffset + sizeof(int), messageBytes, 0, messageSize);
+
+                                //Write message to memorystream
+                                await memoryStream.WriteAsync(buffer, bufferOffset + sizeof(int), messageSize);
+                                await memoryStream.FlushAsync();
 
                                 // Move the remaining bytes in the buffer to the beginning
                                 Array.Copy(buffer, bufferOffset + totalMessageSize, buffer, 0, availableBytes - totalMessageSize);
@@ -120,7 +121,7 @@ namespace Server
                                 //Message processing starts
                                 try
                                 {
-                                    Message message = await processing.Deserialize(messageBytes);
+                                    Message message = await processing.Deserialize(memoryStream);
                                     await ProcessMessage(message);
                                 }
                                 catch (Exception ex)
