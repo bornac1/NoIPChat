@@ -88,100 +88,120 @@ namespace Server
         {
             int bytesRead = 0;
             int bufferOffset = 0;
-            MemoryStream memoryStream = new MemoryStream();
-            while (connected)
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                try
+                while (connected)
                 {
-                    int availableBytes = bytesRead - bufferOffset;
-
-                    // Check if we have enough bytes in the buffer to read the size
-                    if (availableBytes >= sizeof(int))
+                    try
                     {
-                        int messageSize = BitConverter.ToInt32(buffer, bufferOffset);
-                        int totalMessageSize = sizeof(int) + messageSize;
+                        int availableBytes = bytesRead - bufferOffset;
 
-                        if (messageSize <= buffer.Length)
+                        // Check if we have enough bytes in the buffer to read the size
+                        if (availableBytes >= sizeof(int))
                         {
-                            // Check if the entire message is already in the buffer
-                            if (totalMessageSize <= availableBytes)
+                            int messageSize = BitConverter.ToInt32(buffer, bufferOffset);
+                            int totalMessageSize = sizeof(int) + messageSize;
+
+                            if (messageSize <= buffer.Length)
                             {
+                                //Message can fit into buffer
 
-                                //Write message to memorystream
-                                await memoryStream.WriteAsync(buffer, bufferOffset + sizeof(int), messageSize);
-                                await memoryStream.FlushAsync();
+                                if(messageSize*2 < buffer.Length && buffer.Length > 1024)
+                                {
+                                    //Buffer is too large
 
-                                // Move the remaining bytes in the buffer to the beginning
-                                Array.Copy(buffer, bufferOffset + totalMessageSize, buffer, 0, availableBytes - totalMessageSize);
+                                    //Create new buffer
+                                    byte[] newbuffer = new byte[totalMessageSize];
+                                    Console.WriteLine("new buffer created " + totalMessageSize);
 
-                                // Update the bytesRead and bufferOffset variables
-                                bytesRead = availableBytes - totalMessageSize;
-                                bufferOffset = 0;
+                                    //Copy to new buffer
+                                    Array.Copy(buffer, bufferOffset, newbuffer, 0, availableBytes);
 
-                                //Message processing starts
-                                Message message = await processing.Deserialize(memoryStream);
-                                await ProcessMessage(message);
+                                    //Update
+                                    buffer = newbuffer;
+                                    bufferOffset = 0;
+                                }
+
+                                // Check if the entire message is already in the buffer
+                                if (totalMessageSize <= availableBytes)
+                                {
+                                    //Write message to memorystream
+                                    await memoryStream.WriteAsync(buffer, bufferOffset + sizeof(int), messageSize);
+                                    await memoryStream.FlushAsync();
+
+                                    // Move the remaining bytes in the buffer to the beginning
+                                    Array.Copy(buffer, bufferOffset + totalMessageSize, buffer, 0, availableBytes - totalMessageSize);
+
+                                    // Update the bytesRead and bufferOffset variables
+                                    bytesRead = availableBytes - totalMessageSize;
+                                    bufferOffset = 0;
+
+                                    //Message processing starts
+                                    Message message = await processing.Deserialize(memoryStream);
+                                    await ProcessMessage(message);
+                                }
                             }
+                            else
+                            {
+                                //Message can't fit into buffer
+                                if (auth)
+                                {
+                                    //Do it only if client is authenticated
+                                    //Create new buffer
+                                    byte[] newbuffer = new byte[totalMessageSize];
+                                    Console.WriteLine("new buffer created " + totalMessageSize);
+
+                                    //Copy to new buffer
+                                    Array.Copy(buffer, bufferOffset, newbuffer, 0, availableBytes);
+
+                                    //Update
+                                    buffer = newbuffer;
+                                    bufferOffset = 0;
+                                }
+                            }
+                        }
+
+                        // Read more bytes from the stream
+                        if (stream != null)
+                        {
+                            int bytesReadNow = await stream.ReadAsync(buffer, bytesRead, buffer.Length - bytesRead);
+
+                            // Check if the stream has reached its end
+                            if (bytesReadNow == 0)
+                            {
+                                connected = false;
+                                break;
+                            }
+
+                            bytesRead += bytesReadNow;
+                            if (timer != null)
+                            {
+                                //Reset timer
+                                timer.Stop();
+                                timer.Start();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is IOException)
+                        {
+                            //assume disconnection
+                            //No need for logging
+                        }
+                        else if (ex is ObjectDisposedException)
+                        {
+                            //already disposed
+                            //No need for logging
                         }
                         else
                         {
-                            //Message can't fit into buffer
-                            if (auth)
-                            {
-                                //Do it only if client is authenticated
-                                //Create new buffer
-                                byte[] newbuffer = new byte[totalMessageSize];
-                                Console.WriteLine("new buffer created " + totalMessageSize);
-
-                                //Copy to new buffer
-                                Array.Copy(buffer, bufferOffset, newbuffer, 0, availableBytes);
-
-                                //Update
-                                buffer = newbuffer;
-                                bufferOffset = 0;
-                            }
+                            //Should be logged
+                            await server.WriteLog(ex);
                         }
+                        connected = false;
+                        await Disconnect();
                     }
-
-                    // Read more bytes from the stream
-                    if (stream != null)
-                    {
-                        int bytesReadNow = await stream.ReadAsync(buffer, bytesRead, buffer.Length - bytesRead);
-
-                        // Check if the stream has reached its end
-                        if (bytesReadNow == 0)
-                        {
-                            connected = false;
-                            break;
-                        }
-
-                        bytesRead += bytesReadNow;
-                        if (timer != null)
-                        {
-                            //Reset timer
-                            timer.Stop();
-                            timer.Start();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (ex is IOException)
-                    {
-                        //assume disconnection
-                        //No need for logging
-                    } else if (ex is ObjectDisposedException)
-                    {
-                        //already disposed
-                        //No need for logging
-                    }
-                    else
-                    {
-                        //Should be logged
-                        await server.WriteLog(ex);
-                    }
-                    connected = false;
-                    await Disconnect();
                 }
             }
         }
