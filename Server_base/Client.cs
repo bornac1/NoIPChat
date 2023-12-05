@@ -119,17 +119,8 @@ namespace Server
                                 bufferOffset = 0;
 
                                 //Message processing starts
-                                try
-                                {
-                                    Message message = await processing.Deserialize(memoryStream);
-                                    await ProcessMessage(message);
-                                }
-                                catch (Exception ex)
-                                {
-                                    //Can't be fixed
-                                    //There is error with the message
-                                    //Just give up
-                                }
+                                Message message = await processing.Deserialize(memoryStream);
+                                await ProcessMessage(message);
                             }
                         }
                         else
