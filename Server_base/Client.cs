@@ -20,6 +20,7 @@ namespace Server
         private readonly Processing processing;
         private readonly System.Timers.Timer? timer;
         private bool disconnectstarted;
+        private bool auth = false;
         public Client(Server server, TcpClient client)
         {
             this.server = server;
@@ -126,17 +127,20 @@ namespace Server
                         else
                         {
                             //Message can't fit into buffer
+                            if (auth)
+                            {
+                                //Do it only if client is authenticated
+                                //Create new buffer
+                                byte[] newbuffer = new byte[totalMessageSize];
+                                Console.WriteLine("new buffer created " + totalMessageSize);
 
-                            //Create new buffer
-                            byte[] newbuffer = new byte[totalMessageSize];
-                            Console.WriteLine("new buffer created "+totalMessageSize);
+                                //Copy to new buffer
+                                Array.Copy(buffer, bufferOffset, newbuffer, 0, availableBytes);
 
-                            //Copy to new buffer
-                            Array.Copy(buffer, bufferOffset, newbuffer, 0, availableBytes);
-
-                            //Update
-                            buffer = newbuffer;
-                            bufferOffset = 0;
+                                //Update
+                                buffer = newbuffer;
+                                bufferOffset = 0;
+                            }
                         }
                     }
 
@@ -196,6 +200,7 @@ namespace Server
                     //We got a login from remote server
                     await LoginRemoteServer(message);
                 }
+                auth = true;
             } catch (Exception ex) {
                 //Should be logged
                 await server.WriteLog(ex);
