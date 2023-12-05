@@ -20,7 +20,7 @@ From server to client:
 
 From server to server:
 1)WELCOME: SV= 1, Name= server_name, Server= true, Users= user1@server;user1@server
-	//Send list of users that have this home server, vut are connected to server_name
+	//Send list of users that have this home server, but are connected to server_name
 2)RELAY MESSAGE TO OTHER SERVER: CV= 1, Sender= username@server, Receiver= receiver@server_name, Msg= text_message, Data= binary_data
 	//Only one Receiver
 
