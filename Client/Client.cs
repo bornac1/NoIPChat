@@ -19,9 +19,6 @@ namespace Client
         public TcpClient client;
         public NetworkStream? stream;
         private readonly Processing processing;
-        private byte[] buffer = new byte[1024];
-        private int bytesRead;
-        private int bufferOffset;
         public BindingSource servers;
         public ConcurrentQueue<Messages.Message> messages_rec;
         private readonly StringBuilder value;
@@ -72,72 +69,12 @@ namespace Client
             {
                 try
                 {
-                    int availableBytes = bytesRead - bufferOffset;
-
-                    // Check if we have enough bytes in the buffer to read the size
-                    if (availableBytes >= sizeof(int))
+                    int length = await ReadLength();
+                    byte[]? data = await ReadData(length);
+                    if (data != null)
                     {
-                        int messageSize = BitConverter.ToInt32(buffer, bufferOffset);
-                        int totalMessageSize = sizeof(int) + messageSize;
-
-                        if (messageSize <= buffer.Length)
-                        {
-                            //Check if the entire message is already in the buffer
-                            if (totalMessageSize <= availableBytes)
-                            {
-                                byte[] messageBytes = new byte[messageSize];
-                                Array.Copy(buffer, bufferOffset + sizeof(int), messageBytes, 0, messageSize);
-
-                                // Move the remaining bytes in the buffer to the beginning
-                                Array.Copy(buffer, bufferOffset + totalMessageSize, buffer, 0, availableBytes - totalMessageSize);
-
-                                // Update the bytesRead and bufferOffset variables
-                                bytesRead = availableBytes - totalMessageSize;
-                                bufferOffset = 0;
-
-                                //Message processing starts
-                                try
-                                {
-                                    Messages.Message message = await processing.Deserialize(messageBytes);
-                                    await ProcessMessage(message);
-                                }
-                                catch (Exception ex)
-                                {
-                                    //Can't be fixed
-                                    //There is error with the message
-                                    //Just give up
-                                }
-                            }
-                        }
-                        else
-                        {
-                            //Message can't fit into buffer
-
-                            //Create new buffer
-                            byte[] newbuffer = new byte[totalMessageSize];
-
-                            //Copy to new buffer
-                            Array.Copy(buffer, bufferOffset, newbuffer, 0, availableBytes);
-
-                            //Update
-                            buffer = newbuffer;
-                            bufferOffset = 0;
-                        }
-                    }
-
-                    // Read more bytes from the stream
-                    if (stream != null)
-                    {
-                        int bytesReadNow = await stream.ReadAsync(buffer, bytesRead, buffer.Length - bytesRead);
-
-                        // Check if the stream has reached its end
-                        if (bytesReadNow == 0)
-                        {
-                            connected = false;
-                            break;
-                        }
-
-                        bytesRead += bytesReadNow;
+                        Messages.Message message = await processing.Deserialize(data);
+                        await ProcessMessage(message);
                     }
                 }
                 catch (Exception ex)
@@ -155,6 +92,26 @@ namespace Client
                     }
                 }
             }
+        }
+        private async Task<int> ReadLength()
+        {
+            if (stream != null)
+            {
+                byte[] buffer = new byte[4];
+                await stream.ReadAsync(buffer, 0, 4);
+                return BitConverter.ToInt32(buffer, 0);
+            }
+            return 0;
+        }
+        private async Task<byte[]?> ReadData(int length)
+        {
+            if (stream != null)
+            {
+                byte[] buffer = new byte[length];
+                await stream.ReadAsync(buffer, 0, length);
+                return buffer;
+            }
+            return null;
         }
         public async Task Login(string username, string password)
         {

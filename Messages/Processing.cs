@@ -10,13 +10,11 @@ namespace Messages
 {
     public class Processing
     {
-        private MemoryStream stream;
         /// <summary>
         /// Initializes processing.
         /// </summary>
         public Processing()
         {
-            stream = new MemoryStream();
         }
         /// <summary>
         /// Serialise given message into bytes.
@@ -26,14 +24,11 @@ namespace Messages
         {
             try
             {
-                await MessagePackSerializer.SerializeAsync(stream, message);
-                byte[] bytes = stream.ToArray();
-                stream.Position = 0;
-                stream.SetLength(0);
+                byte[] bytes = await Task.Run(()=> { return MessagePackSerializer.Serialize(message); });
                 return bytes;
             } catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.ToString());
             }
             return null;
         }
@@ -45,36 +40,11 @@ namespace Messages
         {
             try
             {
-                await stream.WriteAsync(bytes);
-                await stream.FlushAsync();
-                stream.Position = 0;
-                Message message = await MessagePackSerializer.DeserializeAsync<Message>(stream);
-                stream.Position = 0;
-                stream.SetLength(0);
+                Message message = await Task.Run(() => { return MessagePackSerializer.Deserialize<Message>(bytes); });
                 return message;
             } catch(Exception ex)
             {
-                Console.WriteLine(ex.Message);
-            }
-            return new Message();
-        }
-        /// <summary>
-        /// Deseliazies bytes from MemoryStream into message. It will delete data from MemoryStream.
-        /// </summary>
-        /// <param name="stream">MemoryStream</param>
-        public async Task<Message> Deserialize(MemoryStream stream)
-        {
-            try
-            {
-                stream.Position = 0;
-                Message message = await MessagePackSerializer.DeserializeAsync<Message>(stream);
-                stream.Position = 0;
-                stream.SetLength(0);
-                return message;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.ToString());
             }
             return new Message();
         }
@@ -82,12 +52,9 @@ namespace Messages
         /// Serializes file into bytes.
         /// </summary>
         /// <param name="file">File to be serialized.</param>
-        public async Task<byte[]> SerializeFile(File file)
+        public async Task<byte[]?> SerializeFile(File file)
         {
-            await MessagePackSerializer.SerializeAsync(stream, file);
-            byte[] bytes = stream.ToArray();
-            stream.Position = 0;
-            stream.SetLength(0);
+            byte[] bytes = await Task.Run(() => { return MessagePackSerializer.Serialize(file); });
             return bytes;
         }
         /// <summary>
@@ -96,12 +63,7 @@ namespace Messages
         /// <param name="bytes">Bytes to be deserialized.</param>
         public async Task<File> DeserializeFile(byte[] bytes)
         {
-            await stream.WriteAsync(bytes);
-            await stream.FlushAsync();
-            stream.Position = 0;
-            File file = await MessagePackSerializer.DeserializeAsync<File>(stream);
-            stream.Position = 0;
-            stream.SetLength(0);
+            File file = await Task.Run(() => { return MessagePackSerializer.Deserialize<File>(bytes); });
             return file;
         }
         /// <summary>
@@ -109,8 +71,6 @@ namespace Messages
         /// </summary>
         public async Task Close()
         {
-            stream.Close();
-            await stream.DisposeAsync();
         }
         /// <summary>
         /// Serialise given APIMessage into bytes.
@@ -118,10 +78,7 @@ namespace Messages
         /// <param name="message">Message to be serialised.</param>
         public async Task<byte[]> SerializeAPI(APIMessage message)
         {
-            await MessagePackSerializer.SerializeAsync(stream, message);
-            byte[] bytes = stream.ToArray();
-            stream.Position = 0;
-            stream.SetLength(0);
+            byte[] bytes = await Task.Run(() => { return MessagePackSerializer.Serialize(message); });
             return bytes;
         }
         /// <summary>
@@ -130,12 +87,7 @@ namespace Messages
         /// <param name="bytes">Bytes to be deserialized.</param>
         public async Task<APIMessage> DeserializeAPI(byte[] bytes)
         {
-            await stream.WriteAsync(bytes);
-            await stream.FlushAsync();
-            stream.Position = 0;
-            APIMessage message = await MessagePackSerializer.DeserializeAsync<APIMessage>(stream);
-            stream.Position = 0;
-            stream.SetLength(0);
+            APIMessage message = await Task.Run(()=>{ return MessagePackSerializer.Deserialize<APIMessage>(bytes); });
             return message;
         }
     }

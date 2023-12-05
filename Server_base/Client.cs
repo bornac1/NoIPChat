@@ -15,7 +15,6 @@ namespace Server
         private bool isremote = false; //This is connection to remote server
         private readonly TcpClient client;
         private NetworkStream? stream;
-        private byte[] buffer = new byte[1024];
         private bool connected;
         private readonly Processing processing;
         private readonly System.Timers.Timer? timer;
@@ -86,124 +85,70 @@ namespace Server
         }
         private async Task Receive()
         {
-            int bytesRead = 0;
-            int bufferOffset = 0;
-            using (MemoryStream memoryStream = new MemoryStream())
+            while (connected)
             {
-                while (connected)
+                try
                 {
-                    try
+                    int length = await ReadLength();
+                    if (length > 1024 && !auth)
                     {
-                        int availableBytes = bytesRead - bufferOffset;
-
-                        // Check if we have enough bytes in the buffer to read the size
-                        if (availableBytes >= sizeof(int))
-                        {
-                            int messageSize = BitConverter.ToInt32(buffer, bufferOffset);
-                            int totalMessageSize = sizeof(int) + messageSize;
-
-                            if (messageSize <= buffer.Length)
-                            {
-                                //Message can fit into buffer
-
-                                if(messageSize*2 < buffer.Length && buffer.Length > 1024)
-                                {
-                                    //Buffer is too large
-
-                                    //Create new buffer
-                                    byte[] newbuffer = new byte[totalMessageSize];
-                                    Console.WriteLine("new buffer created " + totalMessageSize);
-
-                                    //Copy to new buffer
-                                    Array.Copy(buffer, bufferOffset, newbuffer, 0, availableBytes);
-
-                                    //Update
-                                    buffer = newbuffer;
-                                    bufferOffset = 0;
-                                }
-
-                                // Check if the entire message is already in the buffer
-                                if (totalMessageSize <= availableBytes)
-                                {
-                                    //Write message to memorystream
-                                    await memoryStream.WriteAsync(buffer, bufferOffset + sizeof(int), messageSize);
-                                    await memoryStream.FlushAsync();
-
-                                    // Move the remaining bytes in the buffer to the beginning
-                                    Array.Copy(buffer, bufferOffset + totalMessageSize, buffer, 0, availableBytes - totalMessageSize);
-
-                                    // Update the bytesRead and bufferOffset variables
-                                    bytesRead = availableBytes - totalMessageSize;
-                                    bufferOffset = 0;
-
-                                    //Message processing starts
-                                    Message message = await processing.Deserialize(memoryStream);
-                                    await ProcessMessage(message);
-                                }
-                            }
-                            else
-                            {
-                                //Message can't fit into buffer
-                                if (auth)
-                                {
-                                    //Do it only if client is authenticated
-                                    //Create new buffer
-                                    byte[] newbuffer = new byte[totalMessageSize];
-                                    Console.WriteLine("new buffer created " + totalMessageSize);
-
-                                    //Copy to new buffer
-                                    Array.Copy(buffer, bufferOffset, newbuffer, 0, availableBytes);
-
-                                    //Update
-                                    buffer = newbuffer;
-                                    bufferOffset = 0;
-                                }
-                            }
-                        }
-
-                        // Read more bytes from the stream
-                        if (stream != null)
-                        {
-                            int bytesReadNow = await stream.ReadAsync(buffer, bytesRead, buffer.Length - bytesRead);
-
-                            // Check if the stream has reached its end
-                            if (bytesReadNow == 0)
-                            {
-                                connected = false;
-                                break;
-                            }
-
-                            bytesRead += bytesReadNow;
-                            if (timer != null)
-                            {
-                                //Reset timer
-                                timer.Stop();
-                                timer.Start();
-                            }
-                        }
+                        //Not authenticated can't send large messages
                     }
-                    catch (Exception ex)
+                    //only authenticated can send larger message
+                    byte[]? data = await ReadData(length);
+                    if (data != null)
                     {
-                        if (ex is IOException)
+                        Message message = await processing.Deserialize(data);
+                        await ProcessMessage(message);
+                        if (timer != null)
                         {
-                            //assume disconnection
-                            //No need for logging
+                            //Reset timer
+                            timer.Stop();
+                            timer.Start();
                         }
-                        else if (ex is ObjectDisposedException)
-                        {
-                            //already disposed
-                            //No need for logging
-                        }
-                        else
-                        {
-                            //Should be logged
-                            await server.WriteLog(ex);
-                        }
-                        connected = false;
-                        await Disconnect();
                     }
                 }
+                catch (Exception ex)
+                {
+                    if (ex is IOException)
+                    {
+                        //assume disconnection
+                        //No need for logging
+                    }
+                    else if (ex is ObjectDisposedException)
+                    {
+                        //already disposed
+                        //No need for logging
+                    }
+                    else
+                    {
+                        //Should be logged
+                        await server.WriteLog(ex);
+                    }
+                    connected = false;
+                    await Disconnect();
+                }
             }
+        }   
+        private async Task<int> ReadLength()
+        {
+            if (stream != null)
+            {
+                byte[] buffer = new byte[4];
+                await stream.ReadAsync(buffer, 0, 4);
+                return BitConverter.ToInt32(buffer, 0);
+            }
+            return 0;
+        }
+        private async Task<byte[]?> ReadData(int length)
+        {
+            if (stream != null)
+            {
+                byte[] buffer = new byte[length];
+                await stream.ReadAsync(buffer, 0, length);
+                return buffer;
+            }
+            return null;
         }
         private async Task Login(Message message)
         {
@@ -219,7 +164,6 @@ namespace Server
                     //We got a login from remote server
                     await LoginRemoteServer(message);
                 }
-                auth = true;
             } catch (Exception ex) {
                 //Should be logged
                 await server.WriteLog(ex);
@@ -290,6 +234,7 @@ namespace Server
                     };
                     await SendMessage(msg);
                     await SendAllMessages();
+                    //Set auth
                 }
                 else
                 {
@@ -582,6 +527,7 @@ namespace Server
                         //connected
                         await stream.WriteAsync(length);
                         await stream.WriteAsync(data);
+                        Console.WriteLine(message.Msg);
                         //Reset timer
                         if (timer != null)
                         {
@@ -611,7 +557,21 @@ namespace Server
             }
             catch (Exception ex)
             {
-                //Assume disconnection
+                if (ex is IOException)
+                {
+                    //assume disconnection
+                    //No need for logging
+                }
+                else if (ex is ObjectDisposedException)
+                {
+                    //already disposed
+                    //No need for logging
+                }
+                else
+                {
+                    //Should be logged
+                    await server.WriteLog(ex);
+                }
                 if (!msgerror)
                 {
                     //Save message to be sent later
@@ -743,13 +703,13 @@ namespace Server
         {
             _ = DisconnectNoUse();
         }
-        private static void Print(byte[] bytes)
+        /*private static void Print(byte[] bytes)
         {
             foreach (byte b in bytes)
             {
                 string byteString = b.ToString("X2"); // Convert to hexadecimal string
                 Console.Write(byteString + " ");
             }
-        }
+        }*/
     }
 }

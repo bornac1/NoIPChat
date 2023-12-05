@@ -69,7 +69,7 @@ namespace Client
             ReturnDefault();
         }
 
-        private async void button3_Click(object sender, EventArgs e)
+        private async void Button3_Click(object sender, EventArgs e)
         {
             await client.PrintReceivedMessages();
             display.Update();
