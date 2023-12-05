@@ -30,7 +30,6 @@ namespace Server
             connected = true;
             processing = new Processing();
             _ = Receive();
-            //Console.WriteLine("Accepted.");
         }
         public Client(Server server, string name, string localip, string ip, int port, int timeout)
         {
@@ -223,7 +222,6 @@ namespace Server
                     if (!server.remoteusers.TryAdd(message.User.ToLower(), server.name))
                     {
                         //Already exsists
-                        //Console.WriteLine("Error add to remote users list");
                     }
                     await SendMessage(msg);
                     await SendAllMessagesRemoteUser(message.User);
@@ -253,14 +251,12 @@ namespace Server
                         {
                             //Fails once again
                             //Don't know why
-                            //Console.WriteLine("Error add to clients list");
                         }
                     }
                     else
                     {
                         //Doesn't exsist already
                         //Why it fails??????
-                        //Console.WriteLine("Error add to clients list");
                     }
                 }
                 var usr = user.Split("@");
@@ -272,7 +268,6 @@ namespace Server
                     {
                         Auth = true
                     };
-                    //Console.WriteLine("Autheticated");
                     await SendMessage(msg);
                     await SendAllMessages();
                 }
@@ -328,8 +323,7 @@ namespace Server
         {
             if (!server.remoteservers.TryRemove(name.ToLower(), out _))
             {
-                //Remote server is already removed?
-                //Console.WriteLine("Error remove remote server from list");
+                //Remote server is already removed
             }
             foreach (string user in server.remoteusers.Keys)
             {
@@ -339,8 +333,7 @@ namespace Server
                     {
                         if (!server.remoteusers.TryRemove(user.ToLower(), out _))
                         {
-                            //Is it already removed?
-                            //Console.WriteLine("Error remove remote user from list by server");
+                            //Is it already removed
                         }
                     }
                 }
@@ -359,7 +352,6 @@ namespace Server
             if (!server.clients.TryRemove(user.ToLower(), out _))
             {
                 //Probably already removed or not added at all
-                //Console.WriteLine("Error remove client from list");
             }
             var usr = user.Split("@");
             if (usr[1] != server.name)
@@ -559,8 +551,8 @@ namespace Server
         public async Task<bool> SendMessage(Message message)
         {
             bool msgerror = false;
-            /*try
-            {*/
+            try
+            {
                 byte[]? data = await processing.Serialize(message);
                 if (data != null)
                 {
@@ -596,7 +588,7 @@ namespace Server
                     return false;
                     //Console.WriteLine("Message error");
                 }
-            /*}
+            }
             catch (Exception ex)
             {
                 //Assume disconnection
@@ -610,7 +602,7 @@ namespace Server
                 }
                 connected = false;
                 await Disconnect();
-            }*/
+            }
             return false;
         }
         public async Task SendAllMessages()
