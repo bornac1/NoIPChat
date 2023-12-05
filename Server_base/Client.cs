@@ -1,4 +1,6 @@
 ﻿using Messages;
+using System.Diagnostics;
+using System.Formats.Asn1;
 using System.Net;
 using System.Net.Sockets;
 
@@ -13,11 +15,9 @@ namespace Server
         private bool isremote = false; //This is connection to remote server
         private readonly TcpClient client;
         private NetworkStream? stream;
-        private readonly byte[] buffer = new byte[1024];
+        private byte[] buffer = new byte[1024];
         private bool connected;
         private readonly Processing processing;
-        private int bytesRead;
-        private int bufferOffset;
         private readonly System.Timers.Timer? timer;
         private bool disconnectstarted;
         public Client(Server server, TcpClient client)
@@ -51,8 +51,8 @@ namespace Server
         }
         private async Task Connect(string name, string ip, int port)
         {
-            try
-            {
+            /*try
+            {*/
                 await client.ConnectAsync(IPAddress.Parse(ip), port);
                 stream = client.GetStream();
                 connected = true;
@@ -67,7 +67,7 @@ namespace Server
                 };
                 await SendMessage(message);
                 _ = Receive();
-            } catch (Exception ex) { 
+            /*} catch (Exception ex) { 
                 //Exception should be logged
                 if(ex is SocketException)
                 {
@@ -82,10 +82,13 @@ namespace Server
                     await Disconnect();
                     await server.WriteLog(ex);
                 }
-            }
+            }*/
         }
         private async Task Receive()
         {
+            int bytesRead = 0;
+            int bufferOffset = 0;
+            MemoryStream memoryStream = new MemoryStream();
             while (connected)
             {
                 try
@@ -98,31 +101,50 @@ namespace Server
                         int messageSize = BitConverter.ToInt32(buffer, bufferOffset);
                         int totalMessageSize = sizeof(int) + messageSize;
 
-                        // Check if the entire message fits in the buffer
-                        if (totalMessageSize <= availableBytes)
+                        if (messageSize <= buffer.Length)
                         {
-                            byte[] messageBytes = new byte[messageSize];
-                            Array.Copy(buffer, bufferOffset + sizeof(int), messageBytes, 0, messageSize);
+                            // Check if the entire message is already in the buffer
+                            if (totalMessageSize <= availableBytes)
+                            {
+                                //Copy message to messageBytes
+                                byte[] messageBytes = new byte[messageSize];
+                                Array.Copy(buffer, bufferOffset + sizeof(int), messageBytes, 0, messageSize);
 
-                            // Move the remaining bytes in the buffer to the beginning
-                            Array.Copy(buffer, bufferOffset + totalMessageSize, buffer, 0, availableBytes - totalMessageSize);
+                                // Move the remaining bytes in the buffer to the beginning
+                                Array.Copy(buffer, bufferOffset + totalMessageSize, buffer, 0, availableBytes - totalMessageSize);
 
-                            // Update the bytesRead and bufferOffset variables
-                            bytesRead = availableBytes - totalMessageSize;
+                                // Update the bytesRead and bufferOffset variables
+                                bytesRead = availableBytes - totalMessageSize;
+                                bufferOffset = 0;
+
+                                //Message processing starts
+                                try
+                                {
+                                    Message message = await processing.Deserialize(messageBytes);
+                                    await ProcessMessage(message);
+                                }
+                                catch (Exception ex)
+                                {
+                                    //Can't be fixed
+                                    //There is error with the message
+                                    //Just give up
+                                }
+                            }
+                        }
+                        else
+                        {
+                            //Message can't fit into buffer
+
+                            //Create new buffer
+                            byte[] newbuffer = new byte[totalMessageSize];
+                            Console.WriteLine("new buffer created "+totalMessageSize);
+
+                            //Copy to new buffer
+                            Array.Copy(buffer, bufferOffset, newbuffer, 0, availableBytes);
+
+                            //Update
+                            buffer = newbuffer;
                             bufferOffset = 0;
-
-                            //Message processing starts
-                            try
-                            {
-                                Message message = await processing.Deserialize(messageBytes);
-                                await ProcessMessage(message);
-                            }
-                            catch (Exception ex)
-                            {
-                                //Can't be fixed
-                                //There is error with the message
-                                //Just give up
-                            }
                         }
                     }
 
@@ -354,8 +376,8 @@ namespace Server
         }
         private async Task ProcessMessage(Message message)
         {
-            try
-            {
+            /*try
+            {*/
                 if (message.Server == true)
                 {
                     isserver = true;
@@ -494,17 +516,17 @@ namespace Server
                         }
                     }
                 }
-            } catch (Exception ex)
+            /*} catch (Exception ex)
             {
                 //Should be logged
                 await server.WriteLog(ex);
-            }
+            }*/
         }
         public async Task<bool> SendMessage(Message message)
         {
             bool msgerror = false;
-            try
-            {
+            /*try
+            {*/
                 byte[]? data = await processing.Serialize(message);
                 if (data != null)
                 {
@@ -514,7 +536,6 @@ namespace Server
                         //connected
                         await stream.WriteAsync(length);
                         await stream.WriteAsync(data);
-                        Console.WriteLine("sent " + message.Msg + " to " + message.Receiver);
                         //Reset timer
                         if (timer != null)
                         {
@@ -541,7 +562,7 @@ namespace Server
                     return false;
                     //Console.WriteLine("Message error");
                 }
-            }
+            /*}
             catch (Exception ex)
             {
                 //Assume disconnection
@@ -555,7 +576,7 @@ namespace Server
                 }
                 connected = false;
                 await Disconnect();
-            }
+            }*/
             return false;
         }
         public async Task SendAllMessages()
@@ -676,13 +697,13 @@ namespace Server
         {
             _ = DisconnectNoUse();
         }
-        /*private static void Print(byte[] bytes)
+        private static void Print(byte[] bytes)
         {
             foreach (byte b in bytes)
             {
                 string byteString = b.ToString("X2"); // Convert to hexadecimal string
                 Console.Write(byteString + " ");
             }
-        }*/
+        }
     }
 }

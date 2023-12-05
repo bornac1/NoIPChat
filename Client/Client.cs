@@ -19,7 +19,7 @@ namespace Client
         public TcpClient client;
         public NetworkStream? stream;
         private readonly Processing processing;
-        private readonly byte[] buffer = new byte[1024];
+        private byte[] buffer = new byte[1024];
         private int bytesRead;
         private int bufferOffset;
         public BindingSource servers;
@@ -80,31 +80,48 @@ namespace Client
                         int messageSize = BitConverter.ToInt32(buffer, bufferOffset);
                         int totalMessageSize = sizeof(int) + messageSize;
 
-                        // Check if the entire message fits in the buffer
-                        if (totalMessageSize <= availableBytes)
+                        if (messageSize <= buffer.Length)
                         {
-                            byte[] messageBytes = new byte[messageSize];
-                            Array.Copy(buffer, bufferOffset + sizeof(int), messageBytes, 0, messageSize);
+                            //Check if the entire message is already in the buffer
+                            if (totalMessageSize <= availableBytes)
+                            {
+                                byte[] messageBytes = new byte[messageSize];
+                                Array.Copy(buffer, bufferOffset + sizeof(int), messageBytes, 0, messageSize);
 
-                            // Move the remaining bytes in the buffer to the beginning
-                            Array.Copy(buffer, bufferOffset + totalMessageSize, buffer, 0, availableBytes - totalMessageSize);
+                                // Move the remaining bytes in the buffer to the beginning
+                                Array.Copy(buffer, bufferOffset + totalMessageSize, buffer, 0, availableBytes - totalMessageSize);
 
-                            // Update the bytesRead and bufferOffset variables
-                            bytesRead = availableBytes - totalMessageSize;
+                                // Update the bytesRead and bufferOffset variables
+                                bytesRead = availableBytes - totalMessageSize;
+                                bufferOffset = 0;
+
+                                //Message processing starts
+                                try
+                                {
+                                    Messages.Message message = await processing.Deserialize(messageBytes);
+                                    await ProcessMessage(message);
+                                }
+                                catch (Exception ex)
+                                {
+                                    //Can't be fixed
+                                    //There is error with the message
+                                    //Just give up
+                                }
+                            }
+                        }
+                        else
+                        {
+                            //Message can't fit into buffer
+
+                            //Create new buffer
+                            byte[] newbuffer = new byte[totalMessageSize];
+
+                            //Copy to new buffer
+                            Array.Copy(buffer, bufferOffset, newbuffer, 0, availableBytes);
+
+                            //Update
+                            buffer = newbuffer;
                             bufferOffset = 0;
-
-                            //Message processing starts
-                            try
-                            {
-                                Messages.Message message = await processing.Deserialize(messageBytes);
-                                await ProcessMessage(message);
-                            }
-                            catch (Exception ex)
-                            {
-                                //Can't be fixed
-                                //There is error with the message
-                                //Just give up
-                            }
                         }
                     }
 

@@ -3,28 +3,26 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
+using Configuration;
 
 namespace Server
 {
     public partial class Server
     {
         public float SV = 1;
-        private readonly TcpListener listener;
+        private readonly TcpListener[] listeners;
         public string name;
         private bool active;
-        private readonly string ip;
+        private bool serversloaded = false;
         public ConcurrentDictionary<string, Client> clients; //Connected clients
         public ConcurrentDictionary<string, Client> remoteservers; //Connected remote servers
         public ConcurrentDictionary<string, ConcurrentQueue<Message>> messages; //Messages to be sent to users who's home server is this
         public ConcurrentDictionary<string, ConcurrentQueue<Message>> messages_server; //Messages to be sent to remote server
         public ConcurrentDictionary<string, string> remoteusers; //Users whos home server is this, but are connected to remote one
         public ConcurrentDictionary<string, Servers> servers; //Know servers
-        public Server(string name, string IP, int port)
+        public Server(string name, List<Interface> interfaces)
         {
             this.name = name.ToLower();
-            ip = IP;
-            listener = new TcpListener(IPAddress.Parse(ip), port);
-            listener.Start();
             active = true;
             clients = new ConcurrentDictionary<string, Client>();
             messages = new ConcurrentDictionary<string, ConcurrentQueue<Message>>();
@@ -32,12 +30,24 @@ namespace Server
             messages_server = new ConcurrentDictionary<string, ConcurrentQueue<Message>>();
             remoteusers = new ConcurrentDictionary<string, string>();
             servers = new ConcurrentDictionary<string, Servers>();
-            _ = Accept();
+            List<TcpListener> listeners1 = [];
+            foreach (Interface iface in interfaces)
+            {
+                TcpListener listener = new(IPAddress.Parse(iface.InterfaceIP), iface.Port);
+                listener.Start();
+                _ = Accept(listener);
+                listeners1.Add(listener);
+            }
+            listeners = [.. listeners1];
         }
-        private async Task Accept()
+        private async Task Accept(TcpListener listener)
         {
             //Loads data into memmory
-            await LoadServers();
+            if (!serversloaded)
+            {
+                await LoadServers();
+                serversloaded = true;
+            }
             while (active)
             {
                 _ = new Client(this, await listener.AcceptTcpClientAsync());
@@ -231,8 +241,11 @@ namespace Server
             try
             {
                 active = false;
-                listener.Stop();
-                listener.Dispose();
+                foreach (TcpListener listener in listeners)
+                {
+                    listener.Stop();
+                    listener.Dispose();
+                }
                 //Disconnect clients
                 foreach (var client in clients)
                 {
@@ -302,7 +315,7 @@ namespace Server
             try
             {
                 await System.IO.File.AppendAllTextAsync("Server.log", log);
-            } catch (Exception _)
+            } catch (Exception)
             {
                 Console.WriteLine("Can't save log to file.");
                 Console.WriteLine(log);

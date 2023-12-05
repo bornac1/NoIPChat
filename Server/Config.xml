@@ -2,8 +2,13 @@
 <Configuration>
 	<Server>
 		<Name>Server1</Name>
-		<IP>127.0.0.1</IP>
-		<Port>10001</Port>
+		<Interfaces>
+			<Interface>
+				<InterfaceIP>127.0.0.1</InterfaceIP>
+				<IP>127.0.0.1</IP>
+				<Port>10001</Port>
+			</Interface>
+		</Interfaces>
 	</Server>
 	<Remote>
 		<Active>false</Active>

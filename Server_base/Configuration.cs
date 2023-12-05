@@ -11,6 +11,14 @@ namespace Configuration
     public class Server
     {
         public required string Name { get; set; }
+        public required List<Interface> Interfaces { get; set; }
+        public required int Port { get; set; }
+    }
+
+    [Serializable]
+    public class Interface
+    {
+        public required string InterfaceIP { get; set; }
         public required string IP { get; set; }
         public required int Port { get; set; }
     }

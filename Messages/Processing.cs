@@ -59,6 +59,25 @@ namespace Messages
             return new Message();
         }
         /// <summary>
+        /// Deseliazies bytes from MemoryStream into message. It will delete data from MemoryStream.
+        /// </summary>
+        /// <param name="stream">MemoryStream</param>
+        public async Task<Message> Deserialize(MemoryStream stream)
+        {
+            try
+            {
+                Message message = await MessagePackSerializer.DeserializeAsync<Message>(stream);
+                stream.Position = 0;
+                stream.SetLength(0);
+                return message;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return new Message();
+        }
+        /// <summary>
         /// Serializes file into bytes.
         /// </summary>
         /// <param name="file">File to be serialized.</param>

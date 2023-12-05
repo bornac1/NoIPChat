@@ -18,13 +18,13 @@ namespace Server
                 }
                 if (Config != null)
                 {
-                    Server server = new(Config.Server.Name, Config.Server.IP, Config.Server.Port);
+                    Server server = new(Config.Server.Name, Config.Server.Interfaces);
                 }
                 else
                 {
                     Console.WriteLine("Error config.");
                 }
-            } catch (Exception ex)
+            } catch (Exception)
             {
                 Console.WriteLine("Error config.");
             }

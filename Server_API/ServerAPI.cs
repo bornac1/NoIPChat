@@ -1,4 +1,5 @@
-﻿using Messages;
+﻿using Configuration;
+using Messages;
 using Server;
 using System.Runtime.CompilerServices;
 
@@ -20,11 +21,10 @@ namespace Server
         ///>Creates new Server.
         ///</summary>
         ///<param name="name">Name of the server.</param>
-        ///<param name="IP">IP address of the server.</param>
-        ///<param name="port">Port used by the server.</param>
-        public void CreateServer(string name, string IP, int port)
+        ///<param name="interfaces">List of netwok interfaces used by server</param>
+        public void CreateServer(string name, List<Interface> interfaces)
         {
-            server = new Server(name, IP, port);
+            server = new Server(name, interfaces);
         }
         ///<summary>
         ///Sends message from server to user.
