@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.ComponentModel;
 
 namespace Client
 {
@@ -37,7 +29,7 @@ namespace Client
         }
         private async void Grid_RowesRemoved(object? sender, DataGridViewRowsRemovedEventArgs e)
         {
-            if (e.RowIndex >= 0 && e.RowIndex <grid.Rows.Count)
+            if (e.RowIndex >= 0 && e.RowIndex < grid.Rows.Count)
             {
                 await UpdateFile();
             }

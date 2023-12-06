@@ -1,9 +1,9 @@
-﻿using System.Net;
-using System.Net.Sockets;
-using Messages;
+﻿using Messages;
 using System.Collections.Concurrent;
-using System.Text.Json;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 
 namespace Client
 {
@@ -40,11 +40,11 @@ namespace Client
         public async Task Connect(Servers srv)
         {
             try
-                {
-                    client = new TcpClient();
-                    await client.ConnectAsync(IPAddress.Parse(srv.IP), srv.Port);
-                    stream = client.GetStream();
-                    connected = true;
+            {
+                client = new TcpClient();
+                await client.ConnectAsync(IPAddress.Parse(srv.IP), srv.Port);
+                stream = client.GetStream();
+                connected = true;
             }
             catch (Exception ex)
             {
@@ -153,10 +153,11 @@ namespace Client
                         await stream.WriteAsync(length);
                         await stream.WriteAsync(data);
                         return true;
-                    } 
+                    }
                     return false;
                 }
-                else{
+                else
+                {
                     //Message error
                     msgerror = true;
                 }
@@ -189,9 +190,9 @@ namespace Client
         public (string?, int) GetServer(string name)
         {
             name = name.ToLower();
-            foreach(Servers server in servers)
+            foreach (Servers server in servers)
             {
-                if(server.Name == name)
+                if (server.Name == name)
                 {
                     return (server.IP, server.Port);
                 }
@@ -200,14 +201,16 @@ namespace Client
         }
         private async Task ProcessMessage(Messages.Message message)
         {
-            if(message.Auth == true)
+            if (message.Auth == true)
             {
                 //User is authenticated
                 auth = true;
-            } else if (message.Auth == false)
+            }
+            else if (message.Auth == false)
             {
                 auth = false;
-            } else if(message.Msg != null || message.Data != null)
+            }
+            else if (message.Msg != null || message.Data != null)
             {
                 await PrintMessage(message);
             }
@@ -243,13 +246,13 @@ namespace Client
                 MessageBox.Show("We have " + messages_rec.Count);
                 for (int i = 0; i < messages_rec.Count; i++)
                 {
-                    MessageBox.Show("printing "+i);
+                    MessageBox.Show("printing " + i);
                     messages_rec.TryDequeue(out var message);
                     await PrintMessage(message);
                 }
             }
         }
-        public async Task Disconnect(bool force= false)
+        public async Task Disconnect(bool force = false)
         {
             if (!disconnectstarted)
             {
@@ -303,7 +306,8 @@ namespace Client
                         servers.Add(srv);
                     }
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 //Logging
                 await WriteLog(ex);
@@ -342,7 +346,7 @@ namespace Client
             catch (Exception)
             {
                 MessageBox.Show("Can't save log to file.");
-               // Console.WriteLine(log);
+                // Console.WriteLine(log);
             }
         }
     }

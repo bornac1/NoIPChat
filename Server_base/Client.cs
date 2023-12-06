@@ -1,12 +1,7 @@
-﻿using Messages;
-using System.Diagnostics;
-using System.Formats.Asn1;
+﻿using MessagePack;
+using Messages;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection.Metadata;
-using MessagePack;
-using Configuration;
-using System.Net.Http.Headers;
 
 namespace Server
 {
@@ -79,9 +74,11 @@ namespace Server
                 {
                     throw new Exception("GetInterfacebyIP error");
                 }
-            } catch (Exception ex) { 
+            }
+            catch (Exception ex)
+            {
                 //Exception should be logged
-                if(ex is SocketException)
+                if (ex is SocketException)
                 {
                     //Problem connecting
                     //No need for logging
@@ -142,7 +139,7 @@ namespace Server
                     await Disconnect();
                 }
             }
-        }   
+        }
         private async Task<int> ReadLength()
         {
             if (stream != null)
@@ -152,7 +149,7 @@ namespace Server
                 int offset = 0;
                 while (totalread < buffer.Length)
                 {
-                    int read = await stream.ReadAsync(buffer, offset, buffer.Length-totalread);
+                    int read = await stream.ReadAsync(buffer, offset, buffer.Length - totalread);
                     totalread += read;
                     offset += read;
                 }
@@ -169,7 +166,7 @@ namespace Server
                 int offset = 0;
                 while (totalread < buffer.Length)
                 {
-                    int read = await stream.ReadAsync(buffer, offset, buffer.Length-totalread);
+                    int read = await stream.ReadAsync(buffer, offset, buffer.Length - totalread);
                     totalread += read;
                     offset += read;
                 }
@@ -191,7 +188,9 @@ namespace Server
                     //We got a login from remote server
                     await LoginRemoteServer(message);
                 }
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 //Should be logged
                 await server.WriteLog(ex);
             }
@@ -307,7 +306,9 @@ namespace Server
                         //Try to reconnect to remote server
                     }
                 }
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 //Should be logged
                 await server.WriteLog(ex);
             }
@@ -363,15 +364,15 @@ namespace Server
         private void DisconnectRemoteUser(Message message)
         {
             if (isserver || isremote)
+            {
+                if (message.User != null)
                 {
-                    if (message.User != null)
+                    if (!server.remoteusers.TryRemove(message.User.ToLower(), out _))
                     {
-                        if (!server.remoteusers.TryRemove(message.User.ToLower(), out _))
-                        {
-                            //User wasn't even in dictionary
-                        }
+                        //User wasn't even in dictionary
                     }
                 }
+            }
         }
         private async Task ProcessMessage(Message message)
         {
@@ -393,7 +394,8 @@ namespace Server
                     //Client is connected or this is connection to remote server
                     await ProcessClientMessage(message);
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 //Should be logged
                 await server.WriteLog(ex);
@@ -421,13 +423,14 @@ namespace Server
                 //Authentication message
                 if (message.Receiver != null)
                 {
-                    if(message.Auth == true)
+                    if (message.Auth == true)
                     {
                         auth = true;
                     }
                     await server.SendMessage(message.Receiver, message);
                 }
-            } else if (message.Users != null)
+            }
+            else if (message.Users != null)
             {
                 //List of users
                 await ProcessRemoteServerUsers(message);
@@ -474,26 +477,27 @@ namespace Server
                     //Save to file
                     await server.SaveServers();
                 }
-                else {
+                else
+                {
                     //Known server
                     //Check if it still uses the same ip and port
                     if (server.servers.TryGetValue(name, out Servers? srv))
                     {
-                        if(srv != null && data.IP != null && data.Port != null)
+                        if (srv != null && data.IP != null && data.Port != null)
                         {
                             //We have all data required to check
-                            if(srv.RemoteIP != data.IP)
+                            if (srv.RemoteIP != data.IP)
                             {
                                 //Replace remote ip
                                 srv.RemoteIP = data.IP;
                             }
-                            if(srv.RemotePort != data.Port)
+                            if (srv.RemotePort != data.Port)
                             {
                                 //Replace port
                                 srv.RemotePort = (int)data.Port;
                             }
                             //Check if we have saved the same ip on which we got this message
-                            if(srv.LocalIP != localip)
+                            if (srv.LocalIP != localip)
                             {
                                 srv.LocalIP = localip;
                             }
@@ -502,9 +506,10 @@ namespace Server
                 }
                 //Send users
                 var users = server.GetUsersServer(name);
-                if (users != null) {
+                if (users != null)
+                {
                     //Only if there are any users
-                    await SendMessage(new Message() { SV = server.SV, Name = server.name, Users = users});
+                    await SendMessage(new Message() { SV = server.SV, Name = server.name, Users = users });
                 }
             }
         }
@@ -682,7 +687,7 @@ namespace Server
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
                     Console.WriteLine("have to send " + messages.Count);
-                    for (int i =0; i< messages.Count; i++)
+                    for (int i = 0; i < messages.Count; i++)
                     {
                         Console.WriteLine("sending " + i);
                         messages.TryDequeue(out Message message);
@@ -704,7 +709,7 @@ namespace Server
             {
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
-                    for (int i = 0; i< messages.Count; i++)
+                    for (int i = 0; i < messages.Count; i++)
                     {
                         messages.TryDequeue(out Message message);
                         await SendMessage(message);
@@ -783,7 +788,8 @@ namespace Server
                         await Disconnect();
                     }
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 //Logging just in case
                 await server.WriteLog(ex);

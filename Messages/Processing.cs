@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using MessagePack;
+﻿using MessagePack;
 
 namespace Messages
 {
@@ -24,9 +18,10 @@ namespace Messages
         {
             try
             {
-                byte[] bytes = await Task.Run(()=> { return MessagePackSerializer.Serialize(message); });
+                byte[] bytes = await Task.Run(() => { return MessagePackSerializer.Serialize(message); });
                 return bytes;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
@@ -42,7 +37,8 @@ namespace Messages
             {
                 Message message = await Task.Run(() => { return MessagePackSerializer.Deserialize<Message>(bytes); });
                 return message;
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
@@ -81,7 +77,7 @@ namespace Messages
         /// <param name="bytes">Bytes to be deserialized.</param>
         public static async Task<APIMessage> DeserializeAPI(byte[] bytes)
         {
-            APIMessage message = await Task.Run(()=>{ return MessagePackSerializer.Deserialize<APIMessage>(bytes); });
+            APIMessage message = await Task.Run(() => { return MessagePackSerializer.Deserialize<APIMessage>(bytes); });
             return message;
         }
     }

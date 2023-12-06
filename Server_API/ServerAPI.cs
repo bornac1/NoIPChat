@@ -1,7 +1,5 @@
 ﻿using Configuration;
 using Messages;
-using Server;
-using System.Runtime.CompilerServices;
 
 namespace Server
 {
@@ -125,7 +123,8 @@ namespace Server
         /// <returns>True if removed, false if not.</returns>
         public bool RemoveKnownServer(string name)
         {
-            if (server != null){
+            if (server != null)
+            {
                 return server.servers.TryRemove(name, out _);
             }
             return false;
@@ -161,7 +160,8 @@ namespace Server
         /// Creates new Message.
         /// </summary>
         /// <returns>Message object.</returns>
-        public static Message CreateMessage() {
+        public static Message CreateMessage()
+        {
             return new Message();
         }
     }

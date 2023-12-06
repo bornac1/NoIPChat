@@ -1,7 +1,4 @@
-﻿using Configuration;
-using System;
-using System.IO;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 namespace Server
 {
     internal class Program
@@ -24,7 +21,8 @@ namespace Server
                 {
                     Console.WriteLine("Error config.");
                 }
-            } catch (Exception)
+            }
+            catch (Exception)
             {
                 Console.WriteLine("Error config.");
             }

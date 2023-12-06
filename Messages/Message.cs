@@ -14,7 +14,7 @@ namespace Messages
         /// </summary>
         public float? SV { get; set; }
         public float? SVU { get; set; }
-        public bool? Update {  get; set; }
+        public bool? Update { get; set; }
         /// <summary>
         /// Username.
         /// </summary>

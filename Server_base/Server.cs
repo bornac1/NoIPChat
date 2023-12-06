@@ -1,10 +1,10 @@
-﻿using Messages;
+﻿using Configuration;
+using Messages;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
-using Configuration;
-using System.Collections.Immutable;
 
 namespace Server
 {
@@ -80,7 +80,8 @@ namespace Server
                 {
                     //Don't know why
                 }
-                else {
+                else
+                {
                 }
             }
         }
@@ -104,7 +105,7 @@ namespace Server
                     if (remoteservers.TryAdd(server.ToLower(), remote))
                     {
                         //Key already exsists
-                        if(remoteservers.TryGetValue(server.ToLower(),out Client? cli))
+                        if (remoteservers.TryGetValue(server.ToLower(), out Client? cli))
                         {
                             if (cli != null)
                             {
@@ -169,7 +170,8 @@ namespace Server
                          }
                      }
                  });
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 //Logging
                 await WriteLog(ex);
@@ -190,7 +192,8 @@ namespace Server
                     return JsonSerializer.Serialize(servers_list);
                 });
                 await System.IO.File.WriteAllTextAsync("Servers.json", jsonString);
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 //Logging
                 await WriteLog(ex);
@@ -286,7 +289,8 @@ namespace Server
                         Console.WriteLine("Error remore message for other server.");
                     }
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 await WriteLog(ex);
             }
@@ -297,7 +301,7 @@ namespace Server
             List<string> users = [];
             foreach (var client in clients)
             {
-                if(client.Key!= null)
+                if (client.Key != null)
                 {
                     string[] names = client.Key.Split("@");
                     if (names[1] == server)
@@ -318,7 +322,7 @@ namespace Server
             {
                 foreach (Interface iface in interfaces)
                 {
-                    if(iface.InterfaceIP == InterfaceIP)
+                    if (iface.InterfaceIP == InterfaceIP)
                     {
                         return (iface.IP, iface.Port);
                     }
@@ -332,7 +336,8 @@ namespace Server
             try
             {
                 await System.IO.File.AppendAllTextAsync("Server.log", log);
-            } catch (Exception)
+            }
+            catch (Exception)
             {
                 Console.WriteLine("Can't save log to file.");
                 Console.WriteLine(log);

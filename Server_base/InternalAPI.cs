@@ -1,15 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO.Pipes;
-using System.Runtime.InteropServices;
-using System.Reflection;
-using Messages;
-using System.Transactions;
-
-namespace Server
+﻿namespace Server
 {
     public class Remote
     {
