@@ -19,22 +19,23 @@ From server to client:
 	//Send as many files as needed
 
 From server to server:
-1)WELCOME: SV= 1, Name= server_name, Server= true, Users= user1@server;user1@server
+1)WELCOME: SV= 1, Name= server_name, Server= true, Data = {IP= 127.0.0.1, Port = 100}
+	//Send name and network informations in Data
+2)USERS: SV= 1, Name= server_name, Users = user@server1;user@server2
 	//Send list of users that have this home server, but are connected to server_name
-2)RELAY MESSAGE TO OTHER SERVER: CV= 1, Sender= username@server, Receiver= receiver@server_name, Msg= text_message, Data= binary_data
+3)RELAY MESSAGE TO OTHER SERVER: CV= 1, Sender= username@server, Receiver= receiver@server_name, Msg= text_message, Data= binary_data
 	//Only one Receiver
-
-3)LOGIN: CV= 1, Sender=server, Receiver= server_name, User= username@server_name, Pass= password //relay login message to remote server
+4)LOGIN: CV= 1, Sender=server, Receiver= server_name, User= username@server_name, Pass= password //relay login message to remote server
 					//Sender is current server name and Receiver is destination server from User by splitting '@'
 						// Added by current server
 						//Send to Receiver
-4)AUTH: Sender= server_name, Receiver= username@server_name, Auth= true // to authenticate client connected to remote server
+5)AUTH: Sender= server_name, Receiver= username@server_name, Auth= true // to authenticate client connected to remote server
 					//Sender is current server name, receiver is User from login
 						//Send inside same Client class, so we know to which server it needs to be send to
-5)DISCONNECT: CV= 1, Sender= server, Receiver= server_name, User= user@server_name, Disconnect= true 
+6)DISCONNECT: CV= 1, Sender= server, Receiver= server_name, User= user@server_name, Disconnect= true 
 					//Sender is current server name, receiver is remote server
 						//User is added by current server
-//6)MULTI HOP RELAY
+//7)MULTI HOP RELAY
 	//If it's not possible direct to destination server
 		//Send to know one
 		//It will relay further

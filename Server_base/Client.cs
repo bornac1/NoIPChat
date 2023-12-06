@@ -3,6 +3,10 @@ using System.Diagnostics;
 using System.Formats.Asn1;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection.Metadata;
+using MessagePack;
+using Configuration;
+using System.Net.Http.Headers;
 
 namespace Server
 {
@@ -16,26 +20,27 @@ namespace Server
         private readonly TcpClient client;
         private NetworkStream? stream;
         private bool connected;
-        private readonly Processing processing;
         private readonly System.Timers.Timer? timer;
         private bool disconnectstarted;
         private bool auth = false;
-        public Client(Server server, TcpClient client)
+        private readonly string localip;
+        public Client(Server server, TcpClient client, string localip)
         {
             this.server = server;
             this.client = client;
+            this.localip = localip;
             stream = client.GetStream();
             disconnectstarted = false;
             connected = true;
-            processing = new Processing();
             _ = Receive();
         }
         public Client(Server server, string name, string localip, string ip, int port, int timeout)
         {
             this.server = server;
             isremote = true;
+            this.name = name;
             client = new TcpClient(IPEndPoint.Parse(localip));
-            processing = new Processing();
+            this.localip = localip;
             disconnectstarted = false;
             if (timeout != 0)
             {
@@ -46,9 +51,9 @@ namespace Server
                 timer.Elapsed += TimeoutHanlder;
                 timer.Start();
             }
-            _ = Connect(name, ip, port);
+            _ = Connect(ip, port);
         }
-        private async Task Connect(string name, string ip, int port)
+        private async Task Connect(string ip, int port)
         {
             try
             {
@@ -57,15 +62,23 @@ namespace Server
                 connected = true;
                 isremote = true;
                 //Send welcome
-                Message message = new()
+                var data = await server.GetInterfacebyIP(localip);
+                if (data.Item1 != "")
                 {
-                    Name = server.name.ToLower(),
-                    Server = true,
-                    SV = server.SV,
-                    Users = server.GetUsersServer(name)
-                };
-                await SendMessage(message);
-                _ = Receive();
+                    Message message = new()
+                    {
+                        Name = server.name.ToLower(),
+                        Server = true,
+                        SV = server.SV,
+                        Data = await Task.Run(() => { return MessagePackSerializer.Serialize(new ServerData() { IP = data.Item1, Port = data.Item2 }); })
+                    };
+                    await SendMessage(message);
+                    _ = Receive();
+                }
+                else
+                {
+                    throw new Exception("GetInterfacebyIP error");
+                }
             } catch (Exception ex) { 
                 //Exception should be logged
                 if(ex is SocketException)
@@ -90,15 +103,15 @@ namespace Server
                 try
                 {
                     int length = await ReadLength();
-                    if (length > 1024 && !auth)
+                    byte[]? data = null;
+                    if (length < 1024 || auth)
                     {
-                        //Not authenticated can't send large messages
+                        //Non authenticated is limited to 1024
+                        data = await ReadData(length);
                     }
-                    //only authenticated can send larger message
-                    byte[]? data = await ReadData(length);
                     if (data != null)
                     {
-                        Message message = await processing.Deserialize(data);
+                        Message message = await Processing.Deserialize(data);
                         await ProcessMessage(message);
                         if (timer != null)
                         {
@@ -201,6 +214,7 @@ namespace Server
                     {
                         //Already exsists
                     }
+                    auth = true;
                     await SendMessage(msg);
                     await SendAllMessagesRemoteUser(message.User);
                 }
@@ -246,6 +260,7 @@ namespace Server
                     {
                         Auth = true
                     };
+                    auth = true;
                     await SendMessage(msg);
                     await SendAllMessages();
                     //Set auth
@@ -287,7 +302,6 @@ namespace Server
                         client.Close();
                         client.Dispose();
                     }
-                    await processing.Close();
                     if (isserver || isremote)
                     {
                         //Try to reconnect to remote server
@@ -407,8 +421,17 @@ namespace Server
                 //Authentication message
                 if (message.Receiver != null)
                 {
+                    if(message.Auth == true)
+                    {
+                        auth = true;
+                    }
                     await server.SendMessage(message.Receiver, message);
                 }
+            } else if (message.Users != null)
+            {
+                //List of users
+                await ProcessRemoteServerUsers(message);
+
             }
             else if (message.Msg != null || message.Data != null)
             {
@@ -424,69 +447,122 @@ namespace Server
             if (message.Name != null)
             {
                 name = message.Name.ToLower();
+                ServerData data = new();
+                try
+                {
+                    data = await Task.Run(() => { return MessagePackSerializer.Deserialize<ServerData>(message.Data); });
+                }
+                catch (Exception ex)
+                {
+                    //Just so it doesn't crash
+                    Console.WriteLine(ex.ToString());
+                }
                 if (!server.GetServer(name).Item1)
                 {
                     //Unknown server
 
+                    if (data.IP != null && data.Port != null)
                     //Save it
+                    {
+                        if (!server.servers.TryAdd(name, new Servers() { Name = name, LocalIP = localip, RemoteIP = data.IP, RemotePort = (int)data.Port, TimeOut = 0 }))
+                        {
+                            //Server alread exsists
+                            //This shouldn't happen
+                        }
+                    }
 
                     //Save to file
+                    await server.SaveServers();
                 }
-                if (message.Users != null)
-                {
-                    foreach (string usr in message.Users.Split(";"))
+                else {
+                    //Known server
+                    //Check if it still uses the same ip and port
+                    if (server.servers.TryGetValue(name, out Servers? srv))
                     {
-                        if (usr != null && usr != "")
+                        if(srv != null && data.IP != null && data.Port != null)
                         {
-                            string usrl = usr.ToLower();
-                            if (!server.remoteusers.TryAdd(usrl, name))
+                            //We have all data required to check
+                            if(srv.RemoteIP != data.IP)
                             {
-                                //Already exsists in dictionary
-                                if (server.remoteusers.TryGetValue(usrl, out string? srv_name))
+                                //Replace remote ip
+                                srv.RemoteIP = data.IP;
+                            }
+                            if(srv.RemotePort != data.Port)
+                            {
+                                //Replace port
+                                srv.RemotePort = (int)data.Port;
+                            }
+                            //Check if we have saved the same ip on which we got this message
+                            if(srv.LocalIP != localip)
+                            {
+                                srv.LocalIP = localip;
+                            }
+                        }
+                    }
+                }
+                //Send users
+                var users = server.GetUsersServer(name);
+                if (users != null) {
+                    //Only if there are any users
+                    await SendMessage(new Message() { SV = server.SV, Name = server.name, Users = users});
+                }
+            }
+        }
+        private async Task ProcessRemoteServerUsers(Message message)
+        {
+            if (message.Users != null)
+            {
+                foreach (string usr in message.Users.Split(";"))
+                {
+                    if (usr != null && usr != "")
+                    {
+                        string usrl = usr.ToLower();
+                        if (!server.remoteusers.TryAdd(usrl, name))
+                        {
+                            //Already exsists in dictionary
+                            if (server.remoteusers.TryGetValue(usrl, out string? srv_name))
+                            {
+                                //Try to get it
+                                if (srv_name != null && srv_name != name)
                                 {
-                                    //Try to get it
-                                    if (srv_name != null && srv_name != name)
-                                    {
-                                        //Change to current server name if it isn't
-                                        server.remoteusers.TryUpdate(usrl, name, srv_name);
-                                    }
+                                    //Change to current server name if it isn't
+                                    server.remoteusers.TryUpdate(usrl, name, srv_name);
                                 }
                             }
                         }
                     }
                 }
-                //to implement: version checking
-                if (!server.remoteservers.TryAdd(name.ToLower(), this))
+            }
+            if (!server.remoteservers.TryAdd(name.ToLower(), this))
+            {
+                //Already exsists
+                //Disconnect previous one
+                if (server.remoteservers.TryGetValue(name.ToLower(), out Client? cli))
                 {
-                    //Already exsists
-                    //Disconnect previous one
-                    if (server.remoteservers.TryGetValue(name.ToLower(), out Client? cli))
+                    if (cli != null)
                     {
-                        if (cli != null)
+                        //Disconnect also deleted current one
+                        await cli.Disconnect();
+                        //Try once again
+                        if (!server.remoteservers.TryAdd(name.ToLower(), this))
                         {
-                            //Disconnect also deleted current one
-                            await cli.Disconnect();
-                            //Try once again
-                            if (!server.remoteservers.TryAdd(name.ToLower(), this))
-                            {
-                                //Don't know why
-                            }
+                            //Don't know why
                         }
                     }
                 }
-                if (!isremote)
-                {
-                    //Send welcome message to remote server
-                    Message msg = new()
-                    {
-                        Name = server.name,
-                        Server = true,
-                        SV = server.SV
-                    };
-                    await SendMessage(msg);
-                }
-                await SendAllMessagesServer();
             }
+            if (!isremote)
+            {
+                //Send welcome message to remote server
+                Message msg = new()
+                {
+                    Name = server.name,
+                    Server = true,
+                    SV = server.SV
+                };
+                await SendMessage(msg);
+            }
+            await SendAllMessagesServer();
         }
         private async Task ProcessClientMessage(Message message)
         {
@@ -532,7 +608,7 @@ namespace Server
             bool msgerror = false;
             try
             {
-                byte[]? data = await processing.Serialize(message);
+                byte[]? data = await Processing.Serialize(message);
                 if (data != null)
                 {
                     byte[] length = BitConverter.GetBytes(data.Length);

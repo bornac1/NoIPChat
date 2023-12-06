@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using Configuration;
+using System.Collections.Immutable;
 
 namespace Server
 {
@@ -20,6 +21,7 @@ namespace Server
         public ConcurrentDictionary<string, ConcurrentQueue<Message>> messages_server; //Messages to be sent to remote server
         public ConcurrentDictionary<string, string> remoteusers; //Users whos home server is this, but are connected to remote one
         public ConcurrentDictionary<string, Servers> servers; //Know servers
+        public ImmutableList<Interface> interfaces;
         public Server(string name, List<Interface> interfaces)
         {
             this.name = name.ToLower();
@@ -35,12 +37,13 @@ namespace Server
             {
                 TcpListener listener = new(IPAddress.Parse(iface.InterfaceIP), iface.Port);
                 listener.Start();
-                _ = Accept(listener);
+                _ = Accept(listener, iface.InterfaceIP);
                 listeners1.Add(listener);
             }
             listeners = [.. listeners1];
+            this.interfaces = [.. interfaces];
         }
-        private async Task Accept(TcpListener listener)
+        private async Task Accept(TcpListener listener, string localip)
         {
             //Loads data into memmory
             if (!serversloaded)
@@ -50,7 +53,7 @@ namespace Server
             }
             while (active)
             {
-                _ = new Client(this, await listener.AcceptTcpClientAsync());
+                _ = new Client(this, await listener.AcceptTcpClientAsync(), localip);
             }
         }
         public async Task SendMessage(string user, Message message)
@@ -308,6 +311,20 @@ namespace Server
                 return string.Join(";", [.. users]);
             }
             return null;
+        }
+        public async Task<(string, int)> GetInterfacebyIP(string InterfaceIP)
+        {
+            return await Task.Run(() =>
+            {
+                foreach (Interface iface in interfaces)
+                {
+                    if(iface.InterfaceIP == InterfaceIP)
+                    {
+                        return (iface.IP, iface.Port);
+                    }
+                }
+                return ("", 0);
+            });
         }
         public async Task WriteLog(Exception ex)
         {

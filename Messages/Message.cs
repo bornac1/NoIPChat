@@ -61,6 +61,18 @@ namespace Messages
         public byte[]? Data { get; set; }
     }
     [MessagePackObject(keyAsPropertyName: true)]
+    public struct ServerData
+    {
+        /// <summary>
+        /// IP address.
+        /// </summary>
+        public string? IP { get; set; }
+        /// <summary>
+        /// Port.
+        /// </summary>
+        public int? Port { get; set; }
+    }
+    [MessagePackObject(keyAsPropertyName: true)]
     public struct File
     {
         /// <summary>

@@ -20,7 +20,7 @@ namespace Messages
         /// Serialise given message into bytes.
         /// </summary>
         /// <param name="message">Message to be serialised.</param>
-        public async Task<byte[]?> Serialize(Message message)
+        public static async Task<byte[]?> Serialize(Message message)
         {
             try
             {
@@ -36,7 +36,7 @@ namespace Messages
         /// Deseliazies bytes into message.
         /// </summary>
         /// <param name="bytes">Bytes to be deserialized.</param>
-        public async Task<Message> Deserialize(byte[] bytes)
+        public static async Task<Message> Deserialize(byte[] bytes)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace Messages
         /// Serializes file into bytes.
         /// </summary>
         /// <param name="file">File to be serialized.</param>
-        public async Task<byte[]?> SerializeFile(File file)
+        public static async Task<byte[]?> SerializeFile(File file)
         {
             byte[] bytes = await Task.Run(() => { return MessagePackSerializer.Serialize(file); });
             return bytes;
@@ -61,22 +61,16 @@ namespace Messages
         /// Deserializes bytes into file.
         /// </summary>
         /// <param name="bytes">Bytes to be deserialized.</param>
-        public async Task<File> DeserializeFile(byte[] bytes)
+        public static async Task<File> DeserializeFile(byte[] bytes)
         {
             File file = await Task.Run(() => { return MessagePackSerializer.Deserialize<File>(bytes); });
             return file;
         }
         /// <summary>
-        /// Closes processing. Should be called when it's no longer needed.
-        /// </summary>
-        public async Task Close()
-        {
-        }
-        /// <summary>
         /// Serialise given APIMessage into bytes.
         /// </summary>
         /// <param name="message">Message to be serialised.</param>
-        public async Task<byte[]> SerializeAPI(APIMessage message)
+        public static async Task<byte[]> SerializeAPI(APIMessage message)
         {
             byte[] bytes = await Task.Run(() => { return MessagePackSerializer.Serialize(message); });
             return bytes;
@@ -85,7 +79,7 @@ namespace Messages
         /// Deseliazies bytes into APIMessage.
         /// </summary>
         /// <param name="bytes">Bytes to be deserialized.</param>
-        public async Task<APIMessage> DeserializeAPI(byte[] bytes)
+        public static async Task<APIMessage> DeserializeAPI(byte[] bytes)
         {
             APIMessage message = await Task.Run(()=>{ return MessagePackSerializer.Deserialize<APIMessage>(bytes); });
             return message;

@@ -12,13 +12,12 @@ namespace Client
         public float CV = 1;
         public bool? auth;
         public bool connected = false;
-        public ConcurrentQueue<Messages.Message> messages;
+        public ConcurrentQueue<Messages.Message> messages_snd;
         public string? Username;
         public string? Password;
         public string? Server;
         public TcpClient client;
         public NetworkStream? stream;
-        private readonly Processing processing;
         public BindingSource servers;
         public ConcurrentQueue<Messages.Message> messages_rec;
         private readonly StringBuilder value;
@@ -30,8 +29,7 @@ namespace Client
         {
             this.main = main;
             disconnectstarted = false;
-            processing = new Processing();
-            messages = [];
+            messages_snd = [];
             servers = [];
             messages_rec = [];
             value = new StringBuilder();
@@ -57,9 +55,10 @@ namespace Client
                 }
                 else
                 {
+                    //Logging
+                    await WriteLog(ex);
                     //Clean all
                     await Disconnect();
-                    //Logging
                 }
             }
         }
@@ -73,7 +72,7 @@ namespace Client
                     byte[]? data = await ReadData(length);
                     if (data != null)
                     {
-                        Messages.Message message = await processing.Deserialize(data);
+                        Messages.Message message = await Processing.Deserialize(data);
                         await ProcessMessage(message);
                     }
                 }
@@ -87,6 +86,7 @@ namespace Client
                     else
                     {
                         //Logging
+                        await WriteLog(ex);
                         //Clean all
                         await Disconnect();
                     }
@@ -144,7 +144,7 @@ namespace Client
             bool msgerror = false;
             try
             {
-                byte[]? data = await processing.Serialize(message);
+                byte[]? data = await Processing.Serialize(message);
                 if (data != null)
                 {
                     byte[] length = BitConverter.GetBytes(data.Length);
@@ -170,7 +170,7 @@ namespace Client
                     //Save message to be sent later
                     if (!msgerror)
                     {
-                        messages.Enqueue(message);
+                        messages_snd.Enqueue(message);
                     }
                     else
                     {
@@ -181,6 +181,7 @@ namespace Client
                 else
                 {
                     //Logging
+                    await WriteLog(ex);
                 }
             }
             return false;
@@ -267,7 +268,6 @@ namespace Client
                         client.Close();
                         client.Dispose();
                     }
-                    await processing.Close();
                     //start new client
                     main.client = new Client(main);
                     await main.client.LoadServers();
@@ -278,6 +278,7 @@ namespace Client
                 catch (Exception ex)
                 {
                     //Logging
+                    await WriteLog(ex);
                 }
             }
         }
@@ -305,6 +306,7 @@ namespace Client
             } catch (Exception ex)
             {
                 //Logging
+                await WriteLog(ex);
             }
         }
         public async Task SaveServers()
@@ -327,6 +329,7 @@ namespace Client
             catch (Exception ex)
             {
                 //Logging
+                await WriteLog(ex);
             }
         }
         public async Task WriteLog(Exception ex)
@@ -336,7 +339,7 @@ namespace Client
             {
                 await System.IO.File.AppendAllTextAsync("Client.log", log);
             }
-            catch (Exception _)
+            catch (Exception)
             {
                 MessageBox.Show("Can't save log to file.");
                // Console.WriteLine(log);
