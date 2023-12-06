@@ -97,8 +97,15 @@ namespace Client
         {
             if (stream != null)
             {
-                byte[] buffer = new byte[4];
-                await stream.ReadAsync(buffer, 0, 4);
+                byte[] buffer = new byte[sizeof(int)];
+                int totalread = 0;
+                int offset = 0;
+                while (totalread < buffer.Length)
+                {
+                    int read = await stream.ReadAsync(buffer, offset, buffer.Length - totalread);
+                    totalread += read;
+                    offset += read;
+                }
                 return BitConverter.ToInt32(buffer, 0);
             }
             return 0;
@@ -108,7 +115,14 @@ namespace Client
             if (stream != null)
             {
                 byte[] buffer = new byte[length];
-                await stream.ReadAsync(buffer, 0, length);
+                int totalread = 0;
+                int offset = 0;
+                while (totalread < buffer.Length)
+                {
+                    int read = await stream.ReadAsync(buffer, offset, buffer.Length - totalread);
+                    totalread += read;
+                    offset += read;
+                }
                 return buffer;
             }
             return null;
