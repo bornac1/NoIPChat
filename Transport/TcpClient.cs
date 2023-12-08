@@ -1,10 +1,9 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 
 namespace Transport
 {
-    public class TcpClient :IDisposable
+    public class TcpClient : IDisposable
     {
         private readonly Socket socket;
         public TcpClient(IPEndPoint localEP)
@@ -25,8 +24,8 @@ namespace Transport
         }
         public void Dispose()
         {
-           socket.Dispose();
-           GC.SuppressFinalize(this);
+            socket.Dispose();
+            GC.SuppressFinalize(this);
         }
         public async Task<int> ReceiveAsync(byte[] buffer, int offset, int count)
         {

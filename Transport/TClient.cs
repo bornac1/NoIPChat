@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net;
 
 namespace Transport
 {
@@ -16,7 +10,7 @@ namespace Transport
         {
             this.protocol = protocol;
         }
-        public TClient (TcpClient tcpClient)
+        public TClient(TcpClient tcpClient)
         {
             protocol = Protocol.TCP;
             this.tcpClient = tcpClient;

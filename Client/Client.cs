@@ -1,9 +1,9 @@
 ﻿using Messages;
 using System.Collections.Concurrent;
 using System.Net;
-using Transport;
 using System.Text;
 using System.Text.Json;
+using Transport;
 
 namespace Client
 {
@@ -33,7 +33,7 @@ namespace Client
             messages_rec = [];
             value = new StringBuilder();
             _ = LoadServers();
-            client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any,0)));
+            client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any, 0)));
             message = new Messages.Message();
         }
         public async Task Connect(Servers srv)
