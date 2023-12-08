@@ -4,17 +4,69 @@ namespace Transport
 {
     public class TClient : IDisposable
     {
+        /// <summary>
+        /// Saves protocol information.
+        /// </summary>
         private readonly Protocol protocol;
+        /// <summary>
+        /// Saves TcpClient if protocol is TCP. It should be checked that != null before every usage.
+        /// </summary>
         private readonly TcpClient? tcpClient;
+        // Every new protocol field should be here
+
+        /// <summary>
+        /// Default constructor just for protocol. It will not initialise protocol-specific field.
+        /// </summary>
+        /// <param name="protocol">Protocol.</param>
         public TClient(Protocol protocol)
         {
             this.protocol = protocol;
         }
+        /// <summary>
+        /// Constructor used for TCP protocol.
+        /// </summary>
+        /// <param name="tcpClient"></param>
         public TClient(TcpClient tcpClient)
         {
             protocol = Protocol.TCP;
             this.tcpClient = tcpClient;
         }
+        /// <summary>
+        /// Synchronously connects using TCP.
+        /// </summary>
+        /// <remarks>Other protocols should implement their own Connect.</remarks>
+        /// <param name="address">IP address.</param>
+        /// <param name="port">Port.</param>
+        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
+        /// <exception cref="NotImplementedException">Other protocols can't use TCP connect.</exception>
+        public void Connect(IPAddress address, int port)
+        {
+            if (protocol == Protocol.TCP)
+            {
+                if (tcpClient != null)
+                {
+                    tcpClient.Connect(address, port);
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
+
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+        /// <summary>
+        /// Asynchronously connects using TCP.
+        /// </summary>
+        /// <remarks>Other protocols should implement their own ConnectAsync.</remarks>
+        /// <param name="address">IP address.</param>
+        /// <param name="port">Port.</param>
+        /// <returns>Task.</returns>
+        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
+        /// <exception cref="NotImplementedException">Other protocols can't use TCP connect.</exception>
         public Task ConnectAsync(IPAddress address, int port)
         {
             if (protocol == Protocol.TCP)
@@ -34,6 +86,12 @@ namespace Transport
                 throw new NotImplementedException();
             }
         }
+        /// <summary>
+        /// Closes TCP connection.
+        /// </summary>
+        /// <remarks>Here should other protocols be implemented.</remarks>
+        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
+        /// <exception cref="NotImplementedException">Protocol is not implemented.</exception>
         public void Close()
         {
             if (protocol == Protocol.TCP)
@@ -52,6 +110,12 @@ namespace Transport
                 throw new NotImplementedException();
             }
         }
+        /// <summary>
+        /// Disposes resources.
+        /// </summary>
+        /// <remarks>Here should other protocols be implemented.</remarks>
+        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
+        /// <exception cref="NotImplementedException">Protocol is not implemented.</exception>
         public void Dispose()
         {
             if (protocol == Protocol.TCP)
@@ -71,6 +135,44 @@ namespace Transport
             }
             GC.SuppressFinalize(this);
         }
+        /// <summary>
+        /// Receives data synchronously.
+        /// </summary>
+        /// <remarks>Here should other protocols be implemented.</remarks>
+        /// <param name="buffer">Used for stroring received data.</param>
+        /// <param name="offset">The location in buffer to store data.</param>
+        /// <param name="count">The number of bytes to be received.</param>
+        /// <returns>Number of bytes received.</returns>
+        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
+        /// <exception cref="NotImplementedException">Protocol is not implemented.</exception>
+        public int Receive(byte[] buffer, int offset, int count)
+        {
+            if (protocol == Protocol.TCP)
+            {
+                if (tcpClient != null)
+                {
+                    return tcpClient.Receive(buffer, offset, count);
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+        /// <summary>
+        /// Receives data asynchronously.
+        /// </summary>
+        /// <remarks>Here should other protocols be implemented.</remarks>
+        /// <param name="buffer">Used for stroring received data.</param>
+        /// <param name="offset">The location in buffer to store data.</param>
+        /// <param name="count">The number of bytes to be received.</param>
+        /// <returns>Task that completes with number of bytes received.</returns>
+        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
+        /// <exception cref="NotImplementedException">Protocol is not implemented.</exception>
         public async Task<int> ReceiveAsync(byte[] buffer, int offset, int count)
         {
             if (protocol == Protocol.TCP)
@@ -89,17 +191,82 @@ namespace Transport
                 throw new NotImplementedException();
             }
         }
-        public async Task SendAsync(byte[] buffer)
-        {
-            await SendAsync(buffer, 0, buffer.Length);
-        }
-        public async Task SendAsync(byte[] buffer, int offset, int count)
+        /// <summary>
+        /// Sends data synchronously.
+        /// </summary>
+        /// <remarks>Here should other protocols be implemented.</remarks>
+        /// <param name="buffer">Contains data to be sent.</param>
+        /// <param name="offset">The position in buffer at which to begin sending.</param>
+        /// <param name="count">The number of bytes to be send.</param>
+        /// <returns>Number of bytes sent.</returns>
+        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
+        /// <exception cref="NotImplementedException">Protocol is not implemented.</exception>
+        public int Send(byte[] buffer, int offset, int count)
         {
             if (protocol == Protocol.TCP)
             {
                 if (tcpClient != null)
                 {
-                    await tcpClient.SendAsync(buffer, offset, count);
+                    return tcpClient.Send(buffer, offset, count);
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+        /// <summary>
+        /// Sends data asynchronously.
+        /// </summary>
+        /// <remarks>Here should other protocols be implemented.</remarks>
+        /// <param name="buffer">Contains data to be sent.</param>
+        /// <returns>Task that completes with number of bytes sent.</returns>
+        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
+        /// <exception cref="NotImplementedException">Protocol is not implemented.</exception>
+        public async Task<int> SendAsync(byte[] buffer)
+        {
+            return await SendAsync(buffer, 0, buffer.Length);
+        }
+        /// <summary>
+        /// Sends data asynchronously.
+        /// </summary>
+        /// <remarks>Here should other protocols be implemented.</remarks>
+        /// <param name="buffer">Contains data to be sent.</param>
+        /// <param name="offset">The position in buffer at which to begin sending.</param>
+        /// <param name="count">The number of bytes to be send.</param>
+        /// <returns>Task that completes with number of bytes sent.</returns>
+        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
+        /// <exception cref="NotImplementedException">Other protocols can't use TCP connect.</exception>
+        public async Task<int> SendAsync(byte[] buffer, int offset, int count)
+        {
+            if (protocol == Protocol.TCP)
+            {
+                if (tcpClient != null)
+                {
+                    return await tcpClient.SendAsync(buffer, offset, count);
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+        //Let's have finaliser just in case.
+        ~TClient()
+        {
+            if (protocol == Protocol.TCP)
+            {
+                if (tcpClient != null)
+                {
+                    tcpClient.Dispose();
                 }
                 else
                 {

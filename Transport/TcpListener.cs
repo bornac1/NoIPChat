@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace Transport
 {
-    public class TcpListener : IDisposable
+    public class TcpListener : IListener
     {
         private readonly Socket socket;
         public TcpListener(IPAddress localaddr, int port)
@@ -14,6 +14,10 @@ namespace Transport
         public void Start()
         {
             socket.Listen();
+        }
+        public TcpClient Accept()
+        {
+            return new(socket.Accept());
         }
         public async Task<TcpClient> AcceptAsync()
         {
@@ -27,6 +31,10 @@ namespace Transport
         {
             socket.Dispose();
             GC.SuppressFinalize(this);
+        }
+        ~TcpListener()
+        {
+            socket.Dispose();
         }
     }
 }
