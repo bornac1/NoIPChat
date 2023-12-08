@@ -1,7 +1,7 @@
 ﻿using Messages;
 using System.Collections.Concurrent;
 using System.Net;
-using System.Net.Sockets;
+using Transport;
 using System.Text;
 using System.Text.Json;
 
@@ -16,8 +16,7 @@ namespace Client
         public string? Username;
         public string? Password;
         public string? Server;
-        public TcpClient client;
-        public NetworkStream? stream;
+        public TClient client;
         public BindingSource servers;
         public ConcurrentQueue<Messages.Message> messages_rec;
         private readonly StringBuilder value;
@@ -34,21 +33,20 @@ namespace Client
             messages_rec = [];
             value = new StringBuilder();
             _ = LoadServers();
-            client = new TcpClient();
+            client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any,0)));
             message = new Messages.Message();
         }
         public async Task Connect(Servers srv)
         {
             try
             {
-                client = new TcpClient();
+                client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any, 0)));
                 await client.ConnectAsync(IPAddress.Parse(srv.IP), srv.Port);
-                stream = client.GetStream();
                 connected = true;
             }
             catch (Exception ex)
             {
-                if (ex is SocketException)
+                if (ex is System.Net.Sockets.SocketException)
                 {
                     //Error connecting
                     await Disconnect();
@@ -78,7 +76,7 @@ namespace Client
                 }
                 catch (Exception ex)
                 {
-                    if (ex is IOException)
+                    if (ex is System.Net.Sockets.SocketException)
                     {
                         //assume disconnection
                         await Disconnect();
@@ -95,37 +93,29 @@ namespace Client
         }
         private async Task<int> ReadLength()
         {
-            if (stream != null)
+            byte[] buffer = new byte[sizeof(int)];
+            int totalread = 0;
+            int offset = 0;
+            while (totalread < buffer.Length)
             {
-                byte[] buffer = new byte[sizeof(int)];
-                int totalread = 0;
-                int offset = 0;
-                while (totalread < buffer.Length)
-                {
-                    int read = await stream.ReadAsync(buffer, offset, buffer.Length - totalread);
-                    totalread += read;
-                    offset += read;
-                }
-                return BitConverter.ToInt32(buffer, 0);
+                int read = await client.ReceiveAsync(buffer, offset, buffer.Length - totalread);
+                totalread += read;
+                offset += read;
             }
-            return 0;
+            return BitConverter.ToInt32(buffer, 0);
         }
-        private async Task<byte[]?> ReadData(int length)
+        private async Task<byte[]> ReadData(int length)
         {
-            if (stream != null)
+            byte[] buffer = new byte[length];
+            int totalread = 0;
+            int offset = 0;
+            while (totalread < buffer.Length)
             {
-                byte[] buffer = new byte[length];
-                int totalread = 0;
-                int offset = 0;
-                while (totalread < buffer.Length)
-                {
-                    int read = await stream.ReadAsync(buffer, offset, buffer.Length - totalread);
-                    totalread += read;
-                    offset += read;
-                }
-                return buffer;
+                int read = await client.ReceiveAsync(buffer, offset, buffer.Length - totalread);
+                totalread += read;
+                offset += read;
             }
-            return null;
+            return buffer;
         }
         public async Task Login(string username, string password)
         {
@@ -148,13 +138,9 @@ namespace Client
                 if (data != null)
                 {
                     byte[] length = BitConverter.GetBytes(data.Length);
-                    if (stream != null)
-                    {
-                        await stream.WriteAsync(length);
-                        await stream.WriteAsync(data);
-                        return true;
-                    }
-                    return false;
+                    await client.SendAsync(length);
+                    await client.SendAsync(data);
+                    return true;
                 }
                 else
                 {
@@ -164,7 +150,7 @@ namespace Client
             }
             catch (Exception ex)
             {
-                if (ex is IOException)
+                if (ex is System.Net.Sockets.SocketException)
                 {
                     //Assume disconnection
                     await Disconnect();
@@ -260,12 +246,6 @@ namespace Client
                 try
                 {
                     connected = false;
-                    if (stream != null)
-                    {
-                        await stream.FlushAsync();
-                        stream.Close();
-                        await stream.DisposeAsync();
-                    }
                     if (client != null)
                     {
                         client.Close();

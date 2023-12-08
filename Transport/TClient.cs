@@ -11,7 +11,7 @@ namespace Transport
     public class TClient : IDisposable
     {
         private readonly Protocol protocol;
-        private readonly TcpClient tcpClient;
+        private readonly TcpClient? tcpClient;
         public TClient(Protocol protocol)
         {
             this.protocol = protocol;
@@ -23,7 +23,7 @@ namespace Transport
         }
         public Task ConnectAsync(IPAddress address, int port)
         {
-            if (protocol == Protocol.TCP)
+            if (protocol == Protocol.TCP && tcpClient != null)
             {
                 return tcpClient.ConnectAsync(address, port);
             }
@@ -34,7 +34,7 @@ namespace Transport
         }
         public void Close()
         {
-            if (protocol == Protocol.TCP)
+            if (protocol == Protocol.TCP && tcpClient != null)
             {
                 tcpClient.Close();
             }
@@ -45,7 +45,7 @@ namespace Transport
         }
         public void Dispose()
         {
-            if (protocol == Protocol.TCP)
+            if (protocol == Protocol.TCP && tcpClient != null)
             {
                 tcpClient.Dispose();
             }
@@ -57,7 +57,7 @@ namespace Transport
         }
         public async Task<int> ReceiveAsync(byte[] buffer, int offset, int count)
         {
-            if (protocol == Protocol.TCP)
+            if (protocol == Protocol.TCP && tcpClient != null)
             {
                 return await tcpClient.ReceiveAsync(buffer, offset, count);
             }
@@ -72,7 +72,7 @@ namespace Transport
         }
         public async Task SendAsync(byte[] buffer, int offset, int count)
         {
-            if (protocol == Protocol.TCP)
+            if (protocol == Protocol.TCP && tcpClient != null)
             {
                 await tcpClient.SendAsync(buffer, offset, count);
             }

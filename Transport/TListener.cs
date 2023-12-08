@@ -10,7 +10,7 @@ namespace Transport
     public class TListener : IDisposable
     {
         private readonly Protocol protocol;
-        private readonly TcpListener tcpListener;
+        private readonly TcpListener? tcpListener;
         public TListener(Protocol protocol)
         {
             this.protocol = protocol;
@@ -21,7 +21,7 @@ namespace Transport
         }
         public void Start()
         {
-            if(protocol == Protocol.TCP)
+            if(protocol == Protocol.TCP && tcpListener != null)
             {
                 tcpListener.Start();
             }
@@ -32,7 +32,7 @@ namespace Transport
         }
         public async Task<TClient> AcceptAsync()
         {
-            if(protocol == Protocol.TCP) {
+            if(protocol == Protocol.TCP && tcpListener != null) {
                 return new (await tcpListener.AcceptAsync());            
             }
             else
@@ -42,7 +42,7 @@ namespace Transport
         }
         public void Stop()
         {
-            if (protocol == Protocol.TCP)
+            if (protocol == Protocol.TCP && tcpListener != null)
             {
                 tcpListener.Stop();
             }
@@ -53,7 +53,7 @@ namespace Transport
         }
         public void Dispose()
         {
-            if (protocol == Protocol.TCP)
+            if (protocol == Protocol.TCP && tcpListener != null)
             {
                 tcpListener.Dispose();
             }
