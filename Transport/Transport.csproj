@@ -6,9 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Messages\Messages.csproj" />
-    <ProjectReference Include="..\Transport\Transport.csproj" />
-  </ItemGroup>
-
 </Project>

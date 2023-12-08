@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server_base", "Server_base\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csproj", "{AA2A664B-351D-423F-8DD0-41D71DD6BAAB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transport", "Transport\Transport.csproj", "{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{AA2A664B-351D-423F-8DD0-41D71DD6BAAB}.Release|x64.Build.0 = Release|Any CPU
 		{AA2A664B-351D-423F-8DD0-41D71DD6BAAB}.Release|x86.ActiveCfg = Release|Any CPU
 		{AA2A664B-351D-423F-8DD0-41D71DD6BAAB}.Release|x86.Build.0 = Release|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Debug|x64.Build.0 = Debug|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Debug|x86.Build.0 = Debug|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Release|x64.ActiveCfg = Release|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Release|x64.Build.0 = Release|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Release|x86.ActiveCfg = Release|Any CPU
+		{F593BA4B-EDC0-4FDE-BA09-0B2C6897CE63}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

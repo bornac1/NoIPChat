@@ -3,15 +3,16 @@ using Messages;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
-using System.Net.Sockets;
 using System.Text.Json;
+using Transport;
 
 namespace Server
 {
     public partial class Server
     {
         public float SV = 1;
-        private readonly TcpListener[] listeners;
+        //private readonly TcpListener[] listeners;
+        private readonly TListener[] listeners;
         public string name;
         private bool active;
         private bool serversloaded = false;
@@ -32,10 +33,10 @@ namespace Server
             messages_server = new ConcurrentDictionary<string, ConcurrentQueue<Message>>();
             remoteusers = new ConcurrentDictionary<string, string>();
             servers = new ConcurrentDictionary<string, Servers>();
-            List<TcpListener> listeners1 = [];
+            List<TListener> listeners1 = [];
             foreach (Interface iface in interfaces)
             {
-                TcpListener listener = new(IPAddress.Parse(iface.InterfaceIP), iface.Port);
+                TListener listener = new(new TcpListener(IPAddress.Parse(iface.InterfaceIP), iface.Port));
                 listener.Start();
                 _ = Accept(listener, iface.InterfaceIP);
                 listeners1.Add(listener);
@@ -43,7 +44,7 @@ namespace Server
             listeners = [.. listeners1];
             this.interfaces = [.. interfaces];
         }
-        private async Task Accept(TcpListener listener, string localip)
+        private async Task Accept(TListener listener, string localip)
         {
             //Loads data into memmory
             if (!serversloaded)
@@ -53,7 +54,7 @@ namespace Server
             }
             while (active)
             {
-                _ = new Client(this, await listener.AcceptTcpClientAsync(), localip);
+                _ = new Client(this, await listener.AcceptAsync(), localip);
             }
         }
         public async Task SendMessage(string user, Message message)
@@ -247,7 +248,7 @@ namespace Server
             try
             {
                 active = false;
-                foreach (TcpListener listener in listeners)
+                foreach (TListener listener in listeners)
                 {
                     listener.Stop();
                     listener.Dispose();
@@ -330,7 +331,7 @@ namespace Server
                 return ("", 0);
             });
         }
-        public async Task WriteLog(Exception ex)
+        public static async Task WriteLog(Exception ex)
         {
             string log = DateTime.Now.ToString("d.M.yyyy. H:m:s") + " " + ex.ToString() + Environment.NewLine;
             try

@@ -1,7 +1,7 @@
 ﻿using MessagePack;
 using Messages;
 using System.Net;
-using System.Net.Sockets;
+using Transport;
 
 namespace Server
 {
@@ -12,19 +12,17 @@ namespace Server
         private readonly Server server;
         private bool isserver = false; //This is connection from remote server
         private bool isremote = false; //This is connection to remote server
-        private readonly TcpClient client;
-        private NetworkStream? stream;
+        private readonly TClient client;
         private bool connected;
         private readonly System.Timers.Timer? timer;
         private bool disconnectstarted;
         private bool auth = false;
         private readonly string localip;
-        public Client(Server server, TcpClient client, string localip)
+        public Client(Server server, TClient client, string localip)
         {
             this.server = server;
             this.client = client;
             this.localip = localip;
-            stream = client.GetStream();
             disconnectstarted = false;
             connected = true;
             _ = Receive();
@@ -34,7 +32,7 @@ namespace Server
             this.server = server;
             isremote = true;
             this.name = name;
-            client = new TcpClient(IPEndPoint.Parse(localip));
+            client = new TClient(new TcpClient(IPEndPoint.Parse(localip)));
             this.localip = localip;
             disconnectstarted = false;
             if (timeout != 0)
@@ -53,7 +51,6 @@ namespace Server
             try
             {
                 await client.ConnectAsync(IPAddress.Parse(ip), port);
-                stream = client.GetStream();
                 connected = true;
                 isremote = true;
                 //Send welcome
@@ -78,7 +75,7 @@ namespace Server
             catch (Exception ex)
             {
                 //Exception should be logged
-                if (ex is SocketException)
+                if (ex is System.Net.Sockets.SocketException)
                 {
                     //Problem connecting
                     //No need for logging
@@ -89,7 +86,7 @@ namespace Server
                     //Other problem
                     //Should be logged
                     await Disconnect();
-                    await server.WriteLog(ex);
+                    await Server.WriteLog(ex);
                 }
             }
         }
@@ -120,7 +117,7 @@ namespace Server
                 }
                 catch (Exception ex)
                 {
-                    if (ex is IOException)
+                    if (ex is System.Net.Sockets.SocketException)
                     {
                         //assume disconnection
                         //No need for logging
@@ -133,7 +130,7 @@ namespace Server
                     else
                     {
                         //Should be logged
-                        await server.WriteLog(ex);
+                        await Server.WriteLog(ex);
                     }
                     connected = false;
                     await Disconnect();
@@ -142,37 +139,29 @@ namespace Server
         }
         private async Task<int> ReadLength()
         {
-            if (stream != null)
+            byte[] buffer = new byte[sizeof(int)];
+            int totalread = 0;
+            int offset = 0;
+            while (totalread < buffer.Length)
             {
-                byte[] buffer = new byte[sizeof(int)];
-                int totalread = 0;
-                int offset = 0;
-                while (totalread < buffer.Length)
-                {
-                    int read = await stream.ReadAsync(buffer, offset, buffer.Length - totalread);
-                    totalread += read;
-                    offset += read;
-                }
-                return BitConverter.ToInt32(buffer, 0);
+                int read = await client.ReceiveAsync(buffer, offset, buffer.Length - totalread);
+                totalread += read;
+                offset += read;
             }
-            return 0;
+            return BitConverter.ToInt32(buffer, 0);
         }
-        private async Task<byte[]?> ReadData(int length)
+        private async Task<byte[]> ReadData(int length)
         {
-            if (stream != null)
+            byte[] buffer = new byte[length];
+            int totalread = 0;
+            int offset = 0;
+            while (totalread < buffer.Length)
             {
-                byte[] buffer = new byte[length];
-                int totalread = 0;
-                int offset = 0;
-                while (totalread < buffer.Length)
-                {
-                    int read = await stream.ReadAsync(buffer, offset, buffer.Length - totalread);
-                    totalread += read;
-                    offset += read;
-                }
-                return buffer;
+                int read = await client.ReceiveAsync(buffer, offset, buffer.Length - totalread);
+                totalread += read;
+                offset += read;
             }
-            return null;
+            return buffer;
         }
         private async Task Login(Message message)
         {
@@ -192,7 +181,7 @@ namespace Server
             catch (Exception ex)
             {
                 //Should be logged
-                await server.WriteLog(ex);
+                await Server.WriteLog(ex);
             }
         }
         private async Task LoginRemoteServer(Message message)
@@ -290,12 +279,6 @@ namespace Server
                         DisconnectServer();
                     }
                     connected = false;
-                    if (stream != null)
-                    {
-                        await stream.FlushAsync();
-                        stream.Close();
-                        await stream.DisposeAsync();
-                    }
                     if (client != null)
                     {
                         client.Close();
@@ -310,7 +293,7 @@ namespace Server
             catch (Exception ex)
             {
                 //Should be logged
-                await server.WriteLog(ex);
+                await Server.WriteLog(ex);
             }
         }
         private void DisconnectServer()
@@ -398,7 +381,7 @@ namespace Server
             catch (Exception ex)
             {
                 //Should be logged
-                await server.WriteLog(ex);
+                await Server.WriteLog(ex);
             }
         }
         private async Task ProcessRemoteServerMessage(Message message)
@@ -617,11 +600,11 @@ namespace Server
                 if (data != null)
                 {
                     byte[] length = BitConverter.GetBytes(data.Length);
-                    if (connected && stream != null)
+                    if (connected)
                     {
                         //connected
-                        await stream.WriteAsync(length);
-                        await stream.WriteAsync(data);
+                        await client.SendAsync(length);
+                        await client.SendAsync(data);
                         Console.WriteLine(message.Msg);
                         //Reset timer
                         if (timer != null)
@@ -652,7 +635,7 @@ namespace Server
             }
             catch (Exception ex)
             {
-                if (ex is IOException)
+                if (ex is System.Net.Sockets.SocketException)
                 {
                     //assume disconnection
                     //No need for logging
@@ -665,7 +648,7 @@ namespace Server
                 else
                 {
                     //Should be logged
-                    await server.WriteLog(ex);
+                    await Server.WriteLog(ex);
                 }
                 if (!msgerror)
                 {
@@ -792,7 +775,7 @@ namespace Server
             catch (Exception ex)
             {
                 //Logging just in case
-                await server.WriteLog(ex);
+                await Server.WriteLog(ex);
             }
         }
         private void TimeoutHanlder(Object? source, System.Timers.ElapsedEventArgs e)
