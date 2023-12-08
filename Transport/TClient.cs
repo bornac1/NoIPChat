@@ -23,9 +23,17 @@ namespace Transport
         }
         public Task ConnectAsync(IPAddress address, int port)
         {
-            if (protocol == Protocol.TCP && tcpClient != null)
+            if (protocol == Protocol.TCP)
             {
-                return tcpClient.ConnectAsync(address, port);
+                if (tcpClient != null)
+                {
+                    return tcpClient.ConnectAsync(address, port);
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
+
             }
             else
             {
@@ -34,9 +42,16 @@ namespace Transport
         }
         public void Close()
         {
-            if (protocol == Protocol.TCP && tcpClient != null)
+            if (protocol == Protocol.TCP)
             {
-                tcpClient.Close();
+                if (tcpClient != null)
+                {
+                    tcpClient.Close();
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
             }
             else
             {
@@ -45,9 +60,16 @@ namespace Transport
         }
         public void Dispose()
         {
-            if (protocol == Protocol.TCP && tcpClient != null)
+            if (protocol == Protocol.TCP)
             {
-                tcpClient.Dispose();
+                if (tcpClient != null)
+                {
+                    tcpClient.Dispose();
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
             }
             else
             {
@@ -57,9 +79,16 @@ namespace Transport
         }
         public async Task<int> ReceiveAsync(byte[] buffer, int offset, int count)
         {
-            if (protocol == Protocol.TCP && tcpClient != null)
+            if (protocol == Protocol.TCP)
             {
-                return await tcpClient.ReceiveAsync(buffer, offset, count);
+                if (tcpClient != null)
+                {
+                    return await tcpClient.ReceiveAsync(buffer, offset, count);
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
             }
             else
             {
@@ -72,9 +101,16 @@ namespace Transport
         }
         public async Task SendAsync(byte[] buffer, int offset, int count)
         {
-            if (protocol == Protocol.TCP && tcpClient != null)
+            if (protocol == Protocol.TCP)
             {
-                await tcpClient.SendAsync(buffer, offset, count);
+                if (tcpClient != null)
+                {
+                    await tcpClient.SendAsync(buffer, offset, count);
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
             }
             else
             {

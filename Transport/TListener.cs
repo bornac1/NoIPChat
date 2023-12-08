@@ -21,9 +21,15 @@ namespace Transport
         }
         public void Start()
         {
-            if(protocol == Protocol.TCP && tcpListener != null)
+            if(protocol == Protocol.TCP)
             {
-                tcpListener.Start();
+                if (tcpListener != null)
+                {
+                    tcpListener.Start();
+                } else
+                {
+                    throw new NullReferenceException();
+                }
             }
             else
             {
@@ -32,8 +38,15 @@ namespace Transport
         }
         public async Task<TClient> AcceptAsync()
         {
-            if(protocol == Protocol.TCP && tcpListener != null) {
-                return new (await tcpListener.AcceptAsync());            
+            if(protocol == Protocol.TCP) {
+                if (tcpListener != null)
+                {
+                    return new(await tcpListener.AcceptAsync());
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
             }
             else
             {
@@ -42,9 +55,16 @@ namespace Transport
         }
         public void Stop()
         {
-            if (protocol == Protocol.TCP && tcpListener != null)
+            if (protocol == Protocol.TCP)
             {
-                tcpListener.Stop();
+                if (tcpListener != null)
+                {
+                    tcpListener.Stop();
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
             }
             else
             {
@@ -53,15 +73,22 @@ namespace Transport
         }
         public void Dispose()
         {
-            if (protocol == Protocol.TCP && tcpListener != null)
+            if (protocol == Protocol.TCP)
             {
-                tcpListener.Dispose();
+                if (tcpListener != null)
+                {
+                    tcpListener.Dispose();
+                    GC.SuppressFinalize(this);
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
             }
             else
             {
                 throw new NotImplementedException();
             }
-            GC.SuppressFinalize(this);
         }
     }
 }
