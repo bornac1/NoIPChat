@@ -18,6 +18,7 @@ namespace Server
         private bool disconnectstarted;
         private bool auth = false;
         private readonly string localip;
+        private readonly byte[] bufferl = new byte[sizeof(int)];
         public Client(Server server, TClient client, string localip)
         {
             this.server = server;
@@ -139,16 +140,15 @@ namespace Server
         }
         private async Task<int> ReadLength()
         {
-            byte[] buffer = new byte[sizeof(int)];
             int totalread = 0;
             int offset = 0;
-            while (totalread < buffer.Length)
+            while (totalread < bufferl.Length)
             {
-                int read = await client.ReceiveAsync(buffer, offset, buffer.Length - totalread);
+                int read = await client.ReceiveAsync(bufferl, offset, bufferl.Length - totalread);
                 totalread += read;
                 offset += read;
             }
-            return BitConverter.ToInt32(buffer, 0);
+            return BitConverter.ToInt32(bufferl, 0);
         }
         private async Task<byte[]> ReadData(int length)
         {
@@ -438,10 +438,9 @@ namespace Server
                 {
                     data = await Task.Run(() => { return MessagePackSerializer.Deserialize<ServerData>(message.Data); });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //Just so it doesn't crash
-                    Console.WriteLine(ex.ToString());
                 }
                 if (!server.GetServer(name).Item1)
                 {
@@ -605,7 +604,6 @@ namespace Server
                         //connected
                         await client.SendAsync(length);
                         await client.SendAsync(data);
-                        Console.WriteLine(message.Msg);
                         //Reset timer
                         if (timer != null)
                         {
@@ -622,7 +620,6 @@ namespace Server
                         {
                             return false;
                         }
-                        Console.WriteLine("saved " + message.Msg + " for " + message.Receiver);
                         return true;
                     }
                 }
@@ -669,10 +666,8 @@ namespace Server
             {
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
-                    Console.WriteLine("have to send " + messages.Count);
                     for (int i = 0; i < messages.Count; i++)
                     {
-                        Console.WriteLine("sending " + i);
                         messages.TryDequeue(out Message message);
                         await SendMessage(message);
                     }

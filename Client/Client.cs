@@ -24,6 +24,7 @@ namespace Client
         public Main main;
         private bool disconnectstarted;
         public Messages.Message message;
+        private readonly byte[] bufferl = new byte[sizeof(int)];
         public Client(Main main)
         {
             this.main = main;
@@ -93,16 +94,15 @@ namespace Client
         }
         private async Task<int> ReadLength()
         {
-            byte[] buffer = new byte[sizeof(int)];
             int totalread = 0;
             int offset = 0;
-            while (totalread < buffer.Length)
+            while (totalread < bufferl.Length)
             {
-                int read = await client.ReceiveAsync(buffer, offset, buffer.Length - totalread);
+                int read = await client.ReceiveAsync(bufferl, offset, bufferl.Length - totalread);
                 totalread += read;
                 offset += read;
             }
-            return BitConverter.ToInt32(buffer, 0);
+            return BitConverter.ToInt32(bufferl, 0);
         }
         private async Task<byte[]> ReadData(int length)
         {

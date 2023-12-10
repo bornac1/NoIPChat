@@ -25,10 +25,10 @@
 
   <ItemGroup>
     <None Update="Config.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Server.log">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory></CopyToOutputDirectory>
     </None>
     <None Update="Servers.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

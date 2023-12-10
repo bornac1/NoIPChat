@@ -41,31 +41,28 @@
             // display
             // 
             display.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            display.Location = new Point(10, 32);
-            display.Margin = new Padding(3, 2, 3, 2);
+            display.Location = new Point(11, 43);
             display.Name = "display";
             display.ReadOnly = true;
-            display.Size = new Size(831, 164);
+            display.Size = new Size(949, 217);
             display.TabIndex = 0;
             display.Text = "";
             // 
             // message
             // 
             message.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            message.Location = new Point(80, 260);
-            message.Margin = new Padding(3, 2, 3, 2);
+            message.Location = new Point(91, 347);
             message.Name = "message";
-            message.Size = new Size(761, 84);
+            message.Size = new Size(869, 111);
             message.TabIndex = 2;
             message.Text = "";
             // 
             // receivers
             // 
             receivers.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            receivers.Location = new Point(80, 220);
-            receivers.Margin = new Padding(3, 2, 3, 2);
+            receivers.Location = new Point(91, 293);
             receivers.Name = "receivers";
-            receivers.Size = new Size(761, 37);
+            receivers.Size = new Size(869, 48);
             receivers.TabIndex = 1;
             receivers.Text = "";
             // 
@@ -73,9 +70,9 @@
             // 
             label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label1.AutoSize = true;
-            label1.Location = new Point(10, 222);
+            label1.Location = new Point(11, 296);
             label1.Name = "label1";
-            label1.Size = new Size(59, 15);
+            label1.Size = new Size(74, 20);
             label1.TabIndex = 1;
             label1.Text = "Receivers:";
             // 
@@ -83,19 +80,18 @@
             // 
             label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label2.AutoSize = true;
-            label2.Location = new Point(14, 294);
+            label2.Location = new Point(16, 392);
             label2.Name = "label2";
-            label2.Size = new Size(56, 15);
+            label2.Size = new Size(70, 20);
             label2.TabIndex = 3;
             label2.Text = "Message:";
             // 
             // button1
             // 
             button1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            button1.Location = new Point(80, 347);
-            button1.Margin = new Padding(3, 2, 3, 2);
+            button1.Location = new Point(91, 463);
             button1.Name = "button1";
-            button1.Size = new Size(82, 22);
+            button1.Size = new Size(94, 29);
             button1.TabIndex = 3;
             button1.Text = "Send";
             button1.UseVisualStyleBackColor = true;
@@ -104,10 +100,9 @@
             // button2
             // 
             button2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button2.Location = new Point(759, 347);
-            button2.Margin = new Padding(3, 2, 3, 2);
+            button2.Location = new Point(867, 463);
             button2.Name = "button2";
-            button2.Size = new Size(82, 22);
+            button2.Size = new Size(94, 29);
             button2.TabIndex = 4;
             button2.Text = "Cancel";
             button2.UseVisualStyleBackColor = true;
@@ -116,10 +111,9 @@
             // button3
             // 
             button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            button3.Location = new Point(294, 6);
-            button3.Margin = new Padding(3, 2, 3, 2);
+            button3.Location = new Point(336, 8);
             button3.Name = "button3";
-            button3.Size = new Size(82, 22);
+            button3.Size = new Size(94, 29);
             button3.TabIndex = 5;
             button3.Text = "Refresh";
             button3.UseVisualStyleBackColor = true;
@@ -127,9 +121,9 @@
             // 
             // Chat
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(851, 379);
+            ClientSize = new Size(973, 505);
             Controls.Add(button3);
             Controls.Add(button2);
             Controls.Add(button1);
@@ -138,9 +132,9 @@
             Controls.Add(receivers);
             Controls.Add(message);
             Controls.Add(display);
-            Margin = new Padding(3, 2, 3, 2);
             Name = "Chat";
             Text = "Chat";
+            FormClosed += Chat_FormClosed;
             ResumeLayout(false);
             PerformLayout();
         }

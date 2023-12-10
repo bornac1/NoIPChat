@@ -61,5 +61,10 @@
             await client.PrintReceivedMessages();
             display.Update();
         }
+
+        private async void Chat_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            await client.Disconnect(true);
+        }
     }
 }
