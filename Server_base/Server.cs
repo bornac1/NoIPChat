@@ -133,7 +133,7 @@ namespace Server
                 if (srvdata.Item1)
                 {
                     //Known server
-                    Client cli = new Client(this, server, srvdata.Item2, srvdata.Item3, srvdata.Item4, srvdata.Item5);
+                    Client cli = new(this, server, srvdata.Item2, srvdata.Item3, srvdata.Item4, srvdata.Item5);
                     if (!remoteservers.TryAdd(name, cli))
                     {
                         //Don't know why

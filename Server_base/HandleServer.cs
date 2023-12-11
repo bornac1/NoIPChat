@@ -58,7 +58,7 @@ namespace Server
                         }
                     }
                 }
-                ServerData data = new ServerData();
+                ServerData data = new();
                 try
                 {
                     data = await Task.Run(() => { return MessagePackSerializer.Deserialize<ServerData>(message.Data); });

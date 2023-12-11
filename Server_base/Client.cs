@@ -8,7 +8,7 @@ namespace Server
     public partial class Client
     {
         private string user = "";
-        private string name = "";
+        private readonly string name = "";
         private readonly Server server;
         private bool isserver = false; //This is connection from remote server
         private bool isremote = false; //This is connection to remote server
@@ -412,13 +412,13 @@ namespace Server
         {
             _ = DisconnectNoUse();
         }
-        private static void Print(byte[] bytes)
+        /*private static void Print(byte[] bytes)
         {
             foreach (byte b in bytes)
             {
                 string byteString = b.ToString("X2"); // Convert to hexadecimal string
                 Console.Write(byteString + " ");
             }
-        }
+        }*/
     }
 }
