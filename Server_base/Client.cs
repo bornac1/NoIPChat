@@ -172,11 +172,12 @@ namespace Server
                     disconnectstarted = true;
                     if (!isserver)
                     {
-                        //Disconnect clients
+                        //Disconnect client
                         await DisconnectClient(force);
                     }
                     else if (isserver || isremote)
                     {
+                        //Disconnect server
                         DisconnectServer();
                     }
                     connected = false;
@@ -197,59 +198,6 @@ namespace Server
                 await Server.WriteLog(ex);
             }
         }
-        private void DisconnectServer()
-        {
-            if (!server.remoteservers.TryRemove(name.ToLower(), out _))
-            {
-                //Remote server is already removed
-            }
-            foreach (string user in server.remoteusers.Keys)
-            {
-                if (server.remoteusers.TryGetValue(user.ToLower(), out string? srv))
-                {
-                    if (srv == name)
-                    {
-                        if (!server.remoteusers.TryRemove(user.ToLower(), out _))
-                        {
-                            //Is it already removed
-                        }
-                    }
-                }
-            }
-        }
-        private async Task DisconnectClient(bool force)
-        {
-            if (force && connected)
-            {
-                Message message1 = new()
-                {
-                    Disconnect = true
-                };
-                await SendMessage(message1);
-            }
-            if (!server.clients.TryRemove(user.ToLower(), out _))
-            {
-                //Probably already removed or not added at all
-            }
-            var usr = user.Split("@");
-            if (usr[1] != server.name)
-            {
-                //User home server is remote
-            }
-        }
-        private void DisconnectRemoteUser(Message message)
-        {
-            if (isserver || isremote)
-            {
-                if (message.User != null)
-                {
-                    if (!server.remoteusers.TryRemove(message.User.ToLower(), out _))
-                    {
-                        //User wasn't even in dictionary
-                    }
-                }
-            }
-        }
         private async Task ProcessMessage(Message message)
         {
             try
@@ -258,10 +206,12 @@ namespace Server
                 {
                     isserver = true;
                     //Process from server's welcome message
+                    await ProcessServerWelcomeMessage(message);
                 }
                 if (isserver || isremote)
                 {
                     //Server is connected
+                    await ProcessServerMessage(message);
                 }
                 else if (!isserver && !isremote)
                 {

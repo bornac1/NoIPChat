@@ -32,7 +32,7 @@ From server to server:
 5)AUTH: Sender= server_name, Receiver= username@server_name, Auth= true // to authenticate client connected to remote server
 					//Sender is current server name, receiver is User from login
 						//Send inside same Client class, so we know to which server it needs to be send to
-6)DISCONNECT: CV= 1, Sender= server, Receiver= server_name, User= user@server_name, Disconnect= true 
+6)DISCONNECT: Sender= server, Receiver= server_name, User= user@server_name, Disconnect= true 
 					//Sender is current server name, receiver is remote server
 						//User is added by current server
 //7)MULTI HOP RELAY
@@ -49,7 +49,7 @@ From server to server:
 
 		//Sender is on server1, needs login on server3
 		//Both know server2
-		//CV= 1, Sender=server1, Receiver= server3, User= username@server3, Pass= password //after doing From server to server 3)
+		//CV= 1, Sender=server1, Receiver= server3, User= username@server3, Pass= password //after doing From server to server 4)
 		//CV= 1, Sender=server1, Receiver= server2, User= username@server3, Pass= password
 			//server1 changes receiver to server2
 			//server1 sends to server2

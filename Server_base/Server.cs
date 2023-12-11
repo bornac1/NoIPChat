@@ -56,7 +56,13 @@ namespace Server
                 _ = new Client(this, await listener.AcceptAsync(), localip);
             }
         }
-        public async Task SendMessage(string user, Message message)
+        /// <summary>
+        /// Sends message to users for whom this is home server.
+        /// </summary>
+        /// <param name="user">Username.</param>
+        /// <param name="message">Message.</param>
+        /// <returns>Async Task.</returns>
+        public async Task SendMessageThisServer(string user, Message message)
         {
             if (clients.TryGetValue(user.ToLower(), out Client? client))
             {
@@ -71,16 +77,72 @@ namespace Server
                 if (server != null)
                 {
                     //Client is on remote server
+                    await SendMessageServer(server,message);
                 }
             }
             else
             {
+                //Client is not connected and not on remote server
+                //Save the message
                 if (!AddMessages(user, message))
                 {
                     //Don't know why
                 }
                 else
                 {
+                }
+            }
+        }
+        /// <summary>
+        /// Sends message to users who's home server is other one.
+        /// </summary>
+        /// <param name="user">Username.</param>
+        /// <param name="message">Message.</param>
+        /// <returns>Async Task.</returns>
+        public async Task SendMessageOtherServer(string user, Message message)
+        {
+            if(clients.TryGetValue(user, out Client? cli) && cli != null)
+            {
+                //Client is connected to this server
+                await cli.SendMessage(message);
+            }
+            else
+            {
+                //Client is not connected to this server
+                string[] usr = user.Split('@');
+                await SendMessageServer(usr[1], message);
+            }
+        }
+        /// <summary>
+        /// Sends message to given server.
+        /// </summary>
+        /// <param name="server">Server name.</param>
+        /// <param name="message">Message.</param>
+        /// <returns>Async Task.</returns>
+        public async Task SendMessageServer(string server, Message message)
+        {
+            if(remoteservers.TryGetValue(server, out Client? srv) && srv != null)
+            {
+                //We're already connected to this server
+                await srv.SendMessage(message);
+            }
+            else
+            {
+                //We are not already connected
+                var srvdata = GetServer(server);
+                if (srvdata.Item1)
+                {
+                    //Known server
+                    Client cli = new Client(this, server, srvdata.Item2, srvdata.Item3, srvdata.Item4, srvdata.Item5);
+                    if (!remoteservers.TryAdd(name, cli))
+                    {
+                        //Don't know why
+                    }
+                }
+                else
+                {
+                    //Unknown server
+                    //Multi hop
                 }
             }
         }

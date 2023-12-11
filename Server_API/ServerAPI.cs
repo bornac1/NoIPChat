@@ -33,7 +33,13 @@ namespace Server
         {
             if (server != null)
             {
-                await server.SendMessage(user, message);
+                if (user.Split('@')[1] == server.name){
+                    await server.SendMessageThisServer(user, message);
+                }
+                else
+                {
+                    await server.SendMessageOtherServer(user, message);
+                }
             }
         }
         ///<summary>
@@ -155,14 +161,6 @@ namespace Server
                 return server.messages.TryRemove(name, out _);
             }
             return false;
-        }
-        /// <summary>
-        /// Creates new Message.
-        /// </summary>
-        /// <returns>Message object.</returns>
-        public static Message CreateMessage()
-        {
-            return new Message();
         }
     }
 }
