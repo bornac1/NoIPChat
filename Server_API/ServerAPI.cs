@@ -33,7 +33,8 @@ namespace Server
         {
             if (server != null)
             {
-                if (user.Split('@')[1] == server.name){
+                if (user.Split('@')[1] == server.name)
+                {
                     await server.SendMessageThisServer(user, message);
                 }
                 else

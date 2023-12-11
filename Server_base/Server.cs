@@ -77,7 +77,7 @@ namespace Server
                 if (server != null)
                 {
                     //Client is on remote server
-                    await SendMessageServer(server,message);
+                    await SendMessageServer(server, message);
                 }
             }
             else
@@ -101,7 +101,7 @@ namespace Server
         /// <returns>Async Task.</returns>
         public async Task SendMessageOtherServer(string user, Message message)
         {
-            if(clients.TryGetValue(user, out Client? cli) && cli != null)
+            if (clients.TryGetValue(user, out Client? cli) && cli != null)
             {
                 //Client is connected to this server
                 await cli.SendMessage(message);
@@ -121,7 +121,7 @@ namespace Server
         /// <returns>Async Task.</returns>
         public async Task SendMessageServer(string server, Message message)
         {
-            if(remoteservers.TryGetValue(server, out Client? srv) && srv != null)
+            if (remoteservers.TryGetValue(server, out Client? srv) && srv != null)
             {
                 //We're already connected to this server
                 await srv.SendMessage(message);

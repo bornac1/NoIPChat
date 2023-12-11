@@ -1,10 +1,5 @@
 ﻿using MessagePack;
 using Messages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Server
 {
@@ -18,40 +13,46 @@ namespace Server
         /// <returns>Async Task.</returns>
         private async Task ProcessServerMessage(Message message)
         {
-            if(message.Users != null)
+            if (message.Users != null)
             {
                 //Users message
                 await ProcessUsers(message.Users);
-            } else if(message.Sender != null && message.Receiver != null)
+            }
+            else if (message.Sender != null && message.Receiver != null)
             {
                 //Mesage to be relayed
-               await  ProcessServerRelayMessage(message);
-            } else if(message.User != null && message.Pass != null)
+                await ProcessServerRelayMessage(message);
+            }
+            else if (message.User != null && message.Pass != null)
             {
                 //Login message
                 await ProcessServerLoginMessage(message);
-            } else if(message.User != null && message.Auth != null)
+            }
+            else if (message.User != null && message.Auth != null)
             {
                 //Auth message
                 await ProcessServerAuthMessage(message);
-            } else if(message.Receiver != null && message.Receiver == server.name){
+            }
+            else if (message.Receiver != null && message.Receiver == server.name)
+            {
                 //Message for this server
                 await ProcessServerLocalMessage(message);
             }
         }
         private async Task ProcessServerWelcomeMessage(Message message)
         {
-            if (message.Name != null && message.Data != null) {
+            if (message.Name != null && message.Data != null)
+            {
                 string name = message.Name.ToLower();
                 //Add to servers
                 if (!server.remoteservers.TryAdd(name, this))
                 {
                     //Already exsists
-                    if(server.remoteservers.TryGetValue(name, out Client? cli) && cli != null)
+                    if (server.remoteservers.TryGetValue(name, out Client? cli) && cli != null)
                     {
                         //Disconnect it
                         await cli.Disconnect();
-                        if(!server.remoteservers.TryAdd(name, this))
+                        if (!server.remoteservers.TryAdd(name, this))
                         {
                             //Don't know why
                         }
@@ -61,7 +62,8 @@ namespace Server
                 try
                 {
                     data = await Task.Run(() => { return MessagePackSerializer.Deserialize<ServerData>(message.Data); });
-                } catch
+                }
+                catch
                 {
                     //Just so it doesn't crash
                 }
@@ -125,10 +127,10 @@ namespace Server
                 }
             });
         }
-        private async Task ProcessServerRelayMessage (Message message)
+        private async Task ProcessServerRelayMessage(Message message)
         {
             Console.WriteLine("Relay " + message.Msg);
-            if(message.Receiver != null)
+            if (message.Receiver != null)
             {
                 string[] rec = message.Receiver.Split('@');
                 if (rec[1] == server.name)
@@ -145,7 +147,7 @@ namespace Server
         }
         private async Task ProcessServerLoginMessage(Message message)
         {
-            if(message.User != null && message.Pass != null)
+            if (message.User != null && message.Pass != null)
             {
                 string[] usr = message.User.Split("@");
                 if (usr[1] == server.name)
@@ -173,7 +175,7 @@ namespace Server
         }
         private async Task ProcessServerAuthMessage(Message message)
         {
-            if(message.User != null)
+            if (message.User != null)
             {
                 string[] usr = user.Split("@");
                 if (usr[1] != server.name)
@@ -194,10 +196,10 @@ namespace Server
         }
         private async Task ProcessServerLocalMessage(Message message)
         {
-            if(message.User!= null && message.Disconnect == true)
+            if (message.User != null && message.Disconnect == true)
             {
                 //Disconnect message
-                if(!server.remoteusers.TryRemove(message.User, out _))
+                if (!server.remoteusers.TryRemove(message.User, out _))
                 {
                     //Is already disconnected
                     //Or wasn't connected at all
