@@ -64,6 +64,7 @@
                 login.Dispose();
             }
             client = new Client(this);
+            ManipulateMenue();
         }
 
         private async void DisconnectToolStripMenuItem_Click(object sender, EventArgs e)
