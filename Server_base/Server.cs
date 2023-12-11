@@ -11,7 +11,6 @@ namespace Server
     public partial class Server
     {
         public float SV = 1;
-        //private readonly TcpListener[] listeners;
         private readonly TListener[] listeners;
         public string name;
         private bool active;
@@ -72,7 +71,6 @@ namespace Server
                 if (server != null)
                 {
                     //Client is on remote server
-                    await SendMessageRemote(server, message);
                 }
             }
             else
@@ -83,64 +81,6 @@ namespace Server
                 }
                 else
                 {
-                }
-            }
-        }
-        public async Task SendMessageRemote(string server, Message message)
-        {
-            if (remoteservers.TryGetValue(server.ToLower(), out Client? srv))
-            {
-                //Already connected
-                if (srv != null)
-                {
-                    await srv.SendMessage(message);
-                }
-            }
-            else
-            {
-                var srv_data = GetServer(server);
-                if (srv_data.Item1)
-                {
-                    //We found server IP and port
-                    Client remote = new(this, server, srv_data.Item2, srv_data.Item3, srv_data.Item4, srv_data.Item5);
-                    if (remoteservers.TryAdd(server.ToLower(), remote))
-                    {
-                        //Key already exsists
-                        if (remoteservers.TryGetValue(server.ToLower(), out Client? cli))
-                        {
-                            if (cli != null)
-                            {
-                                //Disconnect previous one
-                                //This will also delete it
-                                await cli.Disconnect();
-                                //Try once again
-                                if (remoteservers.TryAdd(server.ToLower(), remote))
-                                {
-                                    //Don't know why
-                                }
-                            }
-                        }
-                    }
-                    bool sent = await remote.SendMessage(message);
-                    if (!sent)
-                    {
-                        //Console.WriteLine("Not sent to remote server");
-                        //Not sent, save message
-                        if (!AddMessages_server(server, message))
-                        {
-                            //Don't know why
-                        }
-                    }
-                }
-                else
-                {
-                    //We don't know this server
-                    Console.WriteLine("No idea what to do");
-                    if (!AddMessages_server(server, message))
-                    {
-                        //Don't know why
-                    }
-                    //to implement: asking all know servers, giving up
                 }
             }
         }

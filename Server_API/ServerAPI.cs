@@ -41,13 +41,13 @@ namespace Server
         ///</summary>
         ///<param name="remote">Name of the remote serve.r</param>
         ///<param name="message">Message to be sent.</param>
-        public async Task SendMessageToRemoteServer(string remote, Message message)
+        /*public async Task SendMessageToRemoteServer(string remote, Message message)
         {
             if (server != null)
             {
                 await server.SendMessageRemote(remote, message);
             }
-        }
+        }*/
         /// <summary>
         /// Checks if remote server is in known server list in memory.
         /// </summary>
