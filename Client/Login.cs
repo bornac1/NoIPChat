@@ -61,7 +61,7 @@
         {
             while (client.auth == null)
             {
-                await Task.Delay(10);
+                await Task.Delay(1);
             }
         }
 
