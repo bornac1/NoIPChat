@@ -272,6 +272,11 @@ namespace Server
                     {
                         //Not connected
                         //Save message
+                        //Decrypt before saving
+                        if (aeskey != null)
+                        {
+                            message = Encryption.DecryptMessage(message, aeskey);
+                        }
                         if (!server.AddMessages(user, message))
                         {
                             return false;
@@ -306,6 +311,11 @@ namespace Server
                 if (!msgerror)
                 {
                     //Save message to be sent later
+                    //Decrypt before saving
+                    if (aeskey != null)
+                    {
+                        message = Encryption.EncryptMessage(message, aeskey);
+                    }
                     if (!server.AddMessages(user, message))
                     {
                         //Don't know why
