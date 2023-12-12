@@ -8,7 +8,7 @@ Multi-hop routing (WIP).
 
 It works without DNS available, but still requires TCP/IP.
 
-In current state it doesn't implement any encryption anad as such SHOULDN'T BE DEPLOYED ON NON-SECURE NETWORKS. Encryption will be available soon.
+As of latest update, Password, Msg and Data fileds in message are encrypted using AES 256, derived from ECDH on curve 25519.
 
 Server can listen on multiple interfaces (different IP address and/or port), use IPV4 and/or IPV6, store and forward messages (1 hop only at the moment).
 
