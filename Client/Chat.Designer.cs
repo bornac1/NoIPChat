@@ -135,6 +135,7 @@
             Name = "Chat";
             Text = "Chat";
             FormClosed += Chat_FormClosed;
+            Load += Chat_Load;
             ResumeLayout(false);
             PerformLayout();
         }

@@ -18,7 +18,6 @@ namespace Client
         public string? Server;
         public TClient client;
         public BindingSource servers;
-        public ConcurrentQueue<Messages.Message> messages_rec;
         private readonly StringBuilder value;
         public bool ischatready = false;
         public Main main;
@@ -31,7 +30,6 @@ namespace Client
             disconnectstarted = false;
             messages_snd = [];
             servers = [];
-            messages_rec = [];
             value = new StringBuilder();
             _ = LoadServers();
             client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any, 0)));
@@ -203,9 +201,12 @@ namespace Client
         }
         public async Task PrintMessage(Messages.Message message)
         {
+            while (!ischatready)
+            {
+                await Task.Delay(1);
+            }
             if (main.chat != null && ischatready)
             {
-                await PrintReceivedMessages();
                 //Chat is ready
                 string current = main.chat.display.Text;
                 string newvalue = await Task.Run(() =>
@@ -217,25 +218,6 @@ namespace Client
                     return str;
                 });
                 main.chat.display.Text = newvalue;
-            }
-            else
-            {
-                //Chat isn't ready
-                //Let's save the message
-                messages_rec.Enqueue(message);
-            }
-        }
-        public async Task PrintReceivedMessages()
-        {
-            if (main.chat != null && ischatready && !messages_rec.IsEmpty)
-            {
-                MessageBox.Show("We have " + messages_rec.Count);
-                for (int i = 0; i < messages_rec.Count; i++)
-                {
-                    MessageBox.Show("printing " + i);
-                    messages_rec.TryDequeue(out var message);
-                    await PrintMessage(message);
-                }
             }
         }
         public async Task Disconnect(bool force = false)

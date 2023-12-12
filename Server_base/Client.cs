@@ -301,9 +301,8 @@ namespace Server
             {
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
-                    for (int i = 0; i < messages.Count; i++)
+                    while(messages.TryDequeue(out Message message))
                     {
-                        messages.TryDequeue(out Message message);
                         await SendMessage(message);
                     }
                     if (messages.IsEmpty)
@@ -322,9 +321,8 @@ namespace Server
             {
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
-                    for (int i = 0; i < messages.Count; i++)
+                    while(messages.TryDequeue(out Message message))
                     {
-                        messages.TryDequeue(out Message message);
                         await SendMessage(message);
                     }
                     if (messages.IsEmpty)
@@ -343,9 +341,8 @@ namespace Server
             {
                 if (server.messages_server.TryGetValue(name.ToLower(), out var messages))
                 {
-                    for (int i = 0; i < messages.Count; i++)
+                    while(messages.TryDequeue(out Message message))
                     {
-                        messages.TryDequeue(out Message message);
                         await SendMessage(message);
                     }
                     if (messages.IsEmpty)

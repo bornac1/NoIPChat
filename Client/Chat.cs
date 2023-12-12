@@ -7,8 +7,6 @@
         {
             InitializeComponent();
             client = main.client;
-            client.ischatready = true;
-            _ = client.PrintReceivedMessages();
         }
         private async Task SendMessage()
         {
@@ -58,13 +56,17 @@
 
         private async void Button3_Click(object sender, EventArgs e)
         {
-            await client.PrintReceivedMessages();
             display.Update();
         }
 
         private async void Chat_FormClosed(object sender, FormClosedEventArgs e)
         {
             await client.Disconnect(true);
+        }
+
+        private void Chat_Load(object sender, EventArgs e)
+        {
+            client.ischatready = true;
         }
     }
 }
