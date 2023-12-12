@@ -298,7 +298,7 @@ namespace Client
                 await WriteLog(ex);
             }
         }
-        public async Task WriteLog(Exception ex)
+        public static async Task WriteLog(Exception ex)
         {
             string log = DateTime.Now.ToString("d.M.yyyy. H:m:s") + " " + ex.ToString() + Environment.NewLine;
             try

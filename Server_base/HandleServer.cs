@@ -36,7 +36,7 @@ namespace Server
             else if (message.Receiver != null && message.Receiver == server.name)
             {
                 //Message for this server
-                await ProcessServerLocalMessage(message);
+                ProcessServerLocalMessage(message);
             }
         }
         private async Task ProcessServerWelcomeMessage(Message message)
@@ -194,7 +194,7 @@ namespace Server
                 }
             }
         }
-        private async Task ProcessServerLocalMessage(Message message)
+        private void ProcessServerLocalMessage(Message message)
         {
             if (message.User != null && message.Disconnect == true)
             {

@@ -301,7 +301,7 @@ namespace Server
             {
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
-                    while(messages.TryDequeue(out Message message))
+                    while (messages.TryDequeue(out Message message))
                     {
                         await SendMessage(message);
                     }
@@ -321,7 +321,7 @@ namespace Server
             {
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
-                    while(messages.TryDequeue(out Message message))
+                    while (messages.TryDequeue(out Message message))
                     {
                         await SendMessage(message);
                     }
@@ -341,7 +341,7 @@ namespace Server
             {
                 if (server.messages_server.TryGetValue(name.ToLower(), out var messages))
                 {
-                    while(messages.TryDequeue(out Message message))
+                    while (messages.TryDequeue(out Message message))
                     {
                         await SendMessage(message);
                     }
