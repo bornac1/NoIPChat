@@ -1,5 +1,6 @@
 ﻿using Configuration;
 using Messages;
+using Sodium;
 
 namespace Server
 {
@@ -20,9 +21,9 @@ namespace Server
         ///</summary>
         ///<param name="name">Name of the server.</param>
         ///<param name="interfaces">List of netwok interfaces used by server</param>
-        public void CreateServer(string name, List<Interface> interfaces)
+        public void CreateServer(string name, List<Interface> interfaces, KeyPair ecdh)
         {
-            server = new Server(name, interfaces);
+            server = new Server(name, interfaces, ecdh);
         }
         ///<summary>
         ///Sends message from server to user.

@@ -19,6 +19,7 @@ namespace Server
         private bool auth = false;
         private readonly string localip;
         private readonly byte[] bufferl = new byte[sizeof(int)];
+        private byte[]? aeskey;
         public Client(Server server, TClient client, string localip)
         {
             this.server = server;
@@ -56,6 +57,10 @@ namespace Server
                 isremote = true;
                 //Send welcome
                 var data = await server.GetInterfacebyIP(localip);
+                await SendMessage(new Message()
+                {
+                    PublicKey = server.my.PublicKey
+                });
                 if (data.Item1 != "")
                 {
                     Message message = new()
@@ -202,6 +207,17 @@ namespace Server
         {
             try
             {
+                if (message.PublicKey != null)
+                {
+                    //We get a public key message from server
+                    //Let's send back our public key
+                    await SendMessage(new Message()
+                    {
+                        PublicKey = server.my.PublicKey
+                    });
+                    //Generate aeskey
+                    aeskey = Encryption.GenerateAESKey(server.my, message.PublicKey);
+                }
                 if (message.Server == true)
                 {
                     isserver = true;
@@ -230,6 +246,11 @@ namespace Server
             bool msgerror = false;
             try
             {
+                //Encrypt message
+                if (aeskey != null)
+                {
+                    message = Encryption.EncryptMessage(message, aeskey);
+                }
                 byte[]? data = await Processing.Serialize(message);
                 if (data != null)
                 {

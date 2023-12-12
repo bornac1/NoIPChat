@@ -1,4 +1,6 @@
-﻿namespace Client
+﻿using System.Text;
+
+namespace Client
 {
     public partial class Chat : Form
     {
@@ -17,7 +19,7 @@
                 CV = client.CV,
                 Sender = client.Username,
                 Receiver = receivers.Text.Trim(),
-                Msg = this.message.Text
+                Msg = Encoding.UTF8.GetBytes(this.message.Text)
             };
             if (await client.SendMessage(message))
             {

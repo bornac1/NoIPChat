@@ -1,5 +1,6 @@
 ﻿using Configuration;
 using Messages;
+using Sodium;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
@@ -10,7 +11,7 @@ namespace Server
 {
     public partial class Server
     {
-        public float SV = 1;
+        public int SV = 1;
         private readonly TListener[] listeners;
         public string name;
         private bool active;
@@ -22,7 +23,8 @@ namespace Server
         public ConcurrentDictionary<string, string> remoteusers; //Users whos home server is this, but are connected to remote one
         public ConcurrentDictionary<string, Servers> servers; //Know servers
         public ImmutableList<Interface> interfaces;
-        public Server(string name, List<Interface> interfaces)
+        public KeyPair my;
+        public Server(string name, List<Interface> interfaces, KeyPair ecdh)
         {
             this.name = name.ToLower();
             active = true;
@@ -33,6 +35,7 @@ namespace Server
             remoteusers = new ConcurrentDictionary<string, string>();
             servers = new ConcurrentDictionary<string, Servers>();
             List<TListener> listeners1 = [];
+            my = ecdh;
             foreach (Interface iface in interfaces)
             {
                 TListener listener = new(new TcpListener(IPAddress.Parse(iface.InterfaceIP), iface.Port));

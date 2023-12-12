@@ -2,14 +2,8 @@
 
 namespace Messages
 {
-    public class Processing
+    public static class Processing
     {
-        /// <summary>
-        /// Initializes processing.
-        /// </summary>
-        public Processing()
-        {
-        }
         /// <summary>
         /// Serialise given message into bytes.
         /// </summary>

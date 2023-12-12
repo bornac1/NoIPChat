@@ -1,4 +1,5 @@
 ﻿using Messages;
+using Sodium;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
@@ -9,7 +10,7 @@ namespace Client
 {
     public class Client
     {
-        public float CV = 1;
+        public int CV = 1;
         public bool? auth;
         public bool connected = false;
         public ConcurrentQueue<Messages.Message> messages_snd;
@@ -24,6 +25,8 @@ namespace Client
         private bool disconnectstarted;
         public Messages.Message message;
         private readonly byte[] bufferl = new byte[sizeof(int)];
+        private readonly KeyPair my;
+        private byte[]? aeskey;
         public Client(Main main)
         {
             this.main = main;
@@ -31,6 +34,7 @@ namespace Client
             messages_snd = [];
             servers = [];
             value = new StringBuilder();
+            my = Encryption.GenerateECDH();
             _ = LoadServers();
             client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any, 0)));
             message = new Messages.Message();
@@ -42,6 +46,11 @@ namespace Client
                 client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any, 0)));
                 await client.ConnectAsync(IPAddress.Parse(srv.IP), srv.Port);
                 connected = true;
+                //Send public key message
+                await SendMessage(new Messages.Message()
+                {
+                    PublicKey = my.PublicKey
+                });
             }
             catch (Exception ex)
             {
@@ -121,7 +130,7 @@ namespace Client
             Password = password;
             message.CV = CV;
             message.User = Username;
-            message.Pass = Password;
+            message.Pass = Encoding.UTF8.GetBytes(Password);
             if (await SendMessage(message))
             {
                 _ = Receive();
@@ -132,6 +141,11 @@ namespace Client
             bool msgerror = false;
             try
             {
+                //Encrypt message
+                if (aeskey != null)
+                {
+                    message = Encryption.EncryptMessage(message, aeskey);
+                }
                 byte[]? data = await Processing.Serialize(message);
                 if (data != null)
                 {
@@ -185,7 +199,16 @@ namespace Client
         }
         private async Task ProcessMessage(Messages.Message message)
         {
-            if (message.Auth == true)
+            if (aeskey != null)
+            {
+                message = Encryption.DecryptMessage(message, aeskey);
+            }
+            if (message.PublicKey != null)
+            {
+                //We have a public key from server
+                aeskey = Encryption.GenerateAESKey(my, message.PublicKey);
+            }
+            else if (message.Auth == true)
             {
                 //User is authenticated
                 auth = true;
@@ -205,14 +228,14 @@ namespace Client
             {
                 await Task.Delay(1);
             }
-            if (main.chat != null && ischatready)
+            if (main.chat != null && ischatready && message.Msg != null)
             {
                 //Chat is ready
                 string current = main.chat.display.Text;
                 string newvalue = await Task.Run(() =>
                 {
                     value.Append(current);
-                    value.AppendLine($"{message.Sender}:{message.Msg}");
+                    value.AppendLine($"{message.Sender}:{Encoding.UTF8.GetString(message.Msg)}");
                     string str = value.ToString();
                     value.Clear();
                     return str;

@@ -14,6 +14,10 @@ namespace Server
         {
             try
             {
+                if (aeskey != null)
+                {
+                    message = Encryption.DecryptMessage(message, aeskey);
+                }
                 if (message.User != null && message.Pass != null)
                 {
                     await LoginClient(message.User, message.Pass);
@@ -62,12 +66,12 @@ namespace Server
         /// </summary>
         /// <param name="message">Message</param>
         /// <returns>Async Task.</returns>
-        private async Task LoginClient(string user, string pass)
+        private async Task LoginClient(string user, byte[] pass)
         {
             //Save username
             this.user = user;
             //Authenticate
-            if (pass != string.Empty)
+            if (pass != null)
             {
                 auth = true;
             }

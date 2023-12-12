@@ -13,6 +13,10 @@ namespace Server
         /// <returns>Async Task.</returns>
         private async Task ProcessServerMessage(Message message)
         {
+            if (aeskey != null)
+            {
+                message = Encryption.DecryptMessage(message, aeskey);
+            }
             if (message.Users != null)
             {
                 //Users message
@@ -155,7 +159,7 @@ namespace Server
                     //Users home server is this one
 
                     //Authenticate
-                    if (message.Pass != string.Empty)
+                    if (message.Pass != null)
                     {
                         await SendMessage(new Message()
                         {

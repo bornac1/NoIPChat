@@ -7,13 +7,13 @@ namespace Messages
         /// <summary>
         /// CLient version.
         /// </summary>
-        public float? CV { get; set; }
-        public float? CVU { get; set; }
+        public int? CV { get; set; }
+        public int? CVU { get; set; }
         /// <summary>
         /// Server version.
         /// </summary>
-        public float? SV { get; set; }
-        public float? SVU { get; set; }
+        public int? SV { get; set; }
+        public int? SVU { get; set; }
         public bool? Update { get; set; }
         /// <summary>
         /// Username.
@@ -26,7 +26,7 @@ namespace Messages
         /// <summary>
         /// Password.
         /// </summary>
-        public string? Pass { get; set; }
+        public byte[]? Pass { get; set; }
         /// <summary>
         /// Server name.
         /// </summary>
@@ -54,11 +54,13 @@ namespace Messages
         /// <summary>
         /// Text message to be sent.
         /// </summary>
-        public string? Msg { get; set; }
+        public byte[]? Msg { get; set; }
         /// <summary>
         /// Bynary data to be sent.
         /// </summary>
         public byte[]? Data { get; set; }
+        public byte[]? Nounce { get; set; }
+        public byte[]? PublicKey { get; set; }
     }
     [MessagePackObject(keyAsPropertyName: true)]
     public struct ServerData

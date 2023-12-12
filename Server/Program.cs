@@ -1,10 +1,42 @@
-﻿using System.Xml.Serialization;
+﻿using Messages;
+using Sodium;
+using System.Xml.Serialization;
 namespace Server
 {
     internal class Program
     {
         static void Main()
         {
+            KeyPair ecdh;
+            try
+            {
+                byte[] key = System.IO.File.ReadAllBytes("Key.bin");
+                if (key.Length == 32)
+                {
+                    ecdh = Encryption.GetECDH(key);
+                }
+                else
+                {
+                    {
+                        throw new Exception();
+                    }
+                }
+            }
+            catch
+            {
+                //There was an error with reading a file
+                //Generate new key
+                Console.WriteLine("ECDH key error. New one is genearted.");
+                ecdh = Encryption.GenerateECDH();
+                try
+                {
+                    System.IO.File.WriteAllBytes("Key.bin", ecdh.PrivateKey);
+                }
+                catch
+                {
+                    Console.WriteLine("Can't save ECDH key.");
+                }
+            }
             try
             {
                 Configuration.Configuration? Config;
@@ -15,7 +47,7 @@ namespace Server
                 }
                 if (Config != null)
                 {
-                    Server server = new(Config.Server.Name, Config.Server.Interfaces);
+                    Server server = new(Config.Server.Name, Config.Server.Interfaces, ecdh);
                 }
                 else
                 {

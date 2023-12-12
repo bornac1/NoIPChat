@@ -1,4 +1,5 @@
 ﻿From client to server:
+0) PublicKey=...
 1)LOGIN: CV= 1, User= username@server, Pass= password
 2)SEND MESSAGE: CV= 1, Sender= username@server, Receiver= receiver1@server;receiver2@server, Msg= text_message, Data= binary_data
 	//Multiple Receivers by separated by ';'
@@ -7,6 +8,7 @@
 	//Send to server after message 3) is received from server
 
 From server to client:
+0) PublicKey=...
 1)AUTH: Auth= true
 2)RELAY MESSAGE FROM OTHER CLIENT: CV= 1, Sender= username@server, Receiver= receiver1@server, Msg= text_message, Data= binary_data
 	//Only one Receiver
@@ -19,6 +21,7 @@ From server to client:
 	//Send as many files as needed
 
 From server to server:
+0) PublicKey=...
 1)WELCOME: SV= 1, Name= server_name, Server= true, Data = {IP= 127.0.0.1, Port = 100}
 	//Send name and network informations in Data
 2)USERS: SV= 1, Name= server_name, Users = user@server1;user@server2
