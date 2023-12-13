@@ -11,7 +11,7 @@ namespace Client
     public class Client
     {
         public int CV = 1;
-        public bool? auth;
+        //public bool? auth;
         public bool connected = false;
         public ConcurrentQueue<Messages.Message> messages_snd;
         public string? Username;
@@ -27,6 +27,7 @@ namespace Client
         private readonly byte[] bufferl = new byte[sizeof(int)];
         private readonly KeyPair my;
         private byte[]? aeskey;
+        public TaskCompletionSource<bool> auth = new();
         public Client(Main main)
         {
             this.main = main;
@@ -51,12 +52,41 @@ namespace Client
                 {
                     PublicKey = my.PublicKey
                 });
+                await ReceiveKey();
             }
             catch (Exception ex)
             {
                 if (ex is System.Net.Sockets.SocketException)
                 {
                     //Error connecting
+                    await Disconnect();
+                }
+                else
+                {
+                    //Logging
+                    await WriteLog(ex);
+                    //Clean all
+                    await Disconnect();
+                }
+            }
+        }
+        private async Task ReceiveKey()
+        {
+            try
+            {
+                int length = await ReadLength();
+                byte[]? data = await ReadData(length);
+                if (data != null)
+                {
+                    Messages.Message message = await Processing.Deserialize(data);
+                    await ProcessMessage(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is System.Net.Sockets.SocketException)
+                {
+                    //assume disconnection
                     await Disconnect();
                 }
                 else
@@ -211,11 +241,13 @@ namespace Client
             else if (message.Auth == true)
             {
                 //User is authenticated
-                auth = true;
+                auth.TrySetResult(true);
+                //auth = true;
             }
             else if (message.Auth == false)
             {
-                auth = false;
+                auth.TrySetResult(false);
+                //auth = false;
             }
             else if (message.Msg != null || message.Data != null)
             {

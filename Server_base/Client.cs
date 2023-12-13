@@ -21,7 +21,6 @@ namespace Server
         private readonly byte[] bufferl = new byte[sizeof(int)];
         private byte[]? aeskey;
         private bool publickeysend = false;
-        private readonly SemaphoreSlim aeskeysemaphore = new(1, 1);
         public Client(Server server, TClient client, string localip)
         {
             this.server = server;
@@ -67,6 +66,7 @@ namespace Server
                     PublicKey = server.my.PublicKey
                 }, false);
                 publickeysend = true;
+                await ReceiveKey();
                 if (data.Item1 != "")
                 {
                     await SendMessage(new Message()
@@ -101,6 +101,54 @@ namespace Server
                 }
             }
         }
+        private async Task ReceiveKey()
+        {
+            try
+            {
+                int length = await ReadLength();
+                byte[]? data = null;
+                if (length < 1024)
+                {
+                    //Non authenticated is limited to 1024
+                    data = await ReadData(length);
+                }
+                if (data != null)
+                {
+                    //Console.WriteLine("received from " + name + user);
+                    //Print(data);
+                    //Console.WriteLine("end receive");
+                    Message message = await Processing.Deserialize(data);
+                    await ProcessMessage(message);
+                    if (timer != null)
+                    {
+                        //Reset timer
+                        timer.Stop();
+                        timer.Start();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is System.Net.Sockets.SocketException)
+                {
+                    //assume disconnection
+                    //No need for logging
+                }
+                else if (ex is ObjectDisposedException)
+                {
+                    //already disposed
+                    //No need for logging
+                }
+                else
+                {
+                    //Should be logged
+                    //Console.WriteLine(ex.ToString());
+                    await Server.WriteLog(ex);
+                }
+                connected = false;
+                await Disconnect();
+            }
+        }
         private async Task Receive()
         {
             while (connected)
@@ -116,6 +164,9 @@ namespace Server
                     }
                     if (data != null)
                     {
+                        //Console.WriteLine("received from " + name + user);
+                        //Print(data);
+                        //Console.WriteLine("end receive");
                         Message message = await Processing.Deserialize(data);
                         await ProcessMessage(message);
                         if (timer != null)
@@ -226,9 +277,7 @@ namespace Server
                         publickeysend = true;
                     }
                     //Generate aeskey
-                    await aeskeysemaphore.WaitAsync();
                     aeskey = Encryption.GenerateAESKey(server.my, message.PublicKey);
-                    aeskeysemaphore.Release();
                 }
                 if (message.Server == true)
                 {
@@ -260,15 +309,13 @@ namespace Server
             {
                 if (encrypt && aeskey != null)
                 {
-                    await aeskeysemaphore.WaitAsync();
                     /*while (aeskey == null)
                     {
                         await Task.Delay(1);
                     }*/
                     message = Encryption.EncryptMessage(message, aeskey);
-                    aeskeysemaphore.Release();
                 }
-                else if (aeskey == null)
+                else if (aeskey == null && encrypt)
                 {
                     Console.WriteLine("aes key is null, so we have a problem");
                 }
@@ -281,6 +328,9 @@ namespace Server
                         //connected
                         await client.SendAsync(length);
                         await client.SendAsync(data);
+                        //Console.WriteLine("sending to " + name + user);
+                        //Print(data);
+                        //Console.WriteLine("end send");
                         //Reset timer
                         if (timer != null)
                         {
@@ -461,7 +511,7 @@ namespace Server
         {
             _ = DisconnectNoUse();
         }
-        /*private static void Print(byte[] bytes)
+       /*private static void Print(byte[] bytes)
         {
             foreach (byte b in bytes)
             {

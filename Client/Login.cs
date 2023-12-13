@@ -18,7 +18,7 @@
 
         private async void Login_button_Click(object sender, EventArgs e)
         {
-            if (!loginclicked && client.auth != true)
+            if (!loginclicked)
             {
                 if (server.SelectedValue != null)
                 {
@@ -28,8 +28,7 @@
                     {
                         await client.Login(username.Text, password.Text);
                         loginclicked = true;
-                        await WaitForAuth();
-                        if (client.auth == true)
+                        if (await client.auth.Task == true)
                         {
                             //Is authenticated
                             MessageBox.Show("Authenticated");
@@ -57,13 +56,13 @@
                 }
             }
         }
-        private async Task WaitForAuth()
+        /*private async Task WaitForAuth()
         {
             while (client.auth == null)
             {
                 await Task.Delay(1);
             }
-        }
+        }*/
 
         private void Login_Load(object sender, EventArgs e)
         {

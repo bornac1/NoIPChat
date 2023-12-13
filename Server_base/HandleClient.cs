@@ -108,10 +108,10 @@ namespace Server
                         }
                     }
                 }
-                else
+                /*else
                 {
                     Console.WriteLine("client added " + server.clients.Count);
-                }
+                }*/
             }
         }
         private async Task DisconnectClient(bool force)
