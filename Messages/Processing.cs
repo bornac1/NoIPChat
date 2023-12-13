@@ -10,16 +10,8 @@ namespace Messages
         /// <param name="message">Message to be serialised.</param>
         public static async Task<byte[]?> Serialize(Message message)
         {
-            try
-            {
-                byte[] bytes = await Task.Run(() => { return MessagePackSerializer.Serialize(message); });
-                return bytes;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-            return null;
+            byte[] bytes = await Task.Run(() => { return MessagePackSerializer.Serialize(message); });
+            return bytes;
         }
         /// <summary>
         /// Deseliazies bytes into message.
@@ -27,16 +19,8 @@ namespace Messages
         /// <param name="bytes">Bytes to be deserialized.</param>
         public static async Task<Message> Deserialize(byte[] bytes)
         {
-            try
-            {
-                Message message = await Task.Run(() => { return MessagePackSerializer.Deserialize<Message>(bytes); });
-                return message;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-            return new Message();
+            Message message = await Task.Run(() => { return MessagePackSerializer.Deserialize<Message>(bytes); });
+            return message;
         }
         /// <summary>
         /// Serializes file into bytes.
