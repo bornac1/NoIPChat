@@ -22,20 +22,20 @@ namespace Server
                 //Users message
                 await ProcessUsers(message.Users);
             }
-            else if (message.Sender != null && message.Receiver != null)
-            {
-                //Mesage to be relayed
-                await ProcessServerRelayMessage(message);
-            }
             else if (message.User != null && message.Pass != null)
             {
                 //Login message
                 await ProcessServerLoginMessage(message);
             }
-            else if (message.User != null && message.Auth != null)
+            else if (message.Receiver != null && message.Auth != null)
             {
                 //Auth message
                 await ProcessServerAuthMessage(message);
+            }
+            else if (message.Sender != null && message.Receiver != null)
+            {
+                //Mesage to be relayed
+                await ProcessServerRelayMessage(message);
             }
             else if (message.Receiver != null && message.Receiver == server.name)
             {
@@ -47,7 +47,7 @@ namespace Server
         {
             if (message.Name != null && message.Data != null)
             {
-                string name = message.Name.ToLower();
+                name = message.Name.ToLower();
                 //Add to servers
                 if (!server.remoteservers.TryAdd(name, this))
                 {
@@ -133,7 +133,6 @@ namespace Server
         }
         private async Task ProcessServerRelayMessage(Message message)
         {
-            Console.WriteLine("Relay " + message.Msg);
             if (message.Receiver != null)
             {
                 string[] rec = message.Receiver.Split('@');
@@ -145,7 +144,7 @@ namespace Server
                 else
                 {
                     //This is message for user who's home server is other one
-                    await server.SendMessageOtherServer(rec[1], message);
+                    await server.SendMessageOtherServer(message.Receiver, message);
                 }
             }
         }
@@ -167,6 +166,10 @@ namespace Server
                             Receiver = message.User,
                             Auth = true
                         });
+                        if (!server.remoteusers.TryAdd(message.User, name))
+                        {
+                            //Already exists
+                        }
                     }
                     await SendAllMessagesRemoteUser(message.User);
                 }
@@ -179,13 +182,13 @@ namespace Server
         }
         private async Task ProcessServerAuthMessage(Message message)
         {
-            if (message.User != null)
+            if (message.Receiver != null)
             {
-                string[] usr = user.Split("@");
+                string[] usr = message.Receiver.Split("@");
                 if (usr[1] != server.name)
                 {
                     //Just to make sure
-                    if (server.clients.TryGetValue(message.User, out Client? cli))
+                    if (server.clients.TryGetValue(message.Receiver, out Client? cli))
                     {
                         //User is connected to this server
                         await cli.SendMessage(message);

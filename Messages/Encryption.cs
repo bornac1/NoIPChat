@@ -26,21 +26,24 @@ namespace Messages
         }
         public static Message EncryptMessage(Message message, byte[] aeskey)
         {
-            message.Nounce = SecretAeadAes.GenerateNonce();
-            //Encrypt password
-            if (message.Pass != null)
+            if (message.Pass != null || message.Msg != null || message.Data != null)
             {
-                message.Pass = Encrypt(message.Pass, message.Nounce, aeskey);
-            }
-            //Encrypt Msg
-            if (message.Msg != null)
-            {
-                message.Msg = Encrypt(message.Msg, message.Nounce, aeskey);
-            }
-            //Encrypt data
-            if (message.Data != null)
-            {
-                message.Data = Encrypt(message.Data, message.Nounce, aeskey);
+                message.Nounce = SecretAeadAes.GenerateNonce();
+                //Encrypt password
+                if (message.Pass != null)
+                {
+                    message.Pass = Encrypt(message.Pass, message.Nounce, aeskey);
+                }
+                //Encrypt Msg
+                if (message.Msg != null)
+                {
+                    message.Msg = Encrypt(message.Msg, message.Nounce, aeskey);
+                }
+                //Encrypt data
+                if (message.Data != null)
+                {
+                    message.Data = Encrypt(message.Data, message.Nounce, aeskey);
+                }
             }
             return message;
         }

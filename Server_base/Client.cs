@@ -8,35 +8,35 @@ namespace Server
     public partial class Client
     {
         private string user = "";
-        private readonly string name = "";
+        private string name = "";
         private readonly Server server;
         private bool isserver = false; //This is connection from remote server
         private bool isremote = false; //This is connection to remote server
         private readonly TClient client;
         private bool connected;
         private readonly System.Timers.Timer? timer;
-        private bool disconnectstarted;
+        private bool disconnectstarted = false;
         private bool auth = false;
         private readonly string localip;
         private readonly byte[] bufferl = new byte[sizeof(int)];
         private byte[]? aeskey;
+        private bool publickeysend = false;
+        private readonly SemaphoreSlim aeskeysemaphore = new(1, 1);
         public Client(Server server, TClient client, string localip)
         {
             this.server = server;
             this.client = client;
             this.localip = localip;
-            disconnectstarted = false;
             connected = true;
             _ = Receive();
         }
-        public Client(Server server, string name, string localip, string ip, int port, int timeout)
+        private Client(Server server, string name, string localip, int timeout)
         {
             this.server = server;
             isremote = true;
             this.name = name;
             client = new TClient(new TcpClient(IPEndPoint.Parse(localip)));
             this.localip = localip;
-            disconnectstarted = false;
             if (timeout != 0)
             {
                 timer = new System.Timers.Timer
@@ -46,7 +46,12 @@ namespace Server
                 timer.Elapsed += TimeoutHanlder;
                 timer.Start();
             }
-            _ = Connect(ip, port);
+        }
+        public static async Task<Client> CreateAsync(Server server, string name, string localip, string ip, int port, int timeout)
+        {
+            Client client = new(server, name, localip, timeout);
+            await client.Connect(ip, port);
+            return client;
         }
         private async Task Connect(string ip, int port)
         {
@@ -60,17 +65,17 @@ namespace Server
                 await SendMessage(new Message()
                 {
                     PublicKey = server.my.PublicKey
-                });
+                }, false);
+                publickeysend = true;
                 if (data.Item1 != "")
                 {
-                    Message message = new()
+                    await SendMessage(new Message()
                     {
                         Name = server.name.ToLower(),
                         Server = true,
                         SV = server.SV,
                         Data = await Task.Run(() => { return MessagePackSerializer.Serialize(new ServerData() { IP = data.Item1, Port = data.Item2 }); })
-                    };
-                    await SendMessage(message);
+                    });
                     _ = Receive();
                 }
                 else
@@ -136,6 +141,7 @@ namespace Server
                     else
                     {
                         //Should be logged
+                        Console.WriteLine(ex.ToString());
                         await Server.WriteLog(ex);
                     }
                     connected = false;
@@ -175,7 +181,7 @@ namespace Server
                 if (!disconnectstarted)
                 {
                     disconnectstarted = true;
-                    if (!isserver)
+                    if (!isserver && !isremote)
                     {
                         //Disconnect client
                         await DisconnectClient(force);
@@ -209,14 +215,20 @@ namespace Server
             {
                 if (message.PublicKey != null)
                 {
-                    //We get a public key message from server
-                    //Let's send back our public key
-                    await SendMessage(new Message()
+                    //We get a public key message
+                    if (!publickeysend)
                     {
-                        PublicKey = server.my.PublicKey
-                    });
+                        //We haven't already sent our public key
+                        await SendMessage(new Message()
+                        {
+                            PublicKey = server.my.PublicKey
+                        }, false);
+                        publickeysend = true;
+                    }
                     //Generate aeskey
+                    await aeskeysemaphore.WaitAsync();
                     aeskey = Encryption.GenerateAESKey(server.my, message.PublicKey);
+                    aeskeysemaphore.Release();
                 }
                 if (message.Server == true)
                 {
@@ -241,15 +253,24 @@ namespace Server
                 await Server.WriteLog(ex);
             }
         }
-        public async Task<bool> SendMessage(Message message)
+        public async Task<bool> SendMessage(Message message, bool encrypt = true)
         {
             bool msgerror = false;
             try
             {
-                //Encrypt message
-                if (aeskey != null)
+                if (encrypt && aeskey != null)
                 {
+                    await aeskeysemaphore.WaitAsync();
+                    /*while (aeskey == null)
+                    {
+                        await Task.Delay(1);
+                    }*/
                     message = Encryption.EncryptMessage(message, aeskey);
+                    aeskeysemaphore.Release();
+                }
+                else if (aeskey == null)
+                {
+                    Console.WriteLine("aes key is null, so we have a problem");
                 }
                 byte[]? data = await Processing.Serialize(message);
                 if (data != null)

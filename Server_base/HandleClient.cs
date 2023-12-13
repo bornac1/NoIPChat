@@ -20,7 +20,7 @@ namespace Server
                 }
                 if (message.User != null && message.Pass != null)
                 {
-                    await LoginClient(message.User, message.Pass);
+                    await LoginClient(message);
                 }
                 else if (message.Disconnect == true)
                 {
@@ -66,34 +66,51 @@ namespace Server
         /// </summary>
         /// <param name="message">Message</param>
         /// <returns>Async Task.</returns>
-        private async Task LoginClient(string user, byte[] pass)
+        private async Task LoginClient(Message message)
         {
-            //Save username
-            this.user = user;
-            //Authenticate
-            if (pass != null)
+            if (message.User != null && message.Pass != null)
             {
-                auth = true;
-            }
-            //Send auth message
-            await SendMessage(new Message()
-            {
-                Auth = auth
-            });
-            //Send all saved messages
-            await SendAllMessages();
-            //Add to clients
-            if (!server.clients.TryAdd(user, this))
-            {
-                //Already exsists
-                if (server.clients.TryGetValue(user, out Client? cli) && cli != null)
+                //Save username
+                user = message.User;
+                string[] usr = user.Split("@");
+                if (usr[1] == server.name)
                 {
-                    await cli.Disconnect();
-                    //Try once again
-                    if (!server.clients.TryAdd(user, this))
+                    //This is user home server
+                    //Authenticate
+                    if (message.Pass != null)
                     {
-                        //Don't know why it would fail
+                        auth = true;
                     }
+                    //Send auth message
+                    await SendMessage(new Message()
+                    {
+                        Auth = auth
+                    });
+                }
+                else
+                {
+                    //User home server is remote
+                    await server.SendMessageServer(usr[1], message);
+                }
+                //Send all saved messages
+                await SendAllMessages();
+                //Add to clients
+                if (!server.clients.TryAdd(user, this))
+                {
+                    //Already exsists
+                    if (server.clients.TryGetValue(user, out Client? cli) && cli != null)
+                    {
+                        await cli.Disconnect();
+                        //Try once again
+                        if (!server.clients.TryAdd(user, this))
+                        {
+                            //Don't know why it would fail
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("client added " + server.clients.Count);
                 }
             }
         }

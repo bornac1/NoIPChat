@@ -12,6 +12,7 @@ namespace Server
     public partial class Server
     {
         public int SV = 1;
+        private readonly int HopCount = 10; //Max number of hops between servers
         private readonly TListener[] listeners;
         public string name;
         private bool active;
@@ -111,9 +112,30 @@ namespace Server
             }
             else
             {
-                //Client is not connected to this server
                 string[] usr = user.Split('@');
                 await SendMessageServer(usr[1], message);
+            }
+        }
+        private async Task SendMessageKnownServer(string server, Message message)
+        {
+            if (remoteservers.TryGetValue(server, out Client? srv) && srv != null)
+            {
+                //We're already connected to this server
+                await srv.SendMessage(message);
+            }
+            else
+            {
+                //We are not already connected
+                var srvdata = GetServer(server);
+                if (srvdata.Item1)
+                {
+                    //Known server
+                    Client cli = await Client.CreateAsync(this, server, srvdata.Item2, srvdata.Item3, srvdata.Item4, srvdata.Item5);
+                    if (!remoteservers.TryAdd(name, cli))
+                    {
+                        //Don't know why
+                    }
+                }
             }
         }
         /// <summary>
@@ -136,16 +158,39 @@ namespace Server
                 if (srvdata.Item1)
                 {
                     //Known server
-                    Client cli = new(this, server, srvdata.Item2, srvdata.Item3, srvdata.Item4, srvdata.Item5);
-                    if (!remoteservers.TryAdd(name, cli))
+                    Client cli = await Client.CreateAsync(this, server, srvdata.Item2, srvdata.Item3, srvdata.Item4, srvdata.Item5);
+                    if (!remoteservers.TryAdd(server, cli))
                     {
                         //Don't know why
                     }
+                    await cli.SendMessage(message);
                 }
                 else
                 {
                     //Unknown server
                     //Multi hop
+                    if (message.Hop == null)
+                    {
+                        //This is first hop
+                        message.Hop = 1;
+                    }
+                    else
+                    {
+                        //This is not first hop
+                        message.Hop += 1;
+                    }
+                    if (message.Hop <= HopCount)
+                    {
+                        //Send to all known servers
+                        foreach (string srvname in servers.Keys)
+                        {
+                            //Make sure we don't send to this server
+                            if (srvname != name)
+                            {
+                                await SendMessageKnownServer(srvname, message);
+                            }
+                        }
+                    }
                 }
             }
         }
