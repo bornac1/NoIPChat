@@ -11,7 +11,7 @@ It works without DNS available, but still requires TCP/IP.
 
 As of latest update, Password, Msg and Data fileds in message are encrypted using AES 256, derived from ECDH on curve 25519.
 
-Server can listen on multiple interfaces (different IP address and/or port), use IPV4 and/or IPV6, store and forward messages (1 hop only at the moment).
+Server can listen on multiple interfaces (different IP address and/or port), use IPV4 and/or IPV6, store and forward messages (limited multi-hop forwarding).
 
 By utilising an efficient asyncronious IO it can handle thousands of clients at the same time (connected and communicating to each other, when mesages aren't saved).
 As message storage at the moment takes place in RAM, it's primary used for storing for short amount of time, for example during network failures.
