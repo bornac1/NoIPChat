@@ -1,4 +1,5 @@
-﻿using Sodium;
+﻿using MessagePack;
+using Sodium;
 
 namespace Messages
 {
@@ -26,8 +27,9 @@ namespace Messages
         }
         public static Message EncryptMessage(Message message, byte[] aeskey)
         {
-            if (message.Pass != null || message.Msg != null || message.Data != null)
+            if (message.Pass != null || message.Msg != null || message.Data != null && message.Nounce == null)
             {
+                message = CopyMessage(message);
                 message.Nounce = SecretAeadAes.GenerateNonce();
                 //Encrypt password
                 if (message.Pass != null)
@@ -51,6 +53,7 @@ namespace Messages
         {
             if (message.Nounce != null)
             {
+                message = CopyMessage(message);
                 //Decrypt password
                 if (message.Pass != null)
                 {
@@ -66,8 +69,34 @@ namespace Messages
                 {
                     message.Data = Decrypt(message.Data, message.Nounce, aeskey);
                 }
+                message.Nounce = null;
             }
             return message;
+        }
+        private static Message CopyMessage(Message message)
+        {
+            return new()
+            {
+                CV = message.CV,
+                CVU = message.CVU,
+                SV = message.SV,
+                SVU = message.SVU,
+                Update = message.Update,
+                User = message.User,
+                Users = message.Users,
+                Pass = message.Pass,
+                Name = message.Name,
+                Auth = message.Auth,
+                Disconnect = message.Disconnect,
+                Server = message.Server,
+                Sender = message.Sender,
+                Receiver = message.Receiver,
+                Msg = message.Msg,
+                Data = message.Data,
+                Nounce = message.Nounce,
+                PublicKey = message.PublicKey,
+                Hop = message.Hop,
+            };
         }
     }
 }

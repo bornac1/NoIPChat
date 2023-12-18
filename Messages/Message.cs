@@ -2,7 +2,7 @@
 namespace Messages
 {
     [MessagePackObject(keyAsPropertyName: true)]
-    public struct Message
+    public class Message
     {
         /// <summary>
         /// CLient version.
@@ -64,7 +64,7 @@ namespace Messages
         public int? Hop { get; set; }
     }
     [MessagePackObject(keyAsPropertyName: true)]
-    public struct ServerData
+    public class ServerData
     {
         /// <summary>
         /// IP address.
@@ -76,7 +76,7 @@ namespace Messages
         public int? Port { get; set; }
     }
     [MessagePackObject(keyAsPropertyName: true)]
-    public struct File
+    public class File
     {
         /// <summary>
         /// Name of the file.
@@ -88,7 +88,7 @@ namespace Messages
         public byte[]? Content { get; set; }
     }
     [MessagePackObject(keyAsPropertyName: true)]
-    public struct APIMessage
+    public class APIMessage
     {
         public string? Command { get; set; }
         public byte[]? Message { get; set; }
