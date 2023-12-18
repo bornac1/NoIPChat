@@ -121,8 +121,7 @@ namespace Server
         {
             await Task.Run(() =>
             {
-                string[] usersl = users.Split(';');
-                foreach (string user in usersl)
+                foreach (string user in StringProcessing.GetUsersServer(users))
                 {
                     if (!server.remoteusers.TryAdd(name, user))
                     {
@@ -135,8 +134,7 @@ namespace Server
         {
             if (message.Receiver != null)
             {
-                string[] rec = message.Receiver.Split('@');
-                if (rec[1] == server.name)
+                if (StringProcessing.GetServer(message.Receiver) == server.name)
                 {
                     //This is message for user who's home server is this one
                     await server.SendMessageThisServer(message.Receiver, message);
@@ -152,8 +150,7 @@ namespace Server
         {
             if (message.User != null && message.Pass != null)
             {
-                string[] usr = message.User.Split("@");
-                if (usr[1] == server.name)
+                if (StringProcessing.GetServer(message.User) == server.name)
                 {
                     //Users home server is this one
 
@@ -184,8 +181,7 @@ namespace Server
         {
             if (message.Receiver != null)
             {
-                string[] usr = message.Receiver.Split("@");
-                if (usr[1] != server.name)
+                if (StringProcessing.GetServer(message.Receiver) != server.name)
                 {
                     //Just to make sure
                     if (server.clients.TryGetValue(message.Receiver, out Client? cli))

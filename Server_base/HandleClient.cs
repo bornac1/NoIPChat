@@ -1,4 +1,5 @@
 ﻿using Messages;
+using System.Text;
 
 namespace Server
 {
@@ -35,21 +36,19 @@ namespace Server
                     message.Disconnect = null;
                     if (message.Receiver != null)
                     {
-                        string[] recivers = message.Receiver.Split(';');
                         //Split messages for each receiver
-                        foreach (string reciver in recivers)
+                        foreach (string receiver in StringProcessing.GetReceivers(message.Receiver))
                         {
-                            message.Receiver = reciver;
-                            string[] rcv = reciver.Split("@");
-                            if (rcv[1].Equals(server.name, StringComparison.CurrentCultureIgnoreCase))
+                            message.Receiver = receiver;
+                            if (StringProcessing.GetServer(receiver) == server.name)
                             {
                                 //This is receiver's home server
-                                await server.SendMessageThisServer(reciver, message);
-                            }
+                                await server.SendMessageThisServer(receiver, message);
+;                            }
                             else
                             {
                                 //Receiver's home server is other
-                                await server.SendMessageOtherServer(reciver, message);
+                                await server.SendMessageOtherServer(receiver, message);
                             }
                         }
                     }
@@ -72,8 +71,8 @@ namespace Server
             {
                 //Save username
                 user = message.User;
-                string[] usr = user.Split("@");
-                if (usr[1] == server.name)
+                string usrserver = StringProcessing.GetServer(user);
+                if (usrserver == server.name)
                 {
                     //This is user home server
                     //Authenticate
@@ -90,7 +89,7 @@ namespace Server
                 else
                 {
                     //User home server is remote
-                    await server.SendMessageServer(usr[1], message);
+                    await server.SendMessageServer(usrserver, message);
                 }
                 //Send all saved messages
                 await SendAllMessages();
@@ -128,14 +127,14 @@ namespace Server
             {
                 //Probably already removed or not added at all
             }
-            var usr = user.Split("@");
-            if (usr[1] != server.name)
+            string srv = StringProcessing.GetServer(user);
+            if (srv != server.name)
             {
                 //User home server is remote
-                await server.SendMessageServer(usr[1], new Message()
+                await server.SendMessageServer(srv, new Message()
                 {
                     Sender = server.name,
-                    Receiver = usr[1],
+                    Receiver = srv,
                     User = user,
                     Disconnect = true
                 });

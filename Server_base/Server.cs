@@ -1,6 +1,7 @@
 ﻿using Configuration;
 using Messages;
 using Sodium;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
@@ -112,8 +113,7 @@ namespace Server
             }
             else
             {
-                string[] usr = user.Split('@');
-                await SendMessageServer(usr[1], message);
+                await SendMessageServer(StringProcessing.GetServer(user), message);
             }
         }
         private async Task SendMessageKnownServer(string server, Message message)
@@ -354,8 +354,7 @@ namespace Server
             {
                 if (client.Key != null)
                 {
-                    string[] names = client.Key.Split("@");
-                    if (names[1] == server)
+                    if (StringProcessing.GetServer(client.Key) == server)
                     {
                         users.Add(client.Key);
                     }

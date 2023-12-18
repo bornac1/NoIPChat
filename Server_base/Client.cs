@@ -385,7 +385,7 @@ namespace Server
                     //Decrypt before saving
                     if (aeskey != null)
                     {
-                        message = Encryption.EncryptMessage(message, aeskey);
+                        message = Encryption.DecryptMessage(message, aeskey);
                     }
                     if (!server.AddMessages(user, message))
                     {
@@ -403,7 +403,7 @@ namespace Server
             {
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
-                    while (messages.TryDequeue(out Message message))
+                    while (messages.TryDequeue(out Message? message))
                     {
                         await SendMessage(message);
                     }
@@ -423,7 +423,7 @@ namespace Server
             {
                 if (server.messages.TryGetValue(user.ToLower(), out var messages))
                 {
-                    while (messages.TryDequeue(out Message message))
+                    while (messages.TryDequeue(out Message? message))
                     {
                         await SendMessage(message);
                     }
@@ -443,7 +443,7 @@ namespace Server
             {
                 if (server.messages_server.TryGetValue(name.ToLower(), out var messages))
                 {
-                    while (messages.TryDequeue(out Message message))
+                    while (messages.TryDequeue(out Message? message))
                     {
                         await SendMessage(message);
                     }
@@ -481,7 +481,7 @@ namespace Server
                     }
                     foreach (string user in server.clients.Keys)
                     {
-                        if (user.Split("@")[1].Equals(name, StringComparison.CurrentCultureIgnoreCase))
+                        if (StringProcessing.GetServer(user).Equals(name, StringComparison.CurrentCultureIgnoreCase))
                         {
                             //User is connected to this server
                             //But user's home server is remote

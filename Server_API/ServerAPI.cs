@@ -34,7 +34,7 @@ namespace Server
         {
             if (server != null)
             {
-                if (user.Split('@')[1] == server.name)
+                if (StringProcessing.GetServer(user) == server.name)
                 {
                     await server.SendMessageThisServer(user, message);
                 }
