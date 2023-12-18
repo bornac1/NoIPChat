@@ -14,7 +14,7 @@ namespace Test_client
 {
     public class Client
     {
-        public float CV = 1;
+        public int CV = 1;
         public bool? auth;
         public bool connected = false;
         public ConcurrentQueue<Messages.Message> messages;
@@ -23,7 +23,6 @@ namespace Test_client
         public string? Server;
         public TcpClient client;
         public NetworkStream? stream;
-        private readonly Processing processing;
         private readonly byte[] buffer = new byte[1024];
         private int bytesRead;
         private int bufferOffset;
@@ -35,7 +34,6 @@ namespace Test_client
         public Client()
         {
             disconnectstarted = false;
-            processing = new Processing();
             messages = [];
             messages_rec = [];
             value = new StringBuilder();
@@ -47,7 +45,7 @@ namespace Test_client
             try
             {
                 client = new TcpClient();
-                await client.ConnectAsync(IPAddress.Parse("192.168.114.169"), 10001);
+                await client.ConnectAsync(IPAddress.Parse("127.0.0.1"), 10001);
                 stream = client.GetStream();
                 connected = true;
             }
@@ -96,7 +94,7 @@ namespace Test_client
                             //Message processing starts
                             try
                             {
-                                Messages.Message message = await processing.Deserialize(messageBytes);
+                                Messages.Message message = await Processing.Deserialize(messageBytes);
                                 await ProcessMessage(message);
                             }
                             catch (Exception ex)
@@ -145,7 +143,7 @@ namespace Test_client
             Password = password;
             message.CV = CV;
             message.User = Username;
-            message.Pass = Password;
+            message.Pass = Encoding.UTF8.GetBytes(password);
             if (await SendMessage(message))
             {
                 _ = Receive();
@@ -156,7 +154,7 @@ namespace Test_client
             bool msgerror = false;
             try
             {
-                byte[]? data = await processing.Serialize(message);
+                byte[]? data = await Processing.Serialize(message);
                 if (data != null)
                 {
                     byte[] length = BitConverter.GetBytes(data.Length);
@@ -237,7 +235,6 @@ namespace Test_client
                         client.Close();
                         client.Dispose();
                     }
-                    await processing.Close();
                 }
                 catch (Exception ex)
                 {
@@ -261,9 +258,9 @@ namespace Test_client
                     {
                         await c.SendMessage(new Message()
                         {
-                            Receiver = "client"+i+"@server1",
+                            Receiver = "client" + i + "@server1",
                             Sender = "client" + i + "@server1",
-                            Msg = "Test message "+j+" from client "+i
+                            Msg = Encoding.UTF8.GetBytes("Test message " + j + " from client " + i)
                         });
                         Thread.Sleep(1000);
                     }
