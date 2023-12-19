@@ -63,7 +63,6 @@
                 login.Close();
                 login.Dispose();
             }
-            client = new Client(this);
             ManipulateMenue();
         }
 

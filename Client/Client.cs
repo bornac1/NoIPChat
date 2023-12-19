@@ -11,12 +11,11 @@ namespace Client
     public class Client
     {
         public int CV = 1;
-        //public bool? auth;
         public bool connected = false;
         public ConcurrentQueue<Messages.Message> messages_snd;
         public string? Username;
         public string? Password;
-        public string? Server;
+        //public string? Server;
         public TClient client;
         public BindingSource servers;
         private readonly StringBuilder value;
