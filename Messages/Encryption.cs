@@ -54,22 +54,25 @@ namespace Messages
             if (message.Nounce != null)
             {
                 message = CopyMessage(message);
-                //Decrypt password
-                if (message.Pass != null)
+                if (message.Nounce != null)
                 {
-                    message.Pass = Decrypt(message.Pass, message.Nounce, aeskey);
+                    //Decrypt password
+                    if (message.Pass != null)
+                    {
+                        message.Pass = Decrypt(message.Pass, message.Nounce, aeskey);
+                    }
+                    //Decrypt Msg
+                    if (message.Msg != null)
+                    {
+                        message.Msg = Decrypt(message.Msg, message.Nounce, aeskey);
+                    }
+                    //Decrypt data
+                    if (message.Data != null)
+                    {
+                        message.Data = Decrypt(message.Data, message.Nounce, aeskey);
+                    }
+                    message.Nounce = null;
                 }
-                //Decrypt Msg
-                if (message.Msg != null)
-                {
-                    message.Msg = Decrypt(message.Msg, message.Nounce, aeskey);
-                }
-                //Decrypt data
-                if (message.Data != null)
-                {
-                    message.Data = Decrypt(message.Data, message.Nounce, aeskey);
-                }
-                message.Nounce = null;
             }
             return message;
         }
