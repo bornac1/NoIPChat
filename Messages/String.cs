@@ -22,7 +22,8 @@ namespace Messages
                     break;
                 }
             }
-            return string.Empty;
+            //it's already just server
+            return username;
         }
         public static IEnumerable<string> GetReceivers(string receivers)
         {

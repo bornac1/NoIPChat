@@ -43,12 +43,12 @@ From server to server:
 		//Send to know one
 		//It will relay further
 	//Example:
-		//Sender is on server1, Receiver is on server3
-		//Both know server2
-		//CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data // is recived on server1
-		//CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data //server1 sends to server2
-		//CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data //server2 sends to server3
-		//server3 uses From server to client 2)
+		Sender is on server1, Receiver is on server3
+		Both know server2
+		CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data // is recived on server1
+		CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data //server1 sends to server2
+		CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data //server2 sends to server3
+		server3 uses From server to client 2)
 
 		//Sender is on server1, needs login on server3
 		//Both know server2

@@ -150,7 +150,8 @@ namespace Server
         {
             if (message.User != null && message.Pass != null)
             {
-                if (StringProcessing.GetServer(message.User) == server.name)
+                string srv = StringProcessing.GetServer(message.User);
+                if (srv == server.name)
                 {
                     //Users home server is this one
 
@@ -174,6 +175,7 @@ namespace Server
                 {
                     //Users home server is other one
                     //Multi hop
+                    await server.SendMessageServer(srv, message);
                 }
             }
         }
@@ -181,7 +183,8 @@ namespace Server
         {
             if (message.Receiver != null)
             {
-                if (StringProcessing.GetServer(message.Receiver) != server.name)
+                string srv = StringProcessing.GetServer(message.Receiver);
+                if (srv != server.name)
                 {
                     //Just to make sure
                     if (server.clients.TryGetValue(message.Receiver, out Client? cli))
@@ -193,6 +196,7 @@ namespace Server
                     {
                         //User is not connected to this server
                         //Multi hop
+                        await server.SendMessageServer(srv, message);
                     }
                 }
             }

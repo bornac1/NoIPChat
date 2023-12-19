@@ -89,6 +89,8 @@ namespace Server
                 else
                 {
                     //User home server is remote
+                    message.Sender = server.name;
+                    message.Receiver = usrserver;
                     await server.SendMessageServer(usrserver, message);
                 }
                 //Send all saved messages
