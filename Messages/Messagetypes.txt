@@ -38,11 +38,11 @@ From server to server:
 6)DISCONNECT: Sender= server, Receiver= server_name, User= user@server_name, Disconnect= true 
 					//Sender is current server name, receiver is remote server
 						//User is added by current server
-//7)MULTI HOP RELAY
+7)MULTI HOP RELAY
 	//If it's not possible direct to destination server
 		//Send to know one
 		//It will relay further
-	//Example:
+	Example:
 		Sender is on server1, Receiver is on server3
 		Both know server2
 		CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data // is recived on server1
@@ -57,3 +57,5 @@ From server to server:
 			//server1 changes receiver to server2
 			//server1 sends to server2
 		//CV= 1, Sender=server2
+		AUTH
+		Sender= sender_server, Receiver= user@server, Auth= true

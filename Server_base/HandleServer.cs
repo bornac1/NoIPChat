@@ -175,6 +175,9 @@ namespace Server
                 {
                     //Users home server is other one
                     //Multi hop
+                    message.Sender = server.name;
+                    message.Receiver = srv;
+                    await server.SendMessageServer(srv, message);
                 }
             }
         }
@@ -195,6 +198,7 @@ namespace Server
                     {
                         //User is not connected to this server
                         //Multi hop
+                        await server.SendMessageServer(srv, message);
                     }
                 }
             }
