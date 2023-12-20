@@ -74,33 +74,12 @@ TimeOut indicates number of seconds after which server to server connection will
 2) Setup Config.xml
 Here is an example:
 
-<?xml version="1.0" encoding="utf-8" ?>
-<Configuration>
-	<Server>
-		<Name>Server1</Name>
-		<Interfaces>
-			<Interface>
-				<InterfaceIP>127.0.0.1</InterfaceIP>
-				<IP>127.0.0.1</IP>
-				<Port>10001</Port>
-			</Interface>
-		</Interfaces>
-	</Server>
-	<Remote>
-		<Active>false</Active>
-		<IP>127.0.0.1</IP>
-		<Port>10010</Port>
-		<User>remote</User>
-		<Pass>pass</Pass>
-	</Remote>
-</Configuration>
-
 Name is name of this server.
-Inside <Interfaces></Interfaces> you can eneter as many interfaces as you want
-<InterfaceIP> is IP address assigned to network interface (in case of NAT, this is private IP)
-<IP> is IP address that is used by clients and remote servers to connect (in case of NAT, this is public IP)
-<Port> is a port number (port should be opend in firewall)
-<Remote></Remote> is reserver for future uses and can be deleted
+Inside Interfaces you can eneter as many interfaces as you want
+InterfaceIP is IP address assigned to network interface (in case of NAT, this is private IP)
+IP is IP address that is used by clients and remote servers to connect (in case of NAT, this is public IP)
+Port is a port number (port should be opend in firewall)
+Remote is reserver for future uses and can be deleted
 
 3) Start the server
 4) ECDH key will be generated automatically on the first run
