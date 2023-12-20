@@ -72,7 +72,6 @@ RemotePort is a port used by remote server.
 TimeOut indicates number of seconds after which server to server connection will be disconnected in case of no activity (set to 0 if you want permanent connection).
 
 2) Setup Config.xml
-Here is an example:
 
 Name is name of this server.
 Inside Interfaces you can eneter as many interfaces as you want
