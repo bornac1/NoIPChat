@@ -22,7 +22,7 @@ As message storage at the moment takes place in RAM, it's primary used for stori
 steps 1) and 2) repeat untill either it's delivered to server B, or max number of hops is reached
 Max number of hops can be set for every server, currently it's 10.
 
-**How to use?***
+**How to use?**
 **Client**
 1) Inside Servers.json file add server(s) you will be using
 Here is an example:
@@ -43,6 +43,7 @@ Here is an example:
 2) Start client
 3) Enter username and password, choose server and connect
 4) You're ready to go
+
 **Server**
 1) Inside Servers.json add known server(s)
 
