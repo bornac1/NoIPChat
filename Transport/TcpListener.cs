@@ -8,20 +8,48 @@ namespace Transport
         private readonly Socket socket;
         public TcpListener(IPAddress localaddr, int port)
         {
-            socket = new Socket(localaddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.Bind(new IPEndPoint(localaddr, port));
+            try
+            {
+                socket = new Socket(localaddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                socket.Bind(new IPEndPoint(localaddr, port));
+            }
+            catch (SocketException ex)
+            {
+                throw new TransportException("Socket exception", ex);
+            }
         }
         public void Start()
         {
-            socket.Listen();
+            try
+            {
+                socket.Listen();
+            }
+            catch (SocketException ex)
+            {
+                throw new TransportException("Socket exception", ex);
+            }
         }
-        public TcpClient Accept()
+    public TcpClient Accept()
         {
-            return new(socket.Accept());
+            try
+            {
+                return new(socket.Accept());
+            }
+            catch (SocketException ex)
+            {
+                throw new TransportException("Socket exception", ex);
+            }
         }
         public async Task<TcpClient> AcceptAsync()
         {
-            return new(await socket.AcceptAsync());
+            try
+            {
+                return new(await socket.AcceptAsync());
+            }
+            catch (SocketException ex)
+            {
+                throw new TransportException("Socket exception", ex);
+            }
         }
         public void Stop()
         {

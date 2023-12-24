@@ -86,7 +86,7 @@ namespace Server
             catch (Exception ex)
             {
                 //Exception should be logged
-                if (ex is System.Net.Sockets.SocketException)
+                if (ex is TransportException)
                 {
                     //Problem connecting
                     //No need for logging
@@ -129,7 +129,7 @@ namespace Server
             }
             catch (Exception ex)
             {
-                if (ex is System.Net.Sockets.SocketException)
+                if (ex is TransportException)
                 {
                     //assume disconnection
                     //No need for logging
@@ -179,7 +179,7 @@ namespace Server
                 }
                 catch (Exception ex)
                 {
-                    if (ex is System.Net.Sockets.SocketException)
+                    if (ex is TransportException)
                     {
                         //assume disconnection
                         //No need for logging
@@ -364,7 +364,7 @@ namespace Server
             }
             catch (Exception ex)
             {
-                if (ex is System.Net.Sockets.SocketException)
+                if (ex is TransportException)
                 {
                     //assume disconnection
                     //No need for logging

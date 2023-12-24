@@ -8,7 +8,14 @@ namespace Transport
         private readonly Socket socket;
         public TcpClient(IPEndPoint localEP)
         {
-            socket = new Socket(localEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            try
+            {
+                socket = new Socket(localEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            }
+            catch (SocketException ex)
+            {
+                throw new TransportException("Socket exception", ex);
+            }
         }
         public TcpClient(Socket socket)
         {
@@ -16,11 +23,24 @@ namespace Transport
         }
         public void Connect(IPAddress address, int port)
         {
-            socket.Connect(address, port);
+            try
+            {
+                socket.Connect(address, port);
+            } catch (SocketException ex)
+            {
+                throw new TransportException("Socket exception", ex);
+            }
         }
         public Task ConnectAsync(IPAddress address, int port)
         {
-            return socket.ConnectAsync(address, port);
+            try
+            {
+                return socket.ConnectAsync(address, port);
+            }
+            catch (SocketException ex)
+            {
+                throw new TransportException("Socket exception", ex);
+            }
         }
         public void Close()
         {
@@ -37,19 +57,47 @@ namespace Transport
         }
         public int Receive(byte[] buffer, int offset, int count)
         {
-            return socket.Receive(buffer, offset, count, SocketFlags.None);
+            try
+            {
+                return socket.Receive(buffer, offset, count, SocketFlags.None);
+            }
+            catch (SocketException ex)
+            {
+                throw new TransportException("Socket exception", ex);
+            }
         }
         public async Task<int> ReceiveAsync(byte[] buffer, int offset, int count)
         {
-            return await socket.ReceiveAsync(new ArraySegment<byte>(buffer, offset, count), SocketFlags.None);
+            try
+            {
+                return await socket.ReceiveAsync(new ArraySegment<byte>(buffer, offset, count), SocketFlags.None);
+            }
+            catch (SocketException ex)
+            {
+                throw new TransportException("Socket exception", ex);
+            }
         }
         public int Send(byte[] buffer, int offset, int count)
         {
-            return socket.Send(buffer, offset, count, SocketFlags.None);
+            try
+            {
+                return socket.Send(buffer, offset, count, SocketFlags.None);
+            }
+            catch (SocketException ex)
+            {
+                throw new TransportException("Socket exception", ex);
+            }
         }
         public async Task<int> SendAsync(byte[] buffer, int offset, int count)
         {
-            return await socket.SendAsync(new ArraySegment<byte>(buffer, offset, count), SocketFlags.None);
+            try
+            {
+                return await socket.SendAsync(new ArraySegment<byte>(buffer, offset, count), SocketFlags.None);
+            }
+            catch (SocketException ex)
+            {
+                throw new TransportException("Socket exception", ex);
+            }
         }
     }
 }

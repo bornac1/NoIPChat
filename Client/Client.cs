@@ -55,18 +55,17 @@ namespace Client
             }
             catch (Exception ex)
             {
-                if (ex is System.Net.Sockets.SocketException)
+                if (ex is TransportException)
                 {
                     //Error connecting
-                    await Disconnect();
                 }
                 else
                 {
                     //Logging
                     await WriteLog(ex);
-                    //Clean all
-                    await Disconnect();
                 }
+                //Clean all
+                await Disconnect();
             }
         }
         private async Task ReceiveKey()
@@ -83,7 +82,7 @@ namespace Client
             }
             catch (Exception ex)
             {
-                if (ex is System.Net.Sockets.SocketException)
+                if (ex is TransportException)
                 {
                     //assume disconnection
                     await Disconnect();
@@ -113,18 +112,20 @@ namespace Client
                 }
                 catch (Exception ex)
                 {
-                    if (ex is System.Net.Sockets.SocketException)
+                    if (ex is TransportException)
                     {
                         //assume disconnection
-                        await Disconnect();
+                    } else if(ex is ObjectDisposedException)
+                    {
+                        //Already disposed
                     }
                     else
                     {
                         //Logging
                         await WriteLog(ex);
-                        //Clean all
-                        await Disconnect();
                     }
+                    //Clean all
+                    await Disconnect();
                 }
             }
         }
@@ -191,10 +192,9 @@ namespace Client
             }
             catch (Exception ex)
             {
-                if (ex is System.Net.Sockets.SocketException)
+                if (ex is TransportException)
                 {
                     //Assume disconnection
-                    await Disconnect();
                     //Save message to be sent later
                     if (!msgerror)
                     {
@@ -205,6 +205,9 @@ namespace Client
                         //Message error
                         //Give up
                     }
+                } else if(ex is ObjectDisposedException)
+                {
+                    //Already disposed
                 }
                 else
                 {
@@ -212,6 +215,7 @@ namespace Client
                     await WriteLog(ex);
                 }
             }
+            await Disconnect();
             return false;
         }
         public (string?, int) GetServer(string name)
