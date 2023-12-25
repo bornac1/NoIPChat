@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <None Update="Client.log">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="Servers.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

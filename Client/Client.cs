@@ -24,6 +24,7 @@ namespace Client
         private bool disconnectstarted;
         public Messages.Message message;
         private readonly byte[] bufferl = new byte[sizeof(int)];
+        private byte[] bufferm = new byte[1024];
         private readonly KeyPair my;
         private byte[]? aeskey;
         public TaskCompletionSource<bool> auth = new();
@@ -73,12 +74,9 @@ namespace Client
             try
             {
                 int length = await ReadLength();
-                byte[]? data = await ReadData(length);
-                if (data != null)
-                {
-                    Messages.Message message = await Processing.Deserialize(data);
-                    await ProcessMessage(message);
-                }
+                ReadOnlyMemory<byte> data = await ReadData(length);
+                Messages.Message message = await Processing.Deserialize(data);
+                await ProcessMessage(message);
             }
             catch (Exception ex)
             {
@@ -103,12 +101,9 @@ namespace Client
                 try
                 {
                     int length = await ReadLength();
-                    byte[]? data = await ReadData(length);
-                    if (data != null)
-                    {
-                        Messages.Message message = await Processing.Deserialize(data);
-                        await ProcessMessage(message);
-                    }
+                    ReadOnlyMemory<byte> data = await ReadData(length);
+                    Messages.Message message = await Processing.Deserialize(data);
+                    await ProcessMessage(message);
                 }
                 catch (Exception ex)
                 {
@@ -141,18 +136,42 @@ namespace Client
             }
             return BitConverter.ToInt32(bufferl, 0);
         }
-        private async Task<byte[]> ReadData(int length)
+        private void Handlebufferm(int size)
         {
-            byte[] buffer = new byte[length];
+            if (bufferm.Length >= size)
+            {
+                //Buffer is large enough
+                if(bufferm.Length / size >= 2)
+                {
+                    //Buffer is at least 2 times too large
+                    int ns = bufferm.Length / (bufferm.Length / size);
+                    bufferm = new byte[ns];
+                }
+            }
+            else
+            {
+                //Buffer is too small
+                int ns = size / bufferm.Length;
+                if (size % bufferm.Length != 0)
+                {
+                    ns += 1;
+                }
+                ns *= bufferm.Length;
+                bufferm = new byte[ns];
+            }
+        }
+        private async Task<ReadOnlyMemory<byte>> ReadData(int length)
+        {
+            Handlebufferm(length);
             int totalread = 0;
             int offset = 0;
-            while (totalread < buffer.Length)
+            while (totalread < length)
             {
-                int read = await client.ReceiveAsync(buffer, offset, buffer.Length - totalread);
+                int read = await client.ReceiveAsync(bufferm, offset, bufferm.Length - totalread);
                 totalread += read;
                 offset += read;
             }
-            return buffer;
+            return new ReadOnlyMemory<byte>(bufferm, 0, totalread);
         }
         public async Task Login(string username, string password)
         {

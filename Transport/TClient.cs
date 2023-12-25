@@ -151,7 +151,32 @@ namespace Transport
             {
                 if (tcpClient != null)
                 {
-                    return tcpClient.Receive(buffer, offset, count);
+                    return tcpClient.Receive(new Span<byte>(buffer,offset,count));
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+        /// <summary>
+        /// Receives data synchronously.
+        /// </summary>
+        /// <param name="buffer">Used for stroring received data.</param>
+        /// <returns>Number of bytes received.</returns>
+        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
+        /// <exception cref="NotImplementedException">Protocol is not implemented.</exception>
+        public int Receive(Span<byte> buffer)
+        {
+            if (protocol == Protocol.TCP)
+            {
+                if (tcpClient != null)
+                {
+                    return tcpClient.Receive(buffer);
                 }
                 else
                 {
@@ -179,7 +204,7 @@ namespace Transport
             {
                 if (tcpClient != null)
                 {
-                    return await tcpClient.ReceiveAsync(buffer, offset, count);
+                    return await tcpClient.ReceiveAsync(new Memory<byte>(buffer, offset, count));
                 }
                 else
                 {
@@ -192,22 +217,57 @@ namespace Transport
             }
         }
         /// <summary>
-        /// Sends data synchronously.
+        /// Receives data asynchronously.
         /// </summary>
         /// <remarks>Here should other protocols be implemented.</remarks>
-        /// <param name="buffer">Contains data to be sent.</param>
-        /// <param name="offset">The position in buffer at which to begin sending.</param>
-        /// <param name="count">The number of bytes to be send.</param>
+        /// <param name="buffer">Used for stroring received data.</param>
+        /// <returns>Task that completes with number of bytes received.</returns>
+        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
+        /// <exception cref="NotImplementedException">Protocol is not implemented.</exception>
+        public async Task<int> ReceiveAsync(Memory<byte> buffer)
+        {
+            if (protocol == Protocol.TCP)
+            {
+                if (tcpClient != null)
+                {
+                    return await tcpClient.ReceiveAsync(buffer);
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+        /// <summary>
+        /// Sends data synchronously. Will send all data.
+        /// </summary>
+        /// <remarks>Here should other protocols be implemented.</remarks>
+        /// <param name="data">Contains data to be sent.</param>
         /// <returns>Number of bytes sent.</returns>
         /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
         /// <exception cref="NotImplementedException">Protocol is not implemented.</exception>
-        public int Send(byte[] buffer, int offset, int count)
+        public int Send(ReadOnlySpan<byte> data)
         {
             if (protocol == Protocol.TCP)
             {
                 if (tcpClient != null)
                 {
-                    return tcpClient.Send(buffer, offset, count);
+                    int tsent = 0;
+                    while (data.Length > 0)
+                    {
+                        int sent = tcpClient.Send(data);
+                        if (data.Length == 0)
+                        {
+                            break;
+                        }
+                        data = data[sent..];
+                        tsent += sent;
+                    }
+                    return tsent;
                 }
                 else
                 {
@@ -220,34 +280,30 @@ namespace Transport
             }
         }
         /// <summary>
-        /// Sends data asynchronously.
+        /// Sends data asynchronously. Will send all data.
         /// </summary>
         /// <remarks>Here should other protocols be implemented.</remarks>
-        /// <param name="buffer">Contains data to be sent.</param>
+        /// <param name="data">Contains data to be sent.</param>
         /// <returns>Task that completes with number of bytes sent.</returns>
         /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
-        /// <exception cref="NotImplementedException">Protocol is not implemented.</exception>
-        public async Task<int> SendAsync(byte[] buffer)
-        {
-            return await SendAsync(buffer, 0, buffer.Length);
-        }
-        /// <summary>
-        /// Sends data asynchronously.
-        /// </summary>
-        /// <remarks>Here should other protocols be implemented.</remarks>
-        /// <param name="buffer">Contains data to be sent.</param>
-        /// <param name="offset">The position in buffer at which to begin sending.</param>
-        /// <param name="count">The number of bytes to be send.</param>
-        /// <returns>Task that completes with number of bytes sent.</returns>
-        /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
-        /// <exception cref="NotImplementedException">Other protocols can't use TCP connect.</exception>
-        public async Task<int> SendAsync(byte[] buffer, int offset, int count)
+        public async Task<int> SendAsync(ReadOnlyMemory<byte> data)
         {
             if (protocol == Protocol.TCP)
             {
                 if (tcpClient != null)
                 {
-                    return await tcpClient.SendAsync(buffer, offset, count);
+                    int tsent = 0;
+                    while (data.Length > 0)
+                    {
+                        int sent = await tcpClient.SendAsync(data);
+                        if (data.Length == 0)
+                        {
+                            break;
+                        }
+                        data = data[sent..];
+                        tsent += sent;
+                    }
+                    return tsent;
                 }
                 else
                 {

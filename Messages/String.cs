@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Messages
+﻿namespace Messages
 {
     public class StringProcessing
     {
         public static string GetServer(string username)
         {
-            ReadOnlyMemory<char> str = username.AsMemory();
+            ReadOnlySpan<char> str = username.AsSpan();
             for (int i=0; i<str.Length; i++)
             {
-                if (str.Span[i] == '@')
+                if (str[i] == '@')
                 {
                     if (i + 1 < str.Length)
                     {

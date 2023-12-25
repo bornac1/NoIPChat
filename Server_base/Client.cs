@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using Messages;
 using System.Net;
+using System.Reflection.Metadata.Ecma335;
 using Transport;
 
 namespace Server
@@ -19,6 +20,7 @@ namespace Server
         private bool auth = false;
         private readonly string localip;
         private readonly byte[] bufferl = new byte[sizeof(int)];
+        private byte[] bufferm = new byte[1024];
         private byte[]? aeskey;
         private bool publickeysend = false;
         public Client(Server server, TClient client, string localip)
@@ -106,7 +108,7 @@ namespace Server
             try
             {
                 int length = await ReadLength();
-                byte[]? data = null;
+                ReadOnlyMemory<byte>? data = null;
                 if (length < 1024)
                 {
                     //Non authenticated is limited to 1024
@@ -117,7 +119,7 @@ namespace Server
                     //Console.WriteLine("received from " + name + user);
                     //Print(data);
                     //Console.WriteLine("end receive");
-                    Message message = await Processing.Deserialize(data);
+                    Message message = await Processing.Deserialize(data.Value);
                     await ProcessMessage(message);
                     if (timer != null)
                     {
@@ -156,7 +158,7 @@ namespace Server
                 try
                 {
                     int length = await ReadLength();
-                    byte[]? data = null;
+                    ReadOnlyMemory<byte>? data = null;
                     if (length < 1024 || auth)
                     {
                         //Non authenticated is limited to 1024
@@ -167,7 +169,7 @@ namespace Server
                         //Console.WriteLine("received from " + name + user);
                         //Print(data);
                         //Console.WriteLine("end receive");
-                        Message message = await Processing.Deserialize(data);
+                        Message message = await Processing.Deserialize(data.Value);
                         await ProcessMessage(message);
                         if (timer != null)
                         {
@@ -212,18 +214,42 @@ namespace Server
             }
             return BitConverter.ToInt32(bufferl, 0);
         }
-        private async Task<byte[]> ReadData(int length)
+        private void Handlebufferm(int size)
         {
-            byte[] buffer = new byte[length];
+            if (bufferm.Length >= size)
+            {
+                //Buffer is large enough
+                if (bufferm.Length / size >= 2)
+                {
+                    //Buffer is at least 2 times too large
+                    int ns = bufferm.Length / (bufferm.Length / size);
+                    bufferm = new byte[ns];
+                }
+            }
+            else
+            {
+                //Buffer is too small
+                int ns = size / bufferm.Length;
+                if (size % bufferm.Length != 0)
+                {
+                    ns += 1;
+                }
+                ns *= bufferm.Length;
+                bufferm = new byte[ns];
+            }
+        }
+        private async Task<ReadOnlyMemory<byte>> ReadData(int length)
+        {
+            Handlebufferm(length);
             int totalread = 0;
             int offset = 0;
-            while (totalread < buffer.Length)
+            while (totalread < length)
             {
-                int read = await client.ReceiveAsync(buffer, offset, buffer.Length - totalread);
+                int read = await client.ReceiveAsync(bufferm, offset, bufferm.Length - totalread);
                 totalread += read;
                 offset += read;
             }
-            return buffer;
+            return new ReadOnlyMemory<byte> (bufferm, 0, totalread);
         }
         public async Task Disconnect(bool force = false)
         {

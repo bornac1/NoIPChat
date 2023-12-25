@@ -17,33 +17,25 @@
         /// Receives data synchronously.
         /// </summary>
         /// <param name="buffer">Used for stroring received data.</param>
-        /// <param name="offset">The location in buffer to store data.</param>
-        /// <param name="count">The number of bytes to be received.</param>
         /// <returns>Number of bytes received.</returns>
-        int Receive(byte[] buffer, int offset, int count);
+        int Receive(Span<byte> buffer);
         /// <summary>
         /// Receives data asynchronously.
         /// </summary>
         /// <param name="buffer">Used for stroring received data.</param>
-        /// <param name="offset">The location in buffer to store data.</param>
-        /// <param name="count">The number of bytes to be received.</param>
         /// <returns>Task that completes with number of bytes received.</returns>
-        Task<int> ReceiveAsync(byte[] buffer, int offset, int count);
+        Task<int> ReceiveAsync(Memory<byte> buffer);
         /// <summary>
         /// Sends data synchronously.
         /// </summary>
-        /// <param name="buffer">Contains data to be sent.</param>
-        /// <param name="offset">The position in buffer at which to begin sending.</param>
-        /// <param name="count">The number of bytes to be send.</param>
+        /// <param name="data">Contains data to be sent.</param>
         /// <returns>Number of bytes sent.</returns>
-        int Send(byte[] buffer, int offset, int count);
+        int Send(ReadOnlySpan<byte> data);
         /// <summary>
         /// Sends data asynchronously.
         /// </summary>
-        /// <param name="buffer">Contains data to be sent.</param>
-        /// <param name="offset">The position in buffer at which to begin sending.</param>
-        /// <param name="count">The number of bytes to be send.</param>
+        /// <param name="data">Contains data to be sent.</param>
         /// <returns>Task that completes with number of bytes sent.</returns>
-        Task<int> SendAsync(byte[] buffer, int offset, int count);
+        Task<int> SendAsync(ReadOnlyMemory<byte> data);
     }
 }

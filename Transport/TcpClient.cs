@@ -55,44 +55,44 @@ namespace Transport
         {
             socket.Dispose();
         }
-        public int Receive(byte[] buffer, int offset, int count)
+        public int Receive(Span<byte> buffer)
         {
             try
             {
-                return socket.Receive(buffer, offset, count, SocketFlags.None);
+                return socket.Receive(buffer, SocketFlags.None);
             }
             catch (SocketException ex)
             {
                 throw new TransportException("Socket exception", ex);
             }
         }
-        public async Task<int> ReceiveAsync(byte[] buffer, int offset, int count)
+        public async Task<int> ReceiveAsync(Memory<byte> buffer)
         {
             try
             {
-                return await socket.ReceiveAsync(new ArraySegment<byte>(buffer, offset, count), SocketFlags.None);
+                return await socket.ReceiveAsync(buffer, SocketFlags.None);
             }
             catch (SocketException ex)
             {
                 throw new TransportException("Socket exception", ex);
             }
         }
-        public int Send(byte[] buffer, int offset, int count)
+        public int Send(ReadOnlySpan<byte> data)
         {
             try
             {
-                return socket.Send(buffer, offset, count, SocketFlags.None);
+                return socket.Send(data, SocketFlags.None);
             }
             catch (SocketException ex)
             {
                 throw new TransportException("Socket exception", ex);
             }
         }
-        public async Task<int> SendAsync(byte[] buffer, int offset, int count)
+        public async Task<int> SendAsync(ReadOnlyMemory<byte> data)
         {
             try
             {
-                return await socket.SendAsync(new ArraySegment<byte>(buffer, offset, count), SocketFlags.None);
+                return await socket.SendAsync(data, SocketFlags.None);
             }
             catch (SocketException ex)
             {
