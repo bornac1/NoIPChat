@@ -14,7 +14,10 @@ As of latest update, Password, Msg and Data fileds in message are encrypted usin
 Server can listen on multiple interfaces (different IP address and/or port), use IPV4 and/or IPV6, store and forward messages.
 
 By utilising an efficient asyncronious IO it can handle thousands of clients at the same time (connected and communicating to each other, when mesages aren't saved).
-As message storage at the moment takes place in RAM, it's primary used for storing for short amount of time, for example during network failures.
+
+**Messages storage**
+Messages for users are stored in files inside Data folder.
+Messages for remote servers are stored in RAM.
 
 **Multi hop routing explained:**
 1) server A receives message that has to be delivered to unknown server B
