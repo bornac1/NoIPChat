@@ -134,7 +134,7 @@ namespace Server
         {
             if (message.Receiver != null)
             {
-                if (StringProcessing.GetServer(message.Receiver) == server.name)
+                if (MemoryExtensions.Equals(StringProcessing.GetServer(message.Receiver), server.name, StringComparison.OrdinalIgnoreCase))
                 {
                     //This is message for user who's home server is this one
                     await server.SendMessageThisServer(message.Receiver, message);
@@ -150,8 +150,8 @@ namespace Server
         {
             if (message.User != null && message.Pass != null)
             {
-                string srv = StringProcessing.GetServer(message.User);
-                if (srv == server.name)
+                string srv = StringProcessing.GetServer(message.User).ToString();
+                if (MemoryExtensions.Equals(srv, server.name, StringComparison.OrdinalIgnoreCase))
                 {
                     //Users home server is this one
 
@@ -185,8 +185,8 @@ namespace Server
         {
             if (message.Receiver != null)
             {
-                string srv = StringProcessing.GetServer(message.Receiver);
-                if (srv != server.name)
+                string srv = StringProcessing.GetServer(message.Receiver).ToString();
+                if (!MemoryExtensions.Equals(srv, server.name, StringComparison.OrdinalIgnoreCase))
                 {
                     //Just to make sure
                     if (server.clients.TryGetValue(message.Receiver, out Client? cli))

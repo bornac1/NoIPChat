@@ -2,7 +2,7 @@
 {
     public class StringProcessing
     {
-        public static string GetServer(string username)
+        public static ReadOnlySpan<char> GetServer(string username)
         {
             ReadOnlySpan<char> str = username.AsSpan();
             for (int i=0; i<str.Length; i++)
@@ -11,13 +11,13 @@
                 {
                     if (i + 1 < str.Length)
                     {
-                        return str[(i+1)..].ToString();
+                        return str[(i+1)..];
                     }
                     break;
                 }
             }
             //it's already just server
-            return username;
+            return str;
         }
         public static IEnumerable<string> GetReceivers(string receivers)
         {

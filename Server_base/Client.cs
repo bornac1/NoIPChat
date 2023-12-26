@@ -507,7 +507,7 @@ namespace Server
                     }
                     foreach (string user in server.clients.Keys)
                     {
-                        if (StringProcessing.GetServer(user).Equals(name, StringComparison.CurrentCultureIgnoreCase))
+                        if (MemoryExtensions.Equals(StringProcessing.GetServer(user), name, StringComparison.OrdinalIgnoreCase))
                         {
                             //User is connected to this server
                             //But user's home server is remote

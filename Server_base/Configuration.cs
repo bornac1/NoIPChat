@@ -7,7 +7,6 @@ namespace Configuration
     {
         public required string Name { get; set; }
         public required List<Interface> Interfaces { get; set; }
-        public required int Port { get; set; }
     }
 
     [Serializable]
@@ -33,6 +32,6 @@ namespace Configuration
     public class Configuration
     {
         public required Server Server { get; set; }
-        public required Remote Remote { get; set; }
+        public Remote? Remote { get; set; }
     }
 }

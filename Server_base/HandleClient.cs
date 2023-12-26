@@ -40,7 +40,7 @@ namespace Server
                         foreach (string receiver in StringProcessing.GetReceivers(message.Receiver))
                         {
                             message.Receiver = receiver;
-                            if (StringProcessing.GetServer(receiver) == server.name)
+                            if (MemoryExtensions.Equals(StringProcessing.GetServer(receiver), server.name, StringComparison.OrdinalIgnoreCase))
                             {
                                 //This is receiver's home server
                                 await server.SendMessageThisServer(receiver, message);
@@ -71,8 +71,8 @@ namespace Server
             {
                 //Save username
                 user = message.User;
-                string usrserver = StringProcessing.GetServer(user);
-                if (usrserver == server.name)
+                string usrserver = StringProcessing.GetServer(user).ToString();
+                if (MemoryExtensions.Equals(usrserver, server.name, StringComparison.OrdinalIgnoreCase))
                 {
                     //This is user home server
                     //Authenticate
@@ -129,8 +129,8 @@ namespace Server
             {
                 //Probably already removed or not added at all
             }
-            string srv = StringProcessing.GetServer(user);
-            if (srv != server.name)
+            string srv = StringProcessing.GetServer(user).ToString();
+            if (!MemoryExtensions.Equals(srv, server.name, StringComparison.OrdinalIgnoreCase))
             {
                 //User home server is remote
                 await server.SendMessageServer(srv, new Message()

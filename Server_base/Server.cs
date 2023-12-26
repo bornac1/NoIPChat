@@ -113,7 +113,7 @@ namespace Server
             }
             else
             {
-                await SendMessageServer(StringProcessing.GetServer(user), message);
+                await SendMessageServer(StringProcessing.GetServer(user).ToString(), message);
             }
         }
         private async Task SendMessageKnownServer(string server, Message message)
@@ -354,7 +354,7 @@ namespace Server
             {
                 if (client.Key != null)
                 {
-                    if (StringProcessing.GetServer(client.Key) == server)
+                    if (MemoryExtensions.Equals(StringProcessing.GetServer(client.Key), server, StringComparison.OrdinalIgnoreCase))
                     {
                         users.Add(client.Key);
                     }

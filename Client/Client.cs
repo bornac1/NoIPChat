@@ -286,15 +286,14 @@ namespace Client
             {
                 //Chat is ready
                 string current = main.chat.display.Text;
-                string newvalue = await Task.Run(() =>
+                if (current == string.Empty)
                 {
-                    value.Append(current);
-                    value.AppendLine($"{message.Sender}:{Encoding.UTF8.GetString(message.Msg)}");
-                    string str = value.ToString();
-                    value.Clear();
-                    return str;
-                });
-                main.chat.display.Text = newvalue;
+                    main.chat.display.Text = $"{message.Sender}:{Encoding.UTF8.GetString(message.Msg)}";
+                }
+                else
+                {
+                    main.chat.display.Text = string.Join(Environment.NewLine, current, $"{message.Sender}:{Encoding.UTF8.GetString(message.Msg)}");
+                }
             }
         }
         public async Task Disconnect(bool force = false)
