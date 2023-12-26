@@ -1,0 +1,5 @@
+﻿int (4 bytes) version
+
+int(4 bytes) length
+MessagePack message
+...

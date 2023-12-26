@@ -47,6 +47,7 @@ namespace Server
             }
             listeners = [.. listeners1];
             this.interfaces = [.. interfaces];
+            _ = LoadMessageDataHandlers();
         }
         private async Task Accept(TListener listener, string localip)
         {
@@ -379,6 +380,27 @@ namespace Server
                 }
                 return ("", 0);
             });
+        }
+        /// <summary>
+        /// Loads DataHandlers for saved messages.
+        /// </summary>
+        /// <returns>Async Task.</returns>
+        private async Task LoadMessageDataHandlers()
+        {
+            try
+            {
+                if (Directory.Exists("Data"))
+                {
+                    foreach (string file in Directory.GetFiles("Data"))
+                    {
+                        string name = Path.GetFileName(file);
+                        messages.TryAdd(name, await DataHandler.CreateData(name, SV));
+                    }
+                }
+            } catch (Exception ex)
+            {
+                await WriteLog(ex);
+            }
         }
         public static async Task WriteLog(Exception ex)
         {

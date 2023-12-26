@@ -34,7 +34,7 @@ namespace Server
         {
             if (server != null)
             {
-                if (StringProcessing.GetServer(user) == server.name)
+                if (MemoryExtensions.Equals(StringProcessing.GetServer(user), server.name, StringComparison.OrdinalIgnoreCase))
                 {
                     await server.SendMessageThisServer(user, message);
                 }
@@ -142,12 +142,12 @@ namespace Server
         /// </summary>
         /// <param name="name">Username of the user.</param>
         /// <param name="message">Message to be added.</param>
-        /// <returns>True if added, false if not.</returns>
-        public bool AddMessageClient(string name, Message message)
+        /// <returns>Task that completes with bool. True if added, false if not.</returns>
+        public async Task<bool> AddMessageClient(string name, Message message)
         {
             if (server != null)
             {
-                return server.AddMessages(name, message);
+                return await server.AddMessages(name, message);
             }
             return false;
         }
@@ -155,12 +155,16 @@ namespace Server
         /// Removes all messages for the user in list there were not sent.
         /// </summary>
         /// <param name="name">Username of the user.</param>
-        /// <returns>true if removed, false if not.</returns>
-        public bool RemoveAllMessagesClient(string name)
+        /// <returns>Task that completes with bool. True if removed, false if not.</returns>
+        public async Task<bool> RemoveAllMessagesClient(string name)
         {
             if (server != null)
             {
-                return server.messages.TryRemove(name, out _);
+                if (server.messages.TryRemove(name, out DataHandler? handler) && handler != null)
+                {
+                    await handler.Delete();
+                    return true;
+                }
             }
             return false;
         }

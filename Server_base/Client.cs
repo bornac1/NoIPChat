@@ -524,13 +524,13 @@ namespace Server
         {
             _ = DisconnectNoUse();
         }
-        private static void Print(byte[] bytes)
+        /*private static void Print(byte[] bytes)
          {
              foreach (byte b in bytes)
              {
                  string byteString = b.ToString("X2"); // Convert to hexadecimal string
                  Console.Write(byteString + " ");
              }
-         }
+         }*/
     }
 }

@@ -91,6 +91,9 @@ namespace Messages
     public class APIMessage
     {
         public string? Command { get; set; }
+        public string? Username { get; set; }
+        public string? Password { get; set; }
+        public bool? Auth {  get; set; }
         public byte[]? Message { get; set; }
     }
 }
