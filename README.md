@@ -16,6 +16,7 @@ Server can listen on multiple interfaces (different IP address and/or port), use
 By utilising an efficient asyncronious IO it can handle thousands of clients at the same time (connected and communicating to each other, when mesages aren't saved).
 
 **Messages storage**
+
 Messages for users are stored in files inside Data folder.
 Messages for remote servers are stored in RAM.
 
