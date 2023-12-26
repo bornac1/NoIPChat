@@ -1,7 +1,6 @@
 ﻿using MessagePack;
 using Messages;
 using System.Net;
-using System.Reflection.Metadata.Ecma335;
 using Transport;
 
 namespace Server
@@ -194,7 +193,6 @@ namespace Server
                     else
                     {
                         //Should be logged
-                        Console.WriteLine(ex.ToString());
                         await Server.WriteLog(ex);
                     }
                     connected = false;
@@ -205,12 +203,10 @@ namespace Server
         private async Task<int> ReadLength()
         {
             int totalread = 0;
-            int offset = 0;
             while (totalread < bufferl.Length)
             {
-                int read = await client.ReceiveAsync(bufferl, offset, bufferl.Length - totalread);
+                int read = await client.ReceiveAsync(bufferl, totalread, bufferl.Length - totalread);
                 totalread += read;
-                offset += read;
             }
             return BitConverter.ToInt32(bufferl, 0);
         }
@@ -242,12 +238,10 @@ namespace Server
         {
             Handlebufferm(length);
             int totalread = 0;
-            int offset = 0;
             while (totalread < length)
             {
-                int read = await client.ReceiveAsync(bufferm, offset, bufferm.Length - totalread);
+                int read = await client.ReceiveAsync(bufferm, totalread, length - totalread);
                 totalread += read;
-                offset += read;
             }
             return new ReadOnlyMemory<byte> (bufferm, 0, totalread);
         }
@@ -352,9 +346,10 @@ namespace Server
                     if (connected)
                     {
                         //connected
-                        await client.SendAsync(length);
-                        await client.SendAsync(data);
                         //Console.WriteLine("sending to " + name + user);
+                        await client.SendAsync(length);
+                        //Print(length);
+                        await client.SendAsync(data);
                         //Print(data);
                         //Console.WriteLine("end send");
                         //Reset timer
@@ -374,7 +369,7 @@ namespace Server
                         {
                             message = Encryption.DecryptMessage(message, aeskey);
                         }
-                        if (!server.AddMessages(user, message))
+                        if (! await server.AddMessages(user, message))
                         {
                             return false;
                         }
@@ -413,7 +408,7 @@ namespace Server
                     {
                         message = Encryption.DecryptMessage(message, aeskey);
                     }
-                    if (!server.AddMessages(user, message))
+                    if (! await server.AddMessages(user, message))
                     {
                         //Don't know why
                     }
@@ -427,19 +422,15 @@ namespace Server
         {
             if (!isserver && !isremote)
             {
-                if (server.messages.TryGetValue(user.ToLower(), out var messages))
+                user = user.ToLower();
+                if (server.messages.TryGetValue(user, out DataHandler? handler) && handler != null)
                 {
-                    while (messages.TryDequeue(out Message? message))
+                    await foreach (Message message in handler.GetMessages())
                     {
                         await SendMessage(message);
                     }
-                    if (messages.IsEmpty)
-                    {
-                        if (!server.messages.TryRemove(user.ToLower(), out _))
-                        {
-                            //Doesn't exsist anymore
-                        }
-                    }
+                    await handler.Delete();
+                    server.messages.Remove(user, out _);
                 }
             }
         }
@@ -447,19 +438,15 @@ namespace Server
         {
             if (isserver || isremote)
             {
-                if (server.messages.TryGetValue(user.ToLower(), out var messages))
+                user = user.ToLower();
+                if (server.messages.TryGetValue(user, out DataHandler? handler) && handler != null)
                 {
-                    while (messages.TryDequeue(out Message? message))
+                    await foreach (Message message in handler.GetMessages())
                     {
                         await SendMessage(message);
                     }
-                    if (messages.IsEmpty)
-                    {
-                        if (!server.messages.TryRemove(user.ToLower(), out _))
-                        {
-                            //Doesn't exsists anymore
-                        }
-                    }
+                    await handler.Delete();
+                    server.messages.TryRemove(user, out _);
                 }
             }
         }
@@ -475,7 +462,7 @@ namespace Server
                     }
                     if (messages.IsEmpty)
                     {
-                        if (!server.messages.TryRemove(user.ToLower(), out _))
+                        if (!server.messages_server.TryRemove(name.ToLower(), out _))
                         {
                             //Doesn't exsisst anymore
                         }
@@ -537,13 +524,13 @@ namespace Server
         {
             _ = DisconnectNoUse();
         }
-        /*private static void Print(byte[] bytes)
+        private static void Print(byte[] bytes)
          {
              foreach (byte b in bytes)
              {
                  string byteString = b.ToString("X2"); // Convert to hexadecimal string
                  Console.Write(byteString + " ");
              }
-         }*/
+         }
     }
 }

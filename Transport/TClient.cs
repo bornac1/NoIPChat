@@ -259,13 +259,16 @@ namespace Transport
                     int tsent = 0;
                     while (data.Length > 0)
                     {
-                        int sent = tcpClient.Send(data);
                         if (data.Length == 0)
                         {
                             break;
                         }
-                        data = data[sent..];
-                        tsent += sent;
+                        else
+                        {
+                            int sent = tcpClient.Send(data);
+                            data = data[sent..];
+                            tsent += sent;
+                        }
                     }
                     return tsent;
                 }
@@ -295,13 +298,16 @@ namespace Transport
                     int tsent = 0;
                     while (data.Length > 0)
                     {
-                        int sent = await tcpClient.SendAsync(data);
                         if (data.Length == 0)
                         {
                             break;
                         }
-                        data = data[sent..];
-                        tsent += sent;
+                        else
+                        {
+                            int sent = await tcpClient.SendAsync(data);
+                            data = data[sent..];
+                            tsent += sent;
+                        }
                     }
                     return tsent;
                 }

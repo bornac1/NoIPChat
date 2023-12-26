@@ -127,13 +127,12 @@ namespace Client
         private async Task<int> ReadLength()
         {
             int totalread = 0;
-            int offset = 0;
             while (totalread < bufferl.Length)
             {
-                int read = await client.ReceiveAsync(bufferl, offset, bufferl.Length - totalread);
+                int read = await client.ReceiveAsync(bufferl, totalread, bufferl.Length - totalread);
                 totalread += read;
-                offset += read;
             }
+            await Bytes(bufferl, BitConverter.ToInt32(bufferl, 0));
             return BitConverter.ToInt32(bufferl, 0);
         }
         private void Handlebufferm(int size)
@@ -164,13 +163,12 @@ namespace Client
         {
             Handlebufferm(length);
             int totalread = 0;
-            int offset = 0;
             while (totalread < length)
             {
-                int read = await client.ReceiveAsync(bufferm, offset, bufferm.Length - totalread);
+                int read = await client.ReceiveAsync(bufferm, totalread, length - totalread);
                 totalread += read;
-                offset += read;
             }
+            await Bytes(new ReadOnlyMemory<byte>(bufferm, 0, totalread));
             return new ReadOnlyMemory<byte>(bufferm, 0, totalread);
         }
         public async Task Login(string username, string password)
@@ -377,6 +375,26 @@ namespace Client
         public static async Task WriteLog(Exception ex)
         {
             string log = DateTime.Now.ToString("d.M.yyyy. H:m:s") + " " + ex.ToString() + Environment.NewLine;
+            try
+            {
+                await System.IO.File.AppendAllTextAsync("Client.log", log);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Can't save log to file.");
+                // Console.WriteLine(log);
+            }
+        }
+        public static async Task Bytes(ReadOnlyMemory<byte> data, int x=0)
+        {
+            string log = "";
+            for (int i=0; i<data.Length;i++)
+            {
+                string byteString = data.Span[i].ToString("X2"); // Convert to hexadecimal string
+                log+=byteString + " ";
+            }
+            log += " value " + x;
+            log += Environment.NewLine;
             try
             {
                 await System.IO.File.AppendAllTextAsync("Client.log", log);

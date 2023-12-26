@@ -20,7 +20,7 @@ namespace Server
         private bool serversloaded = false;
         public ConcurrentDictionary<string, Client> clients; //Connected clients
         public ConcurrentDictionary<string, Client> remoteservers; //Connected remote servers
-        public ConcurrentDictionary<string, ConcurrentQueue<Message>> messages; //Messages to be sent to users who's home server is this
+        public ConcurrentDictionary<string, DataHandler> messages; //DataHandlers for messages to be sent to users who's home server is this
         public ConcurrentDictionary<string, ConcurrentQueue<Message>> messages_server; //Messages to be sent to remote server
         public ConcurrentDictionary<string, string> remoteusers; //Users whos home server is this, but are connected to remote one
         public ConcurrentDictionary<string, Servers> servers; //Know servers
@@ -31,7 +31,7 @@ namespace Server
             this.name = name.ToLower();
             active = true;
             clients = new ConcurrentDictionary<string, Client>();
-            messages = new ConcurrentDictionary<string, ConcurrentQueue<Message>>();
+            messages = new ConcurrentDictionary<string, DataHandler>();
             remoteservers = new ConcurrentDictionary<string, Client>();
             messages_server = new ConcurrentDictionary<string, ConcurrentQueue<Message>>();
             remoteusers = new ConcurrentDictionary<string, string>();
@@ -89,7 +89,7 @@ namespace Server
             {
                 //Client is not connected and not on remote server
                 //Save the message
-                if (!AddMessages(user, message))
+                if (! await AddMessages(user, message))
                 {
                     //Don't know why
                 }
@@ -270,18 +270,18 @@ namespace Server
                 return true;
             }
         }
-        public bool AddMessages(string user, Message message)
+        public async Task<bool> AddMessages(string user, Message message)
         {
-            if (messages.TryGetValue(user.ToLower(), out var mssg))
+            user = user.ToLower();
+            if (messages.TryGetValue(user, out DataHandler? handler) && handler != null)
             {
-                mssg.Enqueue(message);
-                return true;
+                return await handler.AppendMessage(message);
             }
             else
             {
-                mssg = new ConcurrentQueue<Message>();
-                mssg.Enqueue(message);
-                if (!messages.TryAdd(user.ToLower(), mssg))
+                DataHandler handler1 = await DataHandler.CreateData(user, SV);
+                await handler1.AppendMessage(message);
+                if (!messages.TryAdd(user.ToLower(), handler1))
                 {
                     //Key already exsists in dictionary
                     //This shouldn't happen
@@ -323,10 +323,10 @@ namespace Server
                 }
                 //Save servers to the file
                 await SaveServers();
-                //Do something with messages
-                //For now, just delete
+                //Delete DataHandlers for messages
                 foreach (var message in messages)
                 {
+                    await message.Value.Close();
                     if (!messages.TryRemove(message))
                     {
                         Console.WriteLine("Error remove message.");
