@@ -18,6 +18,7 @@ By utilising an efficient asyncronious IO it can handle thousands of clients at 
 **Messages storage**
 
 Messages for users are stored in files inside Data folder with filename containing '@'.
+
 Messages for remote servers are stored inside Data folder with filename without '@'.
 
 **Multi hop routing explained:**
