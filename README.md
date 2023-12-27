@@ -72,23 +72,34 @@ Here is an example:
 ]
 
 LocalIP is IP assigned to the network interface that will be used in order to connect to the remote server.
+
 RemoteIL is IP address of that server.
+
 RemotePort is a port used by remote server.
+
 TimeOut indicates number of seconds after which server to server connection will be disconnected in case of no activity (set to 0 if you want permanent connection).
 
 2) Setup Config.xml
 
 Name is name of this server.
+
 Inside Interfaces you can eneter as many interfaces as you want
+
 InterfaceIP is IP address assigned to network interface (in case of NAT, this is private IP)
+
 IP is IP address that is used by clients and remote servers to connect (in case of NAT, this is public IP)
+
 Port is a port number (port should be opend in firewall)
+
 Remote is reserver for future uses and can be deleted
 
 3) Start the server
 4) ECDH key will be generated automatically on the first run
+
 If you wish to use new key for running server after the setup, just delete Key.bin file and key will be regenerated when server is started again
 
 **Logging errors**
+
 Errors are logged into the Client.log and Server.log files in the same directory where your Client and Server are located.
+
 Choosing location for log files (WIP).
