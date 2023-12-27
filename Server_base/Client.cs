@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using Messages;
 using System.Net;
+using System.Net.Http.Headers;
 using Transport;
 
 namespace Server
@@ -454,19 +455,15 @@ namespace Server
         {
             if (isserver || isremote)
             {
-                if (server.messages_server.TryGetValue(name.ToLower(), out var messages))
+                name = name.ToLower();
+                if (server.messages_server.TryGetValue(name, out DataHandler? handler) && handler != null)
                 {
-                    while (messages.TryDequeue(out Message? message))
+                    await foreach (Message message in handler.GetMessages())
                     {
                         await SendMessage(message);
                     }
-                    if (messages.IsEmpty)
-                    {
-                        if (!server.messages_server.TryRemove(name.ToLower(), out _))
-                        {
-                            //Doesn't exsisst anymore
-                        }
-                    }
+                    await handler.Delete();
+                    server.messages_server.TryRemove(name, out _);
                 }
             }
         }

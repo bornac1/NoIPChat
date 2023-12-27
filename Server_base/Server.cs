@@ -20,7 +20,7 @@ namespace Server
         public ConcurrentDictionary<string, Client> clients; //Connected clients
         public ConcurrentDictionary<string, Client> remoteservers; //Connected remote servers
         public ConcurrentDictionary<string, DataHandler> messages; //DataHandlers for messages to be sent to users who's home server is this
-        public ConcurrentDictionary<string, ConcurrentQueue<Message>> messages_server; //Messages to be sent to remote server
+        public ConcurrentDictionary<string, DataHandler> messages_server; //Messages to be sent to remote server
         public ConcurrentDictionary<string, string> remoteusers; //Users whos home server is this, but are connected to remote one
         public ConcurrentDictionary<string, Servers> servers; //Know servers
         public ImmutableList<Interface> interfaces;
@@ -32,7 +32,7 @@ namespace Server
             clients = new ConcurrentDictionary<string, Client>();
             messages = new ConcurrentDictionary<string, DataHandler>();
             remoteservers = new ConcurrentDictionary<string, Client>();
-            messages_server = new ConcurrentDictionary<string, ConcurrentQueue<Message>>();
+            messages_server = new ConcurrentDictionary<string, DataHandler>();
             remoteusers = new ConcurrentDictionary<string, string>();
             servers = new ConcurrentDictionary<string, Servers>();
             List<TListener> listeners1 = [];
@@ -250,24 +250,27 @@ namespace Server
                 await WriteLog(ex);
             }
         }
-        public bool AddMessages_server(string server, Message message)
+        public async Task<bool> AddMessages_server(string server, Message message)
         {
-            if (messages_server.TryGetValue(server.ToLower(), out var mssg))
+            server = server.ToLower();
+            if (messages_server.TryGetValue(server, out DataHandler? handler) && handler != null)
             {
-                mssg.Enqueue(message);
-                return true;
+                return await handler.AppendMessage(message);
             }
             else
             {
-                mssg = new ConcurrentQueue<Message>();
-                mssg.Enqueue(message);
-                if (!messages_server.TryAdd(server, mssg))
+                DataHandler handler1 = await DataHandler.CreateData(server, SV);
+                await handler1.AppendMessage(message);
+                if (!messages_server.TryAdd(server, handler1))
                 {
                     //Key already exsists in dictionary
                     //This shouldn't happen
                     return false;
                 }
-                return true;
+                else
+                {
+                    return true;
+                }
             }
         }
         public async Task<bool> AddMessages(string user, Message message)
@@ -281,7 +284,7 @@ namespace Server
             {
                 DataHandler handler1 = await DataHandler.CreateData(user, SV);
                 await handler1.AppendMessage(message);
-                if (!messages.TryAdd(user.ToLower(), handler1))
+                if (!messages.TryAdd(user, handler1))
                 {
                     //Key already exsists in dictionary
                     //This shouldn't happen
@@ -332,9 +335,10 @@ namespace Server
                         Console.WriteLine("Error remove message.");
                     }
                 }
-                //Do something with messages for remote servers
+                //Delete DataHandlers for messages for remote servers
                 foreach (var rmessage in messages_server)
                 {
+                    await rmessage.Value.Close();
                     if (!messages_server.TryRemove(rmessage))
                     {
                         Console.WriteLine("Error remore message for other server.");
@@ -381,7 +385,7 @@ namespace Server
             });
         }
         /// <summary>
-        /// Loads DataHandlers for saved messages.
+        /// Loads DataHandlers for all saved messages.
         /// </summary>
         /// <returns>Async Task.</returns>
         private async Task LoadMessageDataHandlers()
@@ -393,7 +397,16 @@ namespace Server
                     foreach (string file in Directory.GetFiles("Data"))
                     {
                         string name = Path.GetFileNameWithoutExtension(file);
-                        messages.TryAdd(name, await DataHandler.CreateData(name, SV));
+                        if (StringProcessing.IsUser(name))
+                        {
+                            //User
+                            messages.TryAdd(name, await DataHandler.CreateData(name, SV));
+                        }
+                        else
+                        {
+                            //Server
+                            messages_server.TryAdd(name, await DataHandler.CreateData(name, SV));
+                        }
                     }
                 }
             }
