@@ -8,21 +8,35 @@ namespace Server
     {
         private const string magicstring = "NOIPCHAT";
         private readonly int magiclength = Encoding.ASCII.GetBytes(magicstring).Length;
+        private const int magicdata = 0;
+        private const int magicsneakernet = 1;
+
         private readonly FileStream file;
         private readonly byte[] intbuffer = new byte[sizeof(int)];
         private byte[] messagebuffer = new byte[1024];
         private int version;
-        private readonly string folder;
-        private readonly string name;
+        private readonly string path;
+        private long start = 0;
         private DataHandler(string folder, string name, bool temp = false)
         {
-            this.folder = folder;
-            this.name = string.Join('.', name, "noicb");
-            string path = Path.Combine(this.folder, this.name);
-            Directory.CreateDirectory(this.folder);
+            name = string.Join('.', name, "noicb");
+            path = Path.Combine(folder, name);
+            Directory.CreateDirectory(folder);
             if (temp)
             {
                 file = new(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 0, FileOptions.Asynchronous | FileOptions.WriteThrough|FileOptions.DeleteOnClose);
+            }
+            else
+            {
+                file = new(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 0, FileOptions.Asynchronous | FileOptions.WriteThrough);
+            }
+        }
+        private DataHandler(string path, bool temp = false)
+        {
+            this.path = path;
+            if (temp)
+            {
+                file = new(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 0, FileOptions.Asynchronous | FileOptions.WriteThrough | FileOptions.DeleteOnClose);
             }
             else
             {
@@ -53,6 +67,7 @@ namespace Server
                 handler.version = version;
                 //Write header
                 await handler.WriteHeader();
+                await handler.WriteInt(magicdata);
             }
             return handler;
         }
@@ -66,7 +81,7 @@ namespace Server
         /// <exception cref="FileException">File error.</exception>
         public static async Task<DataHandler> CreateTemp(string name, int version)
         {
-            DataHandler handler = new("Temp", name);
+            DataHandler handler = new("Temp", name, true);
             if (handler.file.Length >= sizeof(int))
             {
                 await handler.ReadHeader();
@@ -83,11 +98,40 @@ namespace Server
             }
             return handler;
         }
+        /// <summary>
+        /// Creates DataHandler for Sneakernet file.
+        /// </summary>
+        /// <param name="path">File path.</param>
+        /// <param name="version">Server version.</param>
+        /// <returns>Task that completes with DataHandler.</returns>
+        /// <exception cref="VersionException">File version is newer than server.</exception>
+        /// <exception cref="FileException">File error.</exception>
+        public static async Task<DataHandler> CreateSneakernet(string path, int version)
+        {
+            DataHandler handler = new(path);
+            if (handler.file.Length >= sizeof(int))
+            {
+                await handler.ReadHeader();
+                if (handler.version > version)
+                {
+                    throw new VersionException("File version is newer than server.");
+                }
+            }
+            else
+            {
+                handler.version = version;
+                //Write Header
+                await handler.WriteHeader();
+                await handler.WriteInt(magicsneakernet);
+            }
+            return handler;
+        }
         private async Task WriteHeader()
         {
             byte[] data = Encoding.ASCII.GetBytes(magicstring);
             await file.WriteAsync(data);
             await WriteInt(version);
+            start = file.Position;
         }
         private async Task ReadHeader()
         {
@@ -100,6 +144,7 @@ namespace Server
             if (MemoryExtensions.Equals(Encoding.ASCII.GetString(buffer, 0, buffer.Length), magicstring, StringComparison.OrdinalIgnoreCase))
             {
                 version = await ReadInt();
+                await ReadInt();//Reads magic
             }
             else
             {
@@ -185,6 +230,7 @@ namespace Server
             {
                 yield return await ReadMessage();
             }
+            file.Position = start;
             yield break;
         }
         /// <summary>
@@ -207,7 +253,7 @@ namespace Server
         public async Task Delete()
         {
             await Close();
-            System.IO.File.Delete(Path.Combine(folder, name));
+            System.IO.File.Delete(path);
         }
         /// <summary>
         /// Closes DataHandler.

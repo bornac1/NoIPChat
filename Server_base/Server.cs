@@ -194,6 +194,11 @@ namespace Server
                 }
             }
         }
+        /// <summary>
+        /// Returns data about known server.
+        /// </summary>
+        /// <param name="name">Name of the server.</param>
+        /// <returns>(bool, localip, remoteip, remoteport, timeout)</returns>
         public (bool, string, string, int, int) GetServer(string name)
         {
             //get server by name
@@ -203,11 +208,14 @@ namespace Server
             }
             return (false, "", "", 0, 0);
         }
+        /// <summary>
+        /// Loads known servers from Servers.json file.
+        /// </summary>
+        /// <returns>Async Task.</returns>
         public async Task LoadServers()
         {
             try
             {
-                //Load servers from Servers.json
                 string jsonString = await System.IO.File.ReadAllTextAsync("Servers.json");
                 await Task.Run(() =>
                  {
@@ -228,6 +236,10 @@ namespace Server
                 await WriteLog(ex);
             }
         }
+        /// <summary>
+        /// Saves known servers to Servers.json file.
+        /// </summary>
+        /// <returns>Async Task.</returns>
         public async Task SaveServers()
         {
             try
@@ -250,6 +262,12 @@ namespace Server
                 await WriteLog(ex);
             }
         }
+        /// <summary>
+        /// Adds message to be sent to server into the file.
+        /// </summary>
+        /// <param name="server">Name of the server,</param>
+        /// <param name="message">Message to be saved.</param>
+        /// <returns>Async Task that completes with bool.</returns>
         public async Task<bool> AddMessages_server(string server, Message message)
         {
             server = server.ToLower();
@@ -273,6 +291,12 @@ namespace Server
                 }
             }
         }
+        /// <summary>
+        /// Adds message to be sent to user into the file.
+        /// </summary>
+        /// <param name="user">Name of the user,</param>
+        /// <param name="message">Message to be saved.</param>
+        /// <returns>Async Task that completes with bool.</returns>
         public async Task<bool> AddMessages(string user, Message message)
         {
             user = user.ToLower();
@@ -296,6 +320,10 @@ namespace Server
                 }
             }
         }
+        /// <summary>
+        /// Closes and disposes the server.
+        /// </summary>
+        /// <returns>Async Task.</returns>
         public async Task Close()
         {
             try
@@ -350,6 +378,11 @@ namespace Server
                 await WriteLog(ex);
             }
         }
+        /// <summary>
+        /// Gets users whos home server is given one, but are connected to this server.
+        /// </summary>
+        /// <param name="server">Name of the server,</param>
+        /// <returns>Formated string.</returns>
         public string? GetUsersServer(string server)
         {
             server = server.ToLower();
@@ -370,6 +403,11 @@ namespace Server
             }
             return null;
         }
+        /// <summary>
+        /// Gets inteface by it's IP address.
+        /// </summary>
+        /// <param name="InterfaceIP">Interface IP address.</param>
+        /// <returns>(piblic IP, port)</returns>
         public async Task<(string, int)> GetInterfacebyIP(string InterfaceIP)
         {
             return await Task.Run(() =>
@@ -415,6 +453,11 @@ namespace Server
                 await WriteLog(ex);
             }
         }
+        /// <summary>
+        /// Writes exception into Server.log file.
+        /// </summary>
+        /// <param name="ex">Exception to be saved.</param>
+        /// <returns>Async Task.</returns>
         public static async Task WriteLog(Exception ex)
         {
             string log = DateTime.Now.ToString("d.M.yyyy. H:m:s") + " " + ex.ToString() + Environment.NewLine;
