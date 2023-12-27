@@ -26,7 +26,8 @@ namespace Transport
             try
             {
                 socket.Connect(address, port);
-            } catch (SocketException ex)
+            }
+            catch (SocketException ex)
             {
                 throw new TransportException("Socket exception", ex);
             }

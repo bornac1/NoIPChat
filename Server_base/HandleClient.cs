@@ -1,5 +1,4 @@
 ﻿using Messages;
-using System.Text;
 
 namespace Server
 {
@@ -44,7 +43,8 @@ namespace Server
                             {
                                 //This is receiver's home server
                                 await server.SendMessageThisServer(receiver, message);
-;                            }
+                                ;
+                            }
                             else
                             {
                                 //Receiver's home server is other

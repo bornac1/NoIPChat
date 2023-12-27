@@ -1,7 +1,6 @@
 ﻿using Configuration;
 using Messages;
 using Sodium;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
@@ -90,7 +89,7 @@ namespace Server
             {
                 //Client is not connected and not on remote server
                 //Save the message
-                if (! await AddMessages(user, message))
+                if (!await AddMessages(user, message))
                 {
                     //Don't know why
                 }
@@ -397,7 +396,8 @@ namespace Server
                         messages.TryAdd(name, await DataHandler.CreateData(name, SV));
                     }
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 await WriteLog(ex);
             }

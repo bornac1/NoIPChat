@@ -110,7 +110,8 @@ namespace Client
                     if (ex is TransportException)
                     {
                         //assume disconnection
-                    } else if(ex is ObjectDisposedException)
+                    }
+                    else if (ex is ObjectDisposedException)
                     {
                         //Already disposed
                     }
@@ -139,7 +140,7 @@ namespace Client
             if (bufferm.Length >= size)
             {
                 //Buffer is large enough
-                if(bufferm.Length / size >= 2)
+                if (bufferm.Length / size >= 2)
                 {
                     //Buffer is at least 2 times too large
                     int ns = bufferm.Length / (bufferm.Length / size);
@@ -220,7 +221,8 @@ namespace Client
                         //Message error
                         //Give up
                     }
-                } else if(ex is ObjectDisposedException)
+                }
+                else if (ex is ObjectDisposedException)
                 {
                     //Already disposed
                 }

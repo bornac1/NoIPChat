@@ -29,7 +29,7 @@ namespace Transport
                 throw new TransportException("Socket exception", ex);
             }
         }
-    public TcpClient Accept()
+        public TcpClient Accept()
         {
             try
             {

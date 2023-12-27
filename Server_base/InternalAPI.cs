@@ -1,6 +1,4 @@
 ﻿using Messages;
-using System;
-using System.Data;
 using System.Net;
 using Transport;
 
@@ -35,7 +33,7 @@ namespace Server
         {
             while (active)
             {
-                if(client != null && !connected)
+                if (client != null && !connected)
                 {
                     client.Close();
                     client.Dispose();
@@ -49,7 +47,8 @@ namespace Server
         {
             while (connected)
             {
-                try {
+                try
+                {
                     int length = await ReadLength();
                     await ProcessMessage(await Processing.DeserializeAPI(await ReadData(length)));
                 }
@@ -92,9 +91,9 @@ namespace Server
         }
         private async Task ProcessMessage(APIMessage message)
         {
-            if(message.Command != null)
+            if (message.Command != null)
             {
-                if(message.Command == "login")
+                if (message.Command == "login")
                 {
                     bool auth;
                     if (message.Username == username && message.Password == password)
@@ -126,9 +125,11 @@ namespace Server
                 }
                 return false;
 
-            } catch {
+            }
+            catch
+            {
                 connected = false;
-                return false;            
+                return false;
             }
         }
     }

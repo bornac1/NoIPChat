@@ -151,7 +151,7 @@ namespace Transport
             {
                 if (tcpClient != null)
                 {
-                    return tcpClient.Receive(new Span<byte>(buffer,offset,count));
+                    return tcpClient.Receive(new Span<byte>(buffer, offset, count));
                 }
                 else
                 {

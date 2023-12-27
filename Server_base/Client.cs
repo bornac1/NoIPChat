@@ -243,7 +243,7 @@ namespace Server
                 int read = await client.ReceiveAsync(bufferm, totalread, length - totalread);
                 totalread += read;
             }
-            return new ReadOnlyMemory<byte> (bufferm, 0, totalread);
+            return new ReadOnlyMemory<byte>(bufferm, 0, totalread);
         }
         public async Task Disconnect(bool force = false)
         {
@@ -369,7 +369,7 @@ namespace Server
                         {
                             message = Encryption.DecryptMessage(message, aeskey);
                         }
-                        if (! await server.AddMessages(user, message))
+                        if (!await server.AddMessages(user, message))
                         {
                             return false;
                         }
@@ -408,7 +408,7 @@ namespace Server
                     {
                         message = Encryption.DecryptMessage(message, aeskey);
                     }
-                    if (! await server.AddMessages(user, message))
+                    if (!await server.AddMessages(user, message))
                     {
                         //Don't know why
                     }

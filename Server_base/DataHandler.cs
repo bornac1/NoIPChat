@@ -12,9 +12,10 @@ namespace Server
         private int version;
         private readonly string folder;
         private readonly string name;
-        private DataHandler(string folder, string name) {
+        private DataHandler(string folder, string name)
+        {
             this.folder = folder;
-            this.name = string.Join('.',name,"noicb");
+            this.name = string.Join('.', name, "noicb");
             string path = Path.Combine(this.folder, this.name);
             Directory.CreateDirectory(this.folder);
             file = new(path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
@@ -83,11 +84,11 @@ namespace Server
         {
             byte[] buffer = new byte[7];
             int read = 0;
-            while(read <buffer.Length)
+            while (read < buffer.Length)
             {
                 read += await file.ReadAsync(buffer.AsMemory(read, buffer.Length - read));
             }
-            if(MemoryExtensions.Equals(Encoding.ASCII.GetString(buffer,0, buffer.Length), "NOIPCHAT", StringComparison.OrdinalIgnoreCase))
+            if (MemoryExtensions.Equals(Encoding.ASCII.GetString(buffer, 0, buffer.Length), "NOIPCHAT", StringComparison.OrdinalIgnoreCase))
             {
                 version = await ReadInt();
             }
@@ -99,7 +100,7 @@ namespace Server
         private async Task<int> ReadInt()
         {
             int read = await file.ReadAsync(intbuffer);
-            while(read < intbuffer.Length)
+            while (read < intbuffer.Length)
             {
                 read += await file.ReadAsync(intbuffer.AsMemory(read, intbuffer.Length));
             }
@@ -112,7 +113,7 @@ namespace Server
         }
         private void Handlemessagebuffer(int size)
         {
-            if(messagebuffer.Length >= size)
+            if (messagebuffer.Length >= size)
             {
                 //Buffer is large enough
                 if (messagebuffer.Length / size >= 2)
@@ -125,11 +126,11 @@ namespace Server
             else
             {
                 int ns = size / messagebuffer.Length;
-                if(size % messagebuffer.Length != 0)
+                if (size % messagebuffer.Length != 0)
                 {
                     ns += 1;
                 }
-                ns*=messagebuffer.Length;
+                ns *= messagebuffer.Length;
                 messagebuffer = new byte[ns];
             }
         }
@@ -138,7 +139,7 @@ namespace Server
             int length = await ReadInt();
             Handlemessagebuffer(length);
             int read = await file.ReadAsync(messagebuffer.AsMemory(0, length));
-            while(read < length)
+            while (read < length)
             {
                 read += await file.ReadAsync(messagebuffer.AsMemory(read, length));
             }
@@ -153,7 +154,7 @@ namespace Server
         {
             long initialposition = file.Position;
             byte[]? data = await Processing.Serialize(message);
-            if(data != null)
+            if (data != null)
             {
                 file.Position = file.Length;
                 await WriteInt(data.Length);

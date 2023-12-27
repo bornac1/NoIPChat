@@ -1,5 +1,4 @@
-﻿using MessagePack;
-using Sodium;
+﻿using Sodium;
 
 namespace Messages
 {
