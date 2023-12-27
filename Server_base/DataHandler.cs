@@ -1,4 +1,6 @@
 ﻿using Messages;
+using System.Buffers.Binary;
+using System.Text;
 
 namespace Server
 {
@@ -12,7 +14,7 @@ namespace Server
         private readonly string name;
         private DataHandler(string folder, string name) {
             this.folder = folder;
-            this.name = string.Join('.',name,"bin");
+            this.name = string.Join('.',name,"noicb");
             string path = Path.Combine(this.folder, this.name);
             Directory.CreateDirectory(this.folder);
             file = new(path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
@@ -24,12 +26,13 @@ namespace Server
         /// <param name="version">Server version.</param>
         /// <returns>Task that completes with DataHandler.</returns>
         /// <exception cref="VersionException">File version is newer than server.</exception>
+        /// <exception cref="FileException">File error.</exception>
         public static async Task<DataHandler> CreateData(string name, int version)
         {
             DataHandler handler = new("Data", name);
             if (handler.file.Length >= sizeof(int))
             {
-                handler.version = await handler.ReadInt();
+                await handler.ReadHeader();
                 if (handler.version > version)
                 {
                     throw new VersionException("File version is newer than server.");
@@ -38,7 +41,8 @@ namespace Server
             else
             {
                 handler.version = version;
-                await handler.WriteInt(version);
+                //Write header
+                await handler.WriteHeader();
             }
             return handler;
         }
@@ -49,12 +53,13 @@ namespace Server
         /// <param name="version">Server version.</param>
         /// <returns>Task that completes with DataHandler.</returns>
         /// <exception cref="VersionException">File version is newer than server.</exception>
+        /// <exception cref="FileException">File error.</exception>
         public static async Task<DataHandler> CreateTemp(string name, int version)
         {
             DataHandler handler = new("Temp", name);
             if (handler.file.Length >= sizeof(int))
             {
-                handler.version = await handler.ReadInt();
+                await handler.ReadHeader();
                 if (handler.version > version)
                 {
                     throw new VersionException("File version is newer than server.");
@@ -63,23 +68,47 @@ namespace Server
             else
             {
                 handler.version = version;
-                await handler.WriteInt(version);
+                //Write Header
+                await handler.WriteHeader();
             }
             return handler;
         }
+        private async Task WriteHeader()
+        {
+            byte[] data = Encoding.ASCII.GetBytes("NOIPCHAT");
+            await file.WriteAsync(data);
+            await WriteInt(version);
+        }
+        private async Task ReadHeader()
+        {
+            byte[] buffer = new byte[7];
+            int read = 0;
+            while(read <buffer.Length)
+            {
+                read += await file.ReadAsync(buffer.AsMemory(read, buffer.Length - read));
+            }
+            if(MemoryExtensions.Equals(Encoding.ASCII.GetString(buffer,0, buffer.Length), "NOIPCHAT", StringComparison.OrdinalIgnoreCase))
+            {
+                version = await ReadInt();
+            }
+            else
+            {
+                throw new FileException("File error.");
+            }
+        }
         private async Task<int> ReadInt()
         {
-            int read = await file.ReadAsync(intbuffer, 0, intbuffer.Length);
+            int read = await file.ReadAsync(intbuffer);
             while(read < intbuffer.Length)
             {
-                read += await file.ReadAsync(intbuffer, read, intbuffer.Length);
+                read += await file.ReadAsync(intbuffer.AsMemory(read, intbuffer.Length));
             }
-            return BitConverter.ToInt32(intbuffer, 0);
+            return BinaryPrimitives.ReadInt32LittleEndian(intbuffer.AsSpan());
         }
         private async Task WriteInt(int data)
         {
-            byte[] bdata = BitConverter.GetBytes(data);
-            await file.WriteAsync(bdata, 0, bdata.Length);
+            BinaryPrimitives.WriteInt32LittleEndian(intbuffer.AsSpan(), data);
+            await file.WriteAsync(intbuffer);
         }
         private void Handlemessagebuffer(int size)
         {
@@ -108,10 +137,10 @@ namespace Server
         {
             int length = await ReadInt();
             Handlemessagebuffer(length);
-            int read = await file.ReadAsync(messagebuffer, 0, length);
+            int read = await file.ReadAsync(messagebuffer.AsMemory(0, length));
             while(read < length)
             {
-                read += await file.ReadAsync(messagebuffer, read, length);
+                read += await file.ReadAsync(messagebuffer.AsMemory(read, length));
             }
             return await Processing.Deserialize(new ReadOnlyMemory<byte>(messagebuffer, 0, length));
         }
@@ -126,10 +155,9 @@ namespace Server
             byte[]? data = await Processing.Serialize(message);
             if(data != null)
             {
-                byte[] length = BitConverter.GetBytes(data.Length);
                 file.Position = file.Length;
-                await file.WriteAsync(length, 0, length.Length);
-                await file.WriteAsync(data, 0, data.Length);
+                await WriteInt(data.Length);
+                await file.WriteAsync(data);
                 await file.FlushAsync();
                 file.Position = sizeof(int);
                 file.Position = initialposition;
