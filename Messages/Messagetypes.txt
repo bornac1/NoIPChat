@@ -45,17 +45,17 @@ From server to server:
 	Example:
 		Sender is on server1, Receiver is on server3
 		Both know server2
-		CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data // is recived on server1
-		CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data //server1 sends to server2
-		CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data //server2 sends to server3
+		CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data, Hop= 0 // is recived on server1
+		CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data, Hop= 1 //server1 sends to server2
+		CV= 1, Sender= username@server1, Receiver= receiver1@server3, Msg= text_message, Data= binary_data, Hop= 2 //server2 sends to server3
 		server3 uses From server to client 2)
 
-		//Sender is on server1, needs login on server3
-		//Both know server2
-		//CV= 1, Sender=server1, Receiver= server3, User= username@server3, Pass= password //after doing From server to server 4)
-		//CV= 1, Sender=server1, Receiver= server2, User= username@server3, Pass= password
+		Sender is on server1, needs login on server3
+		Both know server2
+		CV= 1, Sender=server1, Receiver= server3, User= username@server3, Pass= password //after doing From server to server 4)
+		CV= 1, Sender=server1, Receiver= server2, User= username@server3, Pass= password
 			//server1 changes receiver to server2
 			//server1 sends to server2
-		//CV= 1, Sender=server2
+		CV= 1, Sender=server2
 		AUTH
 		Sender= sender_server, Receiver= user@server, Auth= true
