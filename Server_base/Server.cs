@@ -392,7 +392,7 @@ namespace Server
                 {
                     foreach (string file in Directory.GetFiles("Data"))
                     {
-                        string name = Path.GetFileName(file);
+                        string name = Path.GetFileNameWithoutExtension(file);
                         messages.TryAdd(name, await DataHandler.CreateData(name, SV));
                     }
                 }

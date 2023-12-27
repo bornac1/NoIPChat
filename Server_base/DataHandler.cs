@@ -6,19 +6,28 @@ namespace Server
 {
     public class DataHandler
     {
+        private const string magicstring = "NOIPCHAT";
+        private readonly int magiclength = Encoding.ASCII.GetBytes(magicstring).Length;
         private readonly FileStream file;
         private readonly byte[] intbuffer = new byte[sizeof(int)];
         private byte[] messagebuffer = new byte[1024];
         private int version;
         private readonly string folder;
         private readonly string name;
-        private DataHandler(string folder, string name)
+        private DataHandler(string folder, string name, bool temp = false)
         {
             this.folder = folder;
             this.name = string.Join('.', name, "noicb");
             string path = Path.Combine(this.folder, this.name);
             Directory.CreateDirectory(this.folder);
-            file = new(path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            if (temp)
+            {
+                file = new(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 0, FileOptions.Asynchronous | FileOptions.WriteThrough|FileOptions.DeleteOnClose);
+            }
+            else
+            {
+                file = new(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 0, FileOptions.Asynchronous | FileOptions.WriteThrough);
+            }
         }
         /// <summary>
         /// Creates DataHandler for Data file.
@@ -76,19 +85,19 @@ namespace Server
         }
         private async Task WriteHeader()
         {
-            byte[] data = Encoding.ASCII.GetBytes("NOIPCHAT");
+            byte[] data = Encoding.ASCII.GetBytes(magicstring);
             await file.WriteAsync(data);
             await WriteInt(version);
         }
         private async Task ReadHeader()
         {
-            byte[] buffer = new byte[7];
+            byte[] buffer = new byte[magiclength];
             int read = 0;
             while (read < buffer.Length)
             {
                 read += await file.ReadAsync(buffer.AsMemory(read, buffer.Length - read));
             }
-            if (MemoryExtensions.Equals(Encoding.ASCII.GetString(buffer, 0, buffer.Length), "NOIPCHAT", StringComparison.OrdinalIgnoreCase))
+            if (MemoryExtensions.Equals(Encoding.ASCII.GetString(buffer, 0, buffer.Length), magicstring, StringComparison.OrdinalIgnoreCase))
             {
                 version = await ReadInt();
             }
@@ -99,10 +108,10 @@ namespace Server
         }
         private async Task<int> ReadInt()
         {
-            int read = await file.ReadAsync(intbuffer);
+            int read = 0;
             while (read < intbuffer.Length)
             {
-                read += await file.ReadAsync(intbuffer.AsMemory(read, intbuffer.Length));
+                read += await file.ReadAsync(intbuffer.AsMemory(read, intbuffer.Length-read));
             }
             return BinaryPrimitives.ReadInt32LittleEndian(intbuffer.AsSpan());
         }
@@ -138,10 +147,10 @@ namespace Server
         {
             int length = await ReadInt();
             Handlemessagebuffer(length);
-            int read = await file.ReadAsync(messagebuffer.AsMemory(0, length));
+            int read = 0;
             while (read < length)
             {
-                read += await file.ReadAsync(messagebuffer.AsMemory(read, length));
+                read += await file.ReadAsync(messagebuffer.AsMemory(read, length-read));
             }
             return await Processing.Deserialize(new ReadOnlyMemory<byte>(messagebuffer, 0, length));
         }
@@ -172,7 +181,6 @@ namespace Server
         /// <returns>IAsyncEnumerable.</returns>
         public async IAsyncEnumerable<Message> GetMessages()
         {
-            file.Position = sizeof(int);//go to first messsage
             while (file.Position < file.Length)
             {
                 yield return await ReadMessage();
@@ -185,13 +193,11 @@ namespace Server
         /// <returns>IAsyncEnumerable.</returns>
         public async IAsyncEnumerable<Message> GetMessagesAndDelete()
         {
-            file.Position = sizeof(int);//go to first messsage
             while (file.Position < file.Length)
             {
                 yield return await ReadMessage();
             }
-            await Close();
-            System.IO.File.Delete(Path.Combine(folder, name));
+            await Delete();
             yield break;
         }
         /// <summary>
