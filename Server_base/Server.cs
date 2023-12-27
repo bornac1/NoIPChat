@@ -360,7 +360,7 @@ namespace Server
                     await message.Value.Close();
                     if (!messages.TryRemove(message))
                     {
-                        Console.WriteLine("Error remove message.");
+                        //Console.WriteLine("Error remove message.");
                     }
                 }
                 //Delete DataHandlers for messages for remote servers
@@ -369,7 +369,7 @@ namespace Server
                     await rmessage.Value.Close();
                     if (!messages_server.TryRemove(rmessage))
                     {
-                        Console.WriteLine("Error remore message for other server.");
+                        //Console.WriteLine("Error remore message for other server.");
                     }
                 }
             }

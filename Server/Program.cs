@@ -5,7 +5,8 @@ namespace Server
 {
     internal class Program
     {
-        static void Main()
+        private Server? server = null;
+        private async Task StartServer()
         {
             KeyPair ecdh;
             try
@@ -32,9 +33,10 @@ namespace Server
                 {
                     System.IO.File.WriteAllBytes("Key.bin", ecdh.PrivateKey);
                 }
-                catch
+                catch (Exception ex)
                 {
                     Console.WriteLine("Can't save ECDH key.");
+                    Console.WriteLine(ex.ToString());
                 }
             }
             try
@@ -47,18 +49,49 @@ namespace Server
                 }
                 if (Config != null)
                 {
-                    Server server = new(Config.Server.Name, Config.Server.Interfaces, ecdh);
+                    try
+                    {
+                        server = new(Config.Server.Name, Config.Server.Interfaces, ecdh);
+                    } catch (Exception ex)
+                    {
+                        //Leaked exceptions from server
+                        if(server != null)
+                        {
+                            await server.Close();
+                            server = null;
+                        }
+                        Console.WriteLine("Server is closed.");
+                        Console.WriteLine(ex.ToString());
+                    }
                 }
                 else
                 {
                     Console.WriteLine("Error config.");
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 Console.WriteLine("Error config.");
+                Console.WriteLine(ex.ToString());
             }
-            Console.ReadLine();
+        }
+        private void StartShell()
+        {
+            if (server != null)
+            {
+                _ = new Shell(server);
+            }
+        }
+        static void Main()
+        {
+            Program program = new();
+            _ = program.StartServer();
+            program.StartShell();
+            //Don't close even if shell stops
+            while (true)
+            {
+                Console.ReadLine();
+            }
         }
     }
 }
