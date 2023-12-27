@@ -208,7 +208,7 @@ namespace Server
                 int read = await client.ReceiveAsync(bufferl, totalread, bufferl.Length - totalread);
                 totalread += read;
             }
-            return BitConverter.ToInt32(bufferl, 0);
+            return IPAddress.NetworkToHostOrder(BitConverter.ToInt32(bufferl, 0));
         }
         private void Handlebufferm(int size)
         {
@@ -342,7 +342,7 @@ namespace Server
                 byte[]? data = await Processing.Serialize(message);
                 if (data != null)
                 {
-                    byte[] length = BitConverter.GetBytes(data.Length);
+                    byte[] length = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(data.Length));
                     if (connected)
                     {
                         //connected

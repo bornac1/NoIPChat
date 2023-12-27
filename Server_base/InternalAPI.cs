@@ -1,6 +1,7 @@
 ﻿using Messages;
 using System;
 using System.Data;
+using System.Net;
 using Transport;
 
 namespace Server
@@ -71,7 +72,7 @@ namespace Server
                     offset += read;
                 }
             }
-            return BitConverter.ToInt32(bufferl, 0);
+            return IPAddress.NetworkToHostOrder(BitConverter.ToInt32(bufferl, 0));
         }
         private async Task<byte[]> ReadData(int length)
         {
@@ -118,7 +119,7 @@ namespace Server
                 if (client != null)
                 {
                     byte[] data = await Processing.SerializeAPI(message);
-                    byte[] length = BitConverter.GetBytes(data.Length);
+                    byte[] length = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(data.Length));
                     await client.SendAsync(length);
                     await client.SendAsync(data);
                     return true;
