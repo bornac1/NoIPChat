@@ -1,13 +1,17 @@
-﻿namespace Server
+﻿using System;
+
+namespace Server
 {
     internal class Shell
     {
         //Server command line interface
-        private Server server;
-        //Commands strings
-        private const string exit = "exit";
-        public Shell(Server server) {
-            this.server = server;
+        private Program program;
+        //Commands
+        private readonly Dictionary<string, Action<string[]?>> commandActions = new();
+        public Shell(Program program) {
+            this.program = program;
+            commandActions.Add("exit", Exit);
+            commandActions.Add("stop server", StopServer);
             Loop();
         }
         private void Loop () {
@@ -16,28 +20,34 @@
                 ProcessCommand(Console.ReadLine());
             }
         }
-        private void ProcessCommand(string? command)
+        public void ProcessCommand(string userInput)
         {
-            if (command != null)
+            string command = string.Empty;
+            if (userInput != null)
             {
-                ReadOnlySpan<char> comm = command.AsSpan();
-                int i = 0;
-                while (i < comm.Length)
-                {
-                    //skip whitespaces
-                    while (comm[i] == ' ' && i < comm.Length)
-                    {
-                        i += 1;
-                    }
-                }
-                ExecuteCommand(comm);
+                command  = userInput;
+            }
+            string[]? args = null;
+            if (commandActions.TryGetValue(command, out Action<string[]?>? action))
+            {
+                action?.Invoke(args);
+            }
+            else
+            {
+                Console.WriteLine("Unknown command.");
             }
         }
-        private void ExecuteCommand (ReadOnlySpan<char> command)
+        private void Exit(string[]? args)
         {
-            if(MemoryExtensions.Equals(command, exit, StringComparison.OrdinalIgnoreCase))
+            Environment.Exit(0);
+        }
+        private async void StopServer(string[]? args)
+        {
+            if (program.server != null)
             {
-                Environment.Exit(0);
+                await program.server.Close();
+                program.server = null;
+                Console.WriteLine("Server stoped.");
             }
         }
     }

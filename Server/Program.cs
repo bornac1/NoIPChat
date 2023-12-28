@@ -5,7 +5,7 @@ namespace Server
 {
     internal class Program
     {
-        private Server? server = null;
+        public Server? server = null;
         private async Task StartServer()
         {
             KeyPair ecdh;
@@ -79,7 +79,7 @@ namespace Server
         {
             if (server != null)
             {
-                _ = new Shell(server);
+                _ = new Shell(this);
             }
         }
         static void Main()
