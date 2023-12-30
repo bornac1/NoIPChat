@@ -91,11 +91,6 @@
             PerformLayout();
         }
 
-        private void SettingsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
 
         private MenuStrip mainmenu;
