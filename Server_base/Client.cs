@@ -1,7 +1,6 @@
 ﻿using MessagePack;
 using Messages;
 using System.Net;
-using System.Net.Http.Headers;
 using Transport;
 
 namespace Server

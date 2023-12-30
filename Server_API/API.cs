@@ -1,7 +1,5 @@
 ﻿using Messages;
-using System;
 using System.Net;
-using System.Runtime.Serialization;
 using Transport;
 
 namespace Server
@@ -45,9 +43,10 @@ namespace Server
                     api.connected = true;
                 }
 
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
-                if(ex is TransportException)
+                if (ex is TransportException)
                 {
                     //Connection error
                     api?.Disconnect();
@@ -132,8 +131,9 @@ namespace Server
                     byte[] data = await Processing.SerializeAPI(message);
                     byte[] length = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(data.Length));
                     int sent = 0;
-                    while(sent < length.Length){
-                        await client.SendAsync(new ReadOnlyMemory<byte>(length, sent, length.Length-sent));
+                    while (sent < length.Length)
+                    {
+                        await client.SendAsync(new ReadOnlyMemory<byte>(length, sent, length.Length - sent));
                     }
                     sent = 0;
                     while (sent < data.Length)
@@ -153,7 +153,7 @@ namespace Server
         }
         private async Task ProcessMessage(APIMessage message)
         {
-            if(message.Auth != null)
+            if (message.Auth != null)
             {
                 auth = (bool)message.Auth;
             }
@@ -170,7 +170,7 @@ namespace Server
         }
         private async Task ProcessLogMessage(APIMessage message)
         {
-            if(message.Message != null)
+            if (message.Message != null)
             {
                 //Do something with log message
                 logcallback?.Invoke(message.Message);

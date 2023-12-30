@@ -44,10 +44,11 @@
         public static bool IsUser(string username)
         {
             ReadOnlySpan<char> str = username.AsSpan();
-            for(int i = 0; i< str.Length; i++)
+            for (int i = 0; i < str.Length; i++)
             {
-                if (str[i] == '@'){
-                return true;
+                if (str[i] == '@')
+                {
+                    return true;
                 }
             }
             return false;

@@ -1,5 +1,4 @@
-﻿using MessagePack;
-using Messages;
+﻿using Messages;
 
 namespace Server
 {

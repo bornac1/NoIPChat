@@ -12,7 +12,7 @@ namespace Server
         /// <param name="path">Path to file where data should be saved.</param>
         /// <param name="name">Name of the server for which data are beeing saved.</param>
         /// <returns>Async Task.</returns>
-        public async Task SaveSneakernet (string path, string name)
+        public async Task SaveSneakernet(string path, string name)
         {
             DataHandler? handler = null;
             try
@@ -28,9 +28,10 @@ namespace Server
                     messages_server.TryRemove(name, out _);
                     await handler.Close();
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
-                if(ex is IOException)
+                if (ex is IOException)
                 {
                     //File problem
                     //No need for logging

@@ -54,13 +54,14 @@ namespace Server
                     try
                     {
                         server = new(Config.Server.Name, Config.Server.Interfaces, ecdh, ref writelogasync);
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         //Leaked exceptions from server
                         Console.WriteLine("Server is closed.");
                         string message = ex.ToString();
                         Console.WriteLine(message);
-                        if(remote!= null)
+                        if (remote != null)
                         {
                             await remote.SendLog(message);
                         }
@@ -68,7 +69,7 @@ namespace Server
                         {
                             await server.Close();
                             server = null;
-                            if(attempt <= 5)
+                            if (attempt <= 5)
                             {
                                 Console.WriteLine("Trying to restart server");
                                 await StartServer(attempt + 1);

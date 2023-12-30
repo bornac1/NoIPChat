@@ -24,7 +24,7 @@ namespace Server
             Directory.CreateDirectory(folder);
             if (temp)
             {
-                file = new(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 0, FileOptions.Asynchronous | FileOptions.WriteThrough|FileOptions.DeleteOnClose);
+                file = new(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 0, FileOptions.Asynchronous | FileOptions.WriteThrough | FileOptions.DeleteOnClose);
             }
             else
             {
@@ -156,7 +156,7 @@ namespace Server
             int read = 0;
             while (read < intbuffer.Length)
             {
-                read += await file.ReadAsync(intbuffer.AsMemory(read, intbuffer.Length-read));
+                read += await file.ReadAsync(intbuffer.AsMemory(read, intbuffer.Length - read));
             }
             return BinaryPrimitives.ReadInt32LittleEndian(intbuffer.AsSpan());
         }
@@ -195,7 +195,7 @@ namespace Server
             int read = 0;
             while (read < length)
             {
-                read += await file.ReadAsync(messagebuffer.AsMemory(read, length-read));
+                read += await file.ReadAsync(messagebuffer.AsMemory(read, length - read));
             }
             return await Processing.Deserialize(new ReadOnlyMemory<byte>(messagebuffer, 0, length));
         }
