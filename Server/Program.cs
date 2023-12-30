@@ -5,8 +5,7 @@ namespace Server
 {
     internal class Program
     {
-        public Server? server = null;
-        private async Task StartServer()
+        private static async Task StartServer(int attempt = 0)
         {
             KeyPair ecdh;
             try
@@ -49,19 +48,30 @@ namespace Server
                 }
                 if (Config != null)
                 {
+                    Server? server = null;
                     try
                     {
                         server = new(Config.Server.Name, Config.Server.Interfaces, ecdh);
+                        while (true)
+                        {
+                            Console.ReadLine();
+                        }
                     } catch (Exception ex)
                     {
                         //Leaked exceptions from server
-                        if(server != null)
+                        Console.WriteLine("Server is closed.");
+                        Console.WriteLine(ex.ToString());
+                        if (server != null)
                         {
                             await server.Close();
                             server = null;
+                            if(attempt <= 5)
+                            {
+                                Console.WriteLine("Trying to restart server");
+                                await StartServer(attempt + 1);
+                            }
                         }
-                        Console.WriteLine("Server is closed.");
-                        Console.WriteLine(ex.ToString());
+
                     }
                 }
                 else
@@ -75,23 +85,9 @@ namespace Server
                 Console.WriteLine(ex.ToString());
             }
         }
-        private void StartShell()
+        static async Task Main()
         {
-            if (server != null)
-            {
-                _ = new Shell(this);
-            }
-        }
-        static void Main()
-        {
-            Program program = new();
-            _ = program.StartServer();
-            program.StartShell();
-            //Don't close even if shell stops
-            while (true)
-            {
-                Console.ReadLine();
-            }
+            await StartServer();
         }
     }
 }
