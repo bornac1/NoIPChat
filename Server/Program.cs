@@ -5,7 +5,10 @@ namespace Server
 {
     internal class Program
     {
-        private static async Task StartServer(int attempt = 0)
+        private Server? server = null;
+        private Remote? remote = null;
+        private Server.WriteLogAsync? writelogasync;
+        private async Task StartServer(int attempt = 0)
         {
             KeyPair ecdh;
             try
@@ -48,19 +51,19 @@ namespace Server
                 }
                 if (Config != null)
                 {
-                    Server? server = null;
                     try
                     {
-                        server = new(Config.Server.Name, Config.Server.Interfaces, ecdh);
-                        while (true)
-                        {
-                            Console.ReadLine();
-                        }
+                        server = new(Config.Server.Name, Config.Server.Interfaces, ecdh, ref writelogasync);
                     } catch (Exception ex)
                     {
                         //Leaked exceptions from server
                         Console.WriteLine("Server is closed.");
-                        Console.WriteLine(ex.ToString());
+                        string message = ex.ToString();
+                        Console.WriteLine(message);
+                        if(remote!= null)
+                        {
+                            await remote.SendLog(message);
+                        }
                         if (server != null)
                         {
                             await server.Close();
@@ -76,18 +79,73 @@ namespace Server
                 }
                 else
                 {
-                    Console.WriteLine("Error config.");
+                    Console.WriteLine("Error config server no exception.");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error config.");
+                Console.WriteLine("Error config server.");
+                Console.WriteLine(ex.ToString());
+            }
+        }
+        private void StartRemote(int attempt = 0)
+        {
+            try
+            {
+                Configuration.Configuration? Config;
+                using (TextReader reader = new StreamReader("Config.xml"))
+                {
+                    XmlSerializer serializer = new(typeof(Configuration.Configuration));
+                    Config = (Configuration.Configuration?)serializer.Deserialize(reader);
+                }
+                if (Config != null && Config.Remote != null)
+                {
+                    try
+                    {
+                        if (Config.Remote.Active)
+                        {
+                            remote = new Remote(Config.Remote.IP, Config.Remote.Port, Config.Remote.User, Config.Remote.Pass);
+                            writelogasync = remote.SendLog;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        //Leaked exceptions from Remote
+                        Console.WriteLine("Remote is closed.");
+                        Console.WriteLine(ex.ToString());
+                        if (remote != null)
+                        {
+                            remote.Close();
+                            remote = null;
+                            if (attempt <= 5)
+                            {
+                                Console.WriteLine("Trying to restart remote");
+                                StartRemote(attempt + 1);
+                            }
+                        }
+
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Error config remote no exception.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error config remote.");
                 Console.WriteLine(ex.ToString());
             }
         }
         static async Task Main()
         {
-            await StartServer();
+            Program program = new();
+            program.StartRemote();
+            await program.StartServer();
+            while (true)
+            {
+                Console.ReadLine();
+            }
         }
     }
 }

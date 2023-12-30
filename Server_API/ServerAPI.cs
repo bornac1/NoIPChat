@@ -21,9 +21,9 @@ namespace Server
         ///</summary>
         ///<param name="name">Name of the server.</param>
         ///<param name="interfaces">List of netwok interfaces used by server</param>
-        public void CreateServer(string name, List<Interface> interfaces, KeyPair ecdh)
+        public void CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, Server.WriteLogAsync? writelogasync)
         {
-            server = new Server(name, interfaces, ecdh);
+            server = new Server(name, interfaces, ecdh, ref writelogasync);
         }
         ///<summary>
         ///Sends message from server to user.
