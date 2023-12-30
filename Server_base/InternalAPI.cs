@@ -13,8 +13,10 @@ namespace Server
         private TcpClient? client;
         private bool connected = false;
         private readonly byte[] bufferl = new byte[sizeof(int)];
+        private byte[] bufferm = new byte[1024];
         private readonly string username;
         private readonly string password;
+        private bool auth = false;
         public Remote(string IP, int port, string username, string password)
         {
             listener = new(System.Net.IPAddress.Parse(IP), port);
@@ -54,7 +56,7 @@ namespace Server
                 }
                 catch
                 {
-                    connected = false;
+                    Disconnect();
                 }
             }
         }
@@ -62,9 +64,9 @@ namespace Server
         {
             int totalread = 0;
             int offset = 0;
-            while (totalread < bufferl.Length)
+            if (client != null)
             {
-                if (client != null)
+                while (totalread < bufferl.Length)
                 {
                     int read = await client.ReceiveAsync(new Memory<byte>(bufferl, offset, bufferl.Length - totalread));
                     totalread += read;
@@ -73,21 +75,43 @@ namespace Server
             }
             return IPAddress.NetworkToHostOrder(BitConverter.ToInt32(bufferl, 0));
         }
-        private async Task<byte[]> ReadData(int length)
+        private void Handlebufferm(int size)
         {
-            byte[] buffer = new byte[length];
-            int totalread = 0;
-            int offset = 0;
-            while (totalread < buffer.Length)
+            if (bufferm.Length >= size)
             {
-                if (client != null)
+                //Buffer is large enough
+                if (bufferm.Length / size >= 2)
                 {
-                    int read = await client.ReceiveAsync(new Memory<byte>(buffer, offset, buffer.Length - totalread));
-                    totalread += read;
-                    offset += read;
+                    //Buffer is at least 2 times too large
+                    int ns = bufferm.Length / (bufferm.Length / size);
+                    bufferm = new byte[ns];
                 }
             }
-            return buffer;
+            else
+            {
+                //Buffer is too small
+                int ns = size / bufferm.Length;
+                if (size % bufferm.Length != 0)
+                {
+                    ns += 1;
+                }
+                ns *= bufferm.Length;
+                bufferm = new byte[ns];
+            }
+        }
+        private async Task<ReadOnlyMemory<byte>> ReadData(int length)
+        {
+            Handlebufferm(length);
+            int totalread = 0;
+            if (client != null)
+            {
+                while (totalread < length)
+                {
+                    int read = await client.ReceiveAsync(new Memory<byte>(bufferm, totalread, length - totalread));
+                    totalread += read;
+                }
+            }
+            return new ReadOnlyMemory<byte>(bufferm, 0, totalread);
         }
         private async Task ProcessMessage(APIMessage message)
         {
@@ -95,7 +119,6 @@ namespace Server
             {
                 if (message.Command == "login")
                 {
-                    bool auth;
                     if (message.Username == username && message.Password == password)
                     {
                         auth = true;
@@ -119,8 +142,16 @@ namespace Server
                 {
                     byte[] data = await Processing.SerializeAPI(message);
                     byte[] length = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(data.Length));
-                    await client.SendAsync(length);
-                    await client.SendAsync(data);
+                    int sent = 0;
+                    while (sent < length.Length)
+                    {
+                        await client.SendAsync(new ReadOnlyMemory<byte>(length, sent, length.Length - sent));
+                    }
+                    sent = 0;
+                    while (sent < data.Length)
+                    {
+                        await client.SendAsync(new ReadOnlyMemory<byte>(data, sent, data.Length - sent));
+                    }
                     return true;
                 }
                 return false;
@@ -128,8 +159,28 @@ namespace Server
             }
             catch
             {
-                connected = false;
+                Disconnect();
                 return false;
+            }
+        }
+        private void Disconnect()
+        {
+            connected = false;
+            if (client != null)
+            {
+                client.Close();
+                client.Dispose();
+            }
+        }
+        public async Task SendLog(string message)
+        {
+            if (auth)
+            {
+                await SendMessage(new()
+                {
+                    Command = "log",
+                    Message = message
+                });
             }
         }
     }

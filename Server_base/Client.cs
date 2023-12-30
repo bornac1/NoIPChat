@@ -99,7 +99,7 @@ namespace Server
                     //Other problem
                     //Should be logged
                     await Disconnect();
-                    await Server.WriteLog(ex);
+                    await server.WriteLog(ex);
                 }
             }
         }
@@ -145,7 +145,7 @@ namespace Server
                 {
                     //Should be logged
                     //Console.WriteLine(ex.ToString());
-                    await Server.WriteLog(ex);
+                    await server.WriteLog(ex);
                 }
                 connected = false;
                 await Disconnect();
@@ -194,7 +194,7 @@ namespace Server
                     else
                     {
                         //Should be logged
-                        await Server.WriteLog(ex);
+                        await server.WriteLog(ex);
                     }
                     connected = false;
                     await Disconnect();
@@ -278,7 +278,7 @@ namespace Server
             catch (Exception ex)
             {
                 //Should be logged
-                await Server.WriteLog(ex);
+                await server.WriteLog(ex);
             }
         }
         private async Task ProcessMessage(Message message)
@@ -320,7 +320,7 @@ namespace Server
             catch (Exception ex)
             {
                 //Should be logged
-                await Server.WriteLog(ex);
+                await server.WriteLog(ex);
             }
         }
         public async Task<bool> SendMessage(Message message, bool encrypt = true)
@@ -399,7 +399,7 @@ namespace Server
                 else
                 {
                     //Should be logged
-                    await Server.WriteLog(ex);
+                    await server.WriteLog(ex);
                 }
                 if (!msgerror)
                 {
@@ -514,7 +514,7 @@ namespace Server
             catch (Exception ex)
             {
                 //Logging just in case
-                await Server.WriteLog(ex);
+                await server.WriteLog(ex);
             }
         }
         private void TimeoutHanlder(Object? source, System.Timers.ElapsedEventArgs e)

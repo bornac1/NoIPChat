@@ -57,7 +57,7 @@ namespace Server
             catch (Exception ex)
             {
                 //Logging
-                await Server.WriteLog(ex);
+                await server.WriteLog(ex);
             }
         }
         /// <summary>

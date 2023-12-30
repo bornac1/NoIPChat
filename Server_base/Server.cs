@@ -25,9 +25,13 @@ namespace Server
         public ConcurrentDictionary<string, Servers> servers; //Know servers
         public ImmutableList<Interface> interfaces;
         public KeyPair my;
-        public Server(string name, List<Interface> interfaces, KeyPair ecdh)
+
+        public delegate Task WriteLogAsync(string message);
+        private readonly WriteLogAsync? writelogasync;
+        public Server(string name, List<Interface> interfaces, KeyPair ecdh, ref WriteLogAsync? writelogasync)
         {
             this.name = name.ToLower();
+            this.writelogasync = writelogasync;
             active = true;
             clients = new ConcurrentDictionary<string, Client>();
             messages = new ConcurrentDictionary<string, DataHandler>();
@@ -454,16 +458,20 @@ namespace Server
             }
         }
         /// <summary>
-        /// Writes exception into Server.log file.
+        /// Writes exception into Server.log file. Sends exception to remote.
         /// </summary>
-        /// <param name="ex">Exception to be saved.</param>
+        /// <param name="ex">Exception to be saved and send.</param>
         /// <returns>Async Task.</returns>
-        public static async Task WriteLog(Exception ex)
+        public async Task WriteLog(Exception ex)
         {
             string log = DateTime.Now.ToString("d.M.yyyy. H:m:s") + " " + ex.ToString() + Environment.NewLine;
             try
             {
                 await System.IO.File.AppendAllTextAsync("Server.log", log);
+                if (writelogasync != null)
+                {
+                    await writelogasync(log);
+                }
             }
             catch (Exception)
             {
