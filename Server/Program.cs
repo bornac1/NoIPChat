@@ -53,7 +53,7 @@ namespace Server
                 {
                     try
                     {
-                        server = new(Config.Server.Name, Config.Server.Interfaces, ecdh, ref writelogasync);
+                        server = new(Config.Server.Name, Config.Server.Interfaces, ecdh, writelogasync);
                     }
                     catch (Exception ex)
                     {
@@ -107,6 +107,10 @@ namespace Server
                         {
                             remote = new Remote(Config.Remote.IP, Config.Remote.Port, Config.Remote.User, Config.Remote.Pass);
                             writelogasync = remote.SendLog;
+                            if(server != null)
+                            {
+                                server.writelogasync = writelogasync;
+                            }
                         }
                     }
                     catch (Exception ex)

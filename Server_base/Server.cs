@@ -27,8 +27,8 @@ namespace Server
         public KeyPair my;
 
         public delegate Task WriteLogAsync(string message);
-        private readonly WriteLogAsync? writelogasync;
-        public Server(string name, List<Interface> interfaces, KeyPair ecdh, ref WriteLogAsync? writelogasync)
+        public WriteLogAsync? writelogasync;
+        public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync)
         {
             this.name = name.ToLower();
             this.writelogasync = writelogasync;
