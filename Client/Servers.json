@@ -1,5 +1,10 @@
 [
   {
+    "Name": "Server1_alpine",
+    "IP": "192.168.2.10",
+    "Port": 10000
+  },
+  {
     "Name": "Server1",
     "IP": "127.0.0.1",
     "Port": 10001
