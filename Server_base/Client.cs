@@ -337,7 +337,9 @@ namespace Server
                 }
                 else if (aeskey == null && encrypt)
                 {
-                    Console.WriteLine("aes key is null, so we have a problem");
+                    //Console.WriteLine("aes key is null, so we have a problem");
+                    //We don't want to send unencrypted
+                    await Disconnect();
                 }
                 byte[]? data = await Processing.Serialize(message);
                 if (data != null)
