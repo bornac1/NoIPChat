@@ -107,7 +107,7 @@ namespace Server
                         {
                             remote = new Remote(Config.Remote.IP, Config.Remote.Port, Config.Remote.User, Config.Remote.Pass);
                             writelogasync = remote.SendLog;
-                            if(server != null)
+                            if (server != null)
                             {
                                 server.writelogasync = writelogasync;
                             }
