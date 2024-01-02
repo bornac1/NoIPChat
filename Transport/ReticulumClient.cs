@@ -1,21 +1,31 @@
 ﻿using Python.Runtime;
+using System.Runtime.CompilerServices;
 
 namespace Transport
 {
     public class ReticulumClient : IClient
     {
+        PyModule scope;
+        private bool closestarted = false;
         ReticulumClient()
         {
             PythonEngine.Initialize();
+            Py.GIL();
+            scope = Py.CreateScope().Exec("ReticulumClient.py");
         }
         public void Close()
         {
-            throw new NotImplementedException();
+            PythonEngine.Shutdown();
         }
 
         public void Dispose()
         {
+            PythonEngine.Shutdown();
             GC.SuppressFinalize(this);
+        }
+        ~ReticulumClient()
+        {
+            PythonEngine.Shutdown();
         }
 
         public int Receive(Span<byte> buffer)
