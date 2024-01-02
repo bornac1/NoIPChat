@@ -4,7 +4,8 @@ namespace Transport
 {
     public class ReticulumClient : IClient
     {
-        ReticulumClient() {
+        ReticulumClient()
+        {
             PythonEngine.Initialize();
         }
         public void Close()
@@ -17,22 +18,22 @@ namespace Transport
             GC.SuppressFinalize(this);
         }
 
-        public int Receive(byte[] buffer, int offset, int count)
+        public int Receive(Span<byte> buffer)
         {
             throw new NotImplementedException();
         }
 
-        public Task<int> ReceiveAsync(byte[] buffer, int offset, int count)
+        public Task<int> ReceiveAsync(Memory<byte> buffer)
         {
             throw new NotImplementedException();
         }
 
-        public int Send(byte[] buffer, int offset, int count)
+        public int Send(ReadOnlySpan<byte> data)
         {
             throw new NotImplementedException();
         }
 
-        public Task<int> SendAsync(byte[] buffer, int offset, int count)
+        public Task<int> SendAsync(ReadOnlyMemory<byte> buffer)
         {
             throw new NotImplementedException();
         }

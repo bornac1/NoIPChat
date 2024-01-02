@@ -283,6 +283,7 @@ namespace Client
             if (main.chat != null && ischatready && message.Msg != null)
             {
                 //Chat is ready
+                await main.chat.SaveFile(message.Data);
                 string current = main.chat.display.Text;
                 if (current == string.Empty)
                 {

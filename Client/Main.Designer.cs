@@ -33,6 +33,7 @@
             disconnectToolStripMenuItem = new ToolStripMenuItem();
             settingsToolStripMenuItem = new ToolStripMenuItem();
             knownServersToolStripMenuItem = new ToolStripMenuItem();
+            savedFilesToolStripMenuItem = new ToolStripMenuItem();
             mainmenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -42,46 +43,55 @@
             mainmenu.Items.AddRange(new ToolStripItem[] { loginToolStripMenuItem, disconnectToolStripMenuItem, settingsToolStripMenuItem });
             mainmenu.Location = new Point(0, 0);
             mainmenu.Name = "mainmenu";
-            mainmenu.Size = new Size(800, 28);
+            mainmenu.Padding = new Padding(5, 2, 0, 2);
+            mainmenu.Size = new Size(700, 24);
             mainmenu.TabIndex = 1;
             mainmenu.Text = "menuStrip1";
             // 
             // loginToolStripMenuItem
             // 
             loginToolStripMenuItem.Name = "loginToolStripMenuItem";
-            loginToolStripMenuItem.Size = new Size(60, 24);
+            loginToolStripMenuItem.Size = new Size(49, 20);
             loginToolStripMenuItem.Text = "Login";
             loginToolStripMenuItem.Click += LoginToolStripMenuItem_Click;
             // 
             // disconnectToolStripMenuItem
             // 
             disconnectToolStripMenuItem.Name = "disconnectToolStripMenuItem";
-            disconnectToolStripMenuItem.Size = new Size(96, 24);
+            disconnectToolStripMenuItem.Size = new Size(78, 20);
             disconnectToolStripMenuItem.Text = "Disconnect";
             disconnectToolStripMenuItem.Click += DisconnectToolStripMenuItem_Click;
             // 
             // settingsToolStripMenuItem
             // 
-            settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { knownServersToolStripMenuItem });
+            settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { knownServersToolStripMenuItem, savedFilesToolStripMenuItem });
             settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            settingsToolStripMenuItem.Size = new Size(76, 24);
+            settingsToolStripMenuItem.Size = new Size(61, 20);
             settingsToolStripMenuItem.Text = "Settings";
             // 
             // knownServersToolStripMenuItem
             // 
             knownServersToolStripMenuItem.Name = "knownServersToolStripMenuItem";
-            knownServersToolStripMenuItem.Size = new Size(224, 26);
+            knownServersToolStripMenuItem.Size = new Size(180, 22);
             knownServersToolStripMenuItem.Text = "Known servers";
             knownServersToolStripMenuItem.Click += KnownServersToolStripMenuItem_Click;
             // 
+            // savedFilesToolStripMenuItem
+            // 
+            savedFilesToolStripMenuItem.Name = "savedFilesToolStripMenuItem";
+            savedFilesToolStripMenuItem.Size = new Size(180, 22);
+            savedFilesToolStripMenuItem.Text = "Saved files";
+            savedFilesToolStripMenuItem.Click += savedFilesToolStripMenuItem_Click;
+            // 
             // Main
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(700, 338);
             Controls.Add(mainmenu);
             IsMdiContainer = true;
             MainMenuStrip = mainmenu;
+            Margin = new Padding(3, 2, 3, 2);
             Name = "Main";
             Text = "Main";
             WindowState = FormWindowState.Maximized;
@@ -98,5 +108,6 @@
         private ToolStripMenuItem settingsToolStripMenuItem;
         private ToolStripMenuItem disconnectToolStripMenuItem;
         private ToolStripMenuItem knownServersToolStripMenuItem;
+        private ToolStripMenuItem savedFilesToolStripMenuItem;
     }
 }

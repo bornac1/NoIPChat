@@ -1,10 +1,12 @@
-﻿using System.Text;
+﻿using Messages;
+using System.Text;
 
 namespace Client
 {
     public partial class Chat : Form
     {
         public Client client;
+        private string? filepath = null;
         public Chat(Main main)
         {
             InitializeComponent();
@@ -12,14 +14,13 @@ namespace Client
         }
         private async Task SendMessage()
         {
-            //Enter only is used to send
-            //Shift+Entre is for new line
             Messages.Message message = new()
             {
                 CV = client.CV,
                 Sender = client.Username,
                 Receiver = receivers.Text.Trim(),
-                Msg = Encoding.UTF8.GetBytes(this.message.Text)
+                Msg = Encoding.UTF8.GetBytes(this.message.Text),
+                Data = await FiletoData()
             };
             if (await client.SendMessage(message))
             {
@@ -39,7 +40,7 @@ namespace Client
             message.Text = string.Empty;
         }
 
-        private async void Button1_Click(object sender, EventArgs e)
+        private async void Sendbutton_Click(object sender, EventArgs e)
         {
             if (receivers.Text != string.Empty && message.Text != string.Empty)
             {
@@ -51,12 +52,12 @@ namespace Client
             }
         }
 
-        private void Button2_Click(object sender, EventArgs e)
+        private void Cancelbutton_Click(object sender, EventArgs e)
         {
             ReturnDefault();
         }
 
-        private void Button3_Click(object sender, EventArgs e)
+        private void Refreshbutton_Click(object sender, EventArgs e)
         {
             display.Update();
         }
@@ -69,6 +70,68 @@ namespace Client
         private void Chat_Load(object sender, EventArgs e)
         {
             client.ischatready = true;
+        }
+
+        private void Filebutton_Click(object sender, EventArgs e)
+        {
+            if (openfiledialog.ShowDialog() == DialogResult.OK)
+            {
+                filepath = openfiledialog.FileName;
+                filenamelabel.Text = Path.GetFileName(filepath);
+            }
+        }
+        private async Task<byte[]?> FiletoData()
+        {
+            if (filepath != null)
+            {
+                try
+                {
+                    string name = filenamelabel.Text;
+                    Messages.File file = new()
+                    {
+                        Name = name,
+                        Content = await System.IO.File.ReadAllBytesAsync(filepath)
+                    };
+                    return await Processing.SerializeFile(file);
+                }
+                catch (Exception ex)
+                {
+                    //TODO: error handling
+                    MessageBox.Show("File open error." + ex.ToString());
+                }
+                finally
+                {
+                    filenamelabel.Text = string.Empty;
+                    filepath = null;
+                }
+            }
+            return null;
+        }
+        public async Task SaveFile(byte[]? data)
+        {
+            if (savefiledialog.ShowDialog() == DialogResult.OK && data != null)
+            {
+                try
+                {
+                    Messages.File file = await Processing.DeserializeFile(data);
+                    if (file.Name != null && file.Content != null)
+                    {
+                        string path = savefiledialog.FileName;
+                        if (path == string.Empty)
+                        {
+                            //Default storage location
+                            path = Path.Combine("Data", file.Name);
+                            Directory.CreateDirectory(path);
+                        }
+                        await System.IO.File.WriteAllBytesAsync(path, file.Content);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //TODO: error handling
+                    MessageBox.Show("File save error." + ex.ToString());
+                }
+            }
         }
     }
 }
