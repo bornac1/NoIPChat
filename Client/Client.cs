@@ -271,10 +271,10 @@ namespace Client
             }
             else if (message.Msg != null || message.Data != null)
             {
-                await PrintMessage(message);
+                await HandleMessage(message);
             }
         }
-        public async Task PrintMessage(Messages.Message message)
+        public async Task HandleMessage(Messages.Message message)
         {
             while (!ischatready)
             {
@@ -283,7 +283,11 @@ namespace Client
             if (main.chat != null && ischatready && message.Msg != null)
             {
                 //Chat is ready
-                await main.chat.SaveFile(message.Data);
+                //Check if it has file
+                if (message.IsFile == true)
+                {
+                    await main.chat.SaveFile(message.Data);
+                }
                 string current = main.chat.display.Text;
                 if (current == string.Empty)
                 {

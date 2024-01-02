@@ -56,6 +56,10 @@ namespace Messages
         /// </summary>
         public byte[]? Msg { get; set; }
         /// <summary>
+        /// True if File is in Data.
+        /// </summary>
+        public bool? IsFile { get; set; }
+        /// <summary>
         /// Bynary data to be sent.
         /// </summary>
         public byte[]? Data { get; set; }

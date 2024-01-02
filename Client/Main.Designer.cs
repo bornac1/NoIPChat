@@ -81,7 +81,7 @@
             savedFilesToolStripMenuItem.Name = "savedFilesToolStripMenuItem";
             savedFilesToolStripMenuItem.Size = new Size(180, 22);
             savedFilesToolStripMenuItem.Text = "Saved files";
-            savedFilesToolStripMenuItem.Click += savedFilesToolStripMenuItem_Click;
+            savedFilesToolStripMenuItem.Click += SavedFilesToolStripMenuItem_Click;
             // 
             // Main
             // 
