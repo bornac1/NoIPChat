@@ -7,6 +7,8 @@
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
 	<SelfContained>true</SelfContained>
 	<OutputType>Library</OutputType>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+	<PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

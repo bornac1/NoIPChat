@@ -223,7 +223,7 @@ namespace Server
                 string jsonString = await System.IO.File.ReadAllTextAsync("Servers.json");
                 await Task.Run(() =>
                  {
-                     var servers_list = JsonSerializer.Deserialize<Servers[]>(jsonString);
+                     var servers_list = Servers.Deserialize(jsonString);
                      if (servers_list != null)
                      {
                          foreach (Servers server in servers_list)
@@ -256,7 +256,7 @@ namespace Server
                         server.Value.Name = server.Value.Name.ToLower();
                         servers_list.Add(server.Value);
                     }
-                    return JsonSerializer.Serialize(servers_list);
+                    return Servers.Serialize(servers_list);
                 });
                 await System.IO.File.WriteAllTextAsync("Servers.json", jsonString);
             }
