@@ -32,11 +32,11 @@ namespace Transport
                 throw new TransportException("Socket exception", ex);
             }
         }
-        public Task ConnectAsync(IPAddress address, int port)
+        public async Task ConnectAsync(IPAddress address, int port)
         {
             try
             {
-                return socket.ConnectAsync(address, port);
+                await socket.ConnectAsync(address, port);
             }
             catch (SocketException ex)
             {
