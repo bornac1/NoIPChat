@@ -3,7 +3,7 @@ using Messages;
 using System.Net;
 using Transport;
 
-namespace Server
+namespace Server_base
 {
     public partial class Client
     {

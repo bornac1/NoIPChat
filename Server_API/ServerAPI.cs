@@ -1,8 +1,9 @@
-﻿using Configuration;
+﻿using ConfigurationData;
 using Messages;
+using Server_base;
 using Sodium;
 
-namespace Server
+namespace ServerAPI
 {
     public class ServerAPI
     {

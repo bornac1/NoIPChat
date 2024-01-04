@@ -1,7 +1,9 @@
-﻿using Messages;
+﻿using ConfigurationData;
+using Messages;
+using Server_base;
 using Sodium;
 using System.Xml.Serialization;
-namespace Server
+namespace Server_starter
 {
     internal class Program
     {
@@ -43,11 +45,11 @@ namespace Server
             }
             try
             {
-                Configuration.Configuration? Config;
+                Configuration? Config;
                 using (TextReader reader = new StreamReader("Config.xml"))
                 {
-                    XmlSerializer serializer = new(typeof(Configuration.Configuration));
-                    Config = (Configuration.Configuration?)serializer.Deserialize(reader);
+                    XmlSerializer serializer = new(typeof(Configuration));
+                    Config = (Configuration?)serializer.Deserialize(reader);
                 }
                 if (Config != null)
                 {
@@ -93,11 +95,11 @@ namespace Server
         {
             try
             {
-                Configuration.Configuration? Config;
+                Configuration? Config;
                 using (TextReader reader = new StreamReader("Config.xml"))
                 {
-                    XmlSerializer serializer = new(typeof(Configuration.Configuration));
-                    Config = (Configuration.Configuration?)serializer.Deserialize(reader);
+                    XmlSerializer serializer = new(typeof(Configuration));
+                    Config = (Configuration?)serializer.Deserialize(reader);
                 }
                 if (Config != null && Config.Remote != null)
                 {

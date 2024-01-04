@@ -1,6 +1,6 @@
 ﻿using Messages;
 
-namespace Server
+namespace Server_base
 {
     public partial class Server
     {

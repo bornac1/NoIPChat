@@ -1,4 +1,4 @@
-﻿namespace Server
+﻿namespace Server_base
 {
     public class VersionException : Exception
     {

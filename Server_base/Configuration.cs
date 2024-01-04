@@ -1,9 +1,9 @@
 ﻿using System.Xml.Serialization;
 
-namespace Configuration
+namespace ConfigurationData
 {
     [Serializable]
-    public class Server
+    public class ServerConfiguration
     {
         public required string Name { get; set; }
         public required List<Interface> Interfaces { get; set; }
@@ -18,7 +18,7 @@ namespace Configuration
     }
 
     [Serializable]
-    public class Remote
+    public class RemoteConfiguration
     {
         public required bool Active { get; set; }
         public required string IP { get; set; }
@@ -31,7 +31,7 @@ namespace Configuration
     [XmlRoot("Configuration")]
     public class Configuration
     {
-        public required Server Server { get; set; }
-        public Remote? Remote { get; set; }
+        public required ServerConfiguration Server { get; set; }
+        public RemoteConfiguration? Remote { get; set; }
     }
 }

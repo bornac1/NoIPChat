@@ -2,7 +2,7 @@
 using System.Net;
 using Transport;
 
-namespace Server
+namespace ServerAPI
 {
     public class API
     {
