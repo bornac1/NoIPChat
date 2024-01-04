@@ -98,6 +98,10 @@ Remote is reserver for future uses and can be deleted
 
 If you wish to use new key for running server after the setup, just delete Key.bin file and key will be regenerated when server is started again
 
+**Automatic reconnection**
+
+If connection between client and server or two servers is lost, it'll automatically try to reconnect in intervals starting from 15 ms, up to 60 s with each attempt interval is doubled.
+
 **Logging errors**
 
 Errors are logged into the Client.log and Server.log files in the same directory where your Client and Server are located.
