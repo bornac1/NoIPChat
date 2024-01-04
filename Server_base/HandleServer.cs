@@ -1,6 +1,5 @@
 ﻿using MessagePack;
 using Messages;
-using System.ComponentModel.Design;
 using System.Net;
 using Transport;
 
@@ -254,7 +253,7 @@ namespace Server_base
                     client.Dispose();
                 }
             }
-            else if(isremote && ReconnectTimer != null && ReconnectTimer.Interval < ReconnectTimeOut)
+            else if (isremote && ReconnectTimer != null && ReconnectTimer.Interval < ReconnectTimeOut)
             {
                 //Reconnect only if this is connection to remote server
                 ReconnectTimer.Start();
@@ -269,7 +268,7 @@ namespace Server_base
                 client.Dispose();
             }
             //We have server name
-            if(name != string.Empty)
+            if (name != string.Empty)
             {
                 var srv = server.GetServer(name);
                 if (srv.Item1)

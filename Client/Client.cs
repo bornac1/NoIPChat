@@ -290,7 +290,7 @@ namespace Client
                     await main.chat.SaveFile(message.Data);
                 }
                 //Display message
-                main.chat.display.Invoke(() =>main.chat.DisplayMessage(message));
+                main.chat.display.Invoke(() => main.chat.DisplayMessage(message));
             }
         }
         public async Task Disconnect(bool force = false)
@@ -351,7 +351,7 @@ namespace Client
                 {
                     ReconnectTimer.Stop();
                     ReconnectTimer.Interval = InitialReconnectInterval;
-                    if(Username != null && Password != null)
+                    if (Username != null && Password != null)
                     {
                         //We can login back
                         await Login(Username, Password);
