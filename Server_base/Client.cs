@@ -7,12 +7,12 @@ namespace Server_base
 {
     public partial class Client
     {
-        private string user = "";
-        private string name = "";
+        private string user = string.Empty;
+        private string name = string.Empty;
         private readonly Server server;
         private bool isserver = false; //This is connection from remote server
         private bool isremote = false; //This is connection to remote server
-        private readonly TClient client;
+        private TClient client;
         private bool connected;
         private readonly System.Timers.Timer? timer;
         private bool disconnectstarted = false;
@@ -22,6 +22,9 @@ namespace Server_base
         private byte[] bufferm = new byte[1024];
         private byte[]? aeskey;
         private bool publickeysend = false;
+        private readonly System.Timers.Timer? ReconnectTimer;
+        private const double ReconnectTimeOut = 60000;//60 seconds
+        private const double InitialReconnectInterval = 15;
         public Client(Server server, TClient client, string localip)
         {
             this.server = server;
@@ -46,6 +49,8 @@ namespace Server_base
                 timer.Elapsed += TimeoutHanlder;
                 timer.Start();
             }
+            ReconnectTimer = new(InitialReconnectInterval);
+            ReconnectTimer.Elapsed += ReconnectServer;
         }
         public static async Task<Client> CreateAsync(Server server, string name, string localip, string ip, int port, int timeout)
         {
@@ -282,17 +287,7 @@ namespace Server_base
                     else if (isserver || isremote)
                     {
                         //Disconnect server
-                        DisconnectServer();
-                    }
-                    connected = false;
-                    if (client != null)
-                    {
-                        client.Close();
-                        client.Dispose();
-                    }
-                    if (isserver || isremote)
-                    {
-                        //Try to reconnect to remote server
+                        await DisconnectServer(force);
                     }
                 }
             }

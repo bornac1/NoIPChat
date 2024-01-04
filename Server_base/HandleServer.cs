@@ -1,5 +1,8 @@
 ﻿using MessagePack;
 using Messages;
+using System.ComponentModel.Design;
+using System.Net;
+using Transport;
 
 namespace Server_base
 {
@@ -215,23 +218,82 @@ namespace Server_base
                 }
             }
         }
-        private void DisconnectServer()
+        private async Task DisconnectServer(bool force = false)
         {
-            if (!server.remoteservers.TryRemove(name, out _))
+            if (force)
             {
-                //Remote server is already removed
-            }
-            foreach (string user in server.remoteusers.Keys)
-            {
-                if (server.remoteusers.TryGetValue(user, out string? srv))
+                if (connected)
                 {
-                    if (srv == name)
+                    Message message1 = new()
                     {
-                        if (!server.remoteusers.TryRemove(user, out _))
+                        Disconnect = true
+                    };
+                    await SendMessage(message1);
+                }
+                connected = false;
+                if (!server.remoteservers.TryRemove(name, out _))
+                {
+                    //Remote server is already removed
+                }
+                foreach (string user in server.remoteusers.Keys)
+                {
+                    if (server.remoteusers.TryGetValue(user, out string? srv))
+                    {
+                        if (srv == name)
                         {
-                            //Is already removed
+                            if (!server.remoteusers.TryRemove(user, out _))
+                            {
+                                //Is already removed
+                            }
                         }
                     }
+                }
+                if (client != null)
+                {
+                    client.Close();
+                    client.Dispose();
+                }
+            }
+            else if(isremote && ReconnectTimer != null)
+            {
+                //Reconnect only if this is connection to remote server
+                ReconnectTimer.Start();
+            }
+        }
+        private async void ReconnectServer(Object? source, System.Timers.ElapsedEventArgs e)
+        {
+            //Dispose old TClient
+            if (client != null)
+            {
+                client.Close();
+                client.Dispose();
+            }
+            //We have server name
+            if(name != string.Empty)
+            {
+                var srv = server.GetServer(name);
+                if (srv.Item1)
+                {
+                    //Found server informations
+                    //Create new TClient
+                    client = new TClient(new TcpClient(IPEndPoint.Parse(localip)));
+                    await Connect(srv.Item3, srv.Item4);
+                    if (ReconnectTimer != null)
+                    {
+                        if (!connected)
+                        {
+                            ReconnectTimer.Interval *= 2;
+                        }
+                        else
+                        {
+                            ReconnectTimer.Stop();
+                            ReconnectTimer.Interval = InitialReconnectInterval;
+                        }
+                    }
+                }
+                else
+                {
+                    await Disconnect(true);
                 }
             }
         }

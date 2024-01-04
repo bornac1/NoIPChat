@@ -141,6 +141,12 @@ namespace Server_base
                     Disconnect = true
                 });
             }
+            connected = false;
+            if (client != null)
+            {
+                client.Close();
+                client.Dispose();
+            }
         }
     }
 }
