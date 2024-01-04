@@ -69,7 +69,7 @@ namespace Client
 
         private void Chat_Load(object sender, EventArgs e)
         {
-            client.ischatready = true;
+            client.ischatready.TrySetResult(true);
         }
 
         private void Filebutton_Click(object sender, EventArgs e)
@@ -130,6 +130,21 @@ namespace Client
                 {
                     //TODO: error handling
                     MessageBox.Show("File save error." + ex.ToString());
+                }
+            }
+        }
+        public void DisplayMessage(Messages.Message message)
+        {
+            if (message.Msg != null)
+            {
+                string current = display.Text;
+                if (current == string.Empty)
+                {
+                    display.Text = $"{message.Sender}:{Encoding.UTF8.GetString(message.Msg)}";
+                }
+                else
+                {
+                    display.Text = string.Join(Environment.NewLine, current, $"{message.Sender}:{Encoding.UTF8.GetString(message.Msg)}");
                 }
             }
         }

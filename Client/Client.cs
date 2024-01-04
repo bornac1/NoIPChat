@@ -15,33 +15,37 @@ namespace Client
         public ConcurrentQueue<Messages.Message> messages_snd;
         public string? Username;
         public string? Password;
-        //public string? Server;
+        public Servers? Server;
         public TClient client;
         public BindingSource servers;
         private readonly StringBuilder value;
-        public bool ischatready = false;
+        public TaskCompletionSource<bool> ischatready = new();
         public Main main;
         private bool disconnectstarted;
-        public Messages.Message message;
         private readonly byte[] bufferl = new byte[sizeof(int)];
         private byte[] bufferm = new byte[1024];
         private readonly KeyPair my;
         private byte[]? aeskey;
         public TaskCompletionSource<bool> auth = new();
+        private readonly System.Timers.Timer ReconnectTimer;
+        private const double ReconnectTimeOut = 60000;//60 seconds
+        private const double InitialReconnectInterval = 15;
         public Client(Main main)
         {
             this.main = main;
             disconnectstarted = false;
+            ReconnectTimer = new(InitialReconnectInterval);
+            ReconnectTimer.Elapsed += Reconnect;
             messages_snd = [];
             servers = [];
             value = new StringBuilder();
             my = Encryption.GenerateECDH();
             _ = LoadServers();
             client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any, 0)));
-            message = new Messages.Message();
         }
         public async Task Connect(Servers srv)
         {
+            Server = srv;
             try
             {
                 client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any, 0)));
@@ -172,6 +176,7 @@ namespace Client
         }
         public async Task Login(string username, string password)
         {
+            Messages.Message message = new();
             Username = username.ToLower();
             Password = password;
             message.CV = CV;
@@ -276,11 +281,7 @@ namespace Client
         }
         public async Task HandleMessage(Messages.Message message)
         {
-            while (!ischatready)
-            {
-                await Task.Delay(1);
-            }
-            if (main.chat != null && ischatready && message.Msg != null)
+            if (main.chat != null && await ischatready.Task && message.Msg != null)
             {
                 //Chat is ready
                 //Check if it has file
@@ -288,15 +289,8 @@ namespace Client
                 {
                     await main.chat.SaveFile(message.Data);
                 }
-                string current = main.chat.display.Text;
-                if (current == string.Empty)
-                {
-                    main.chat.display.Text = $"{message.Sender}:{Encoding.UTF8.GetString(message.Msg)}";
-                }
-                else
-                {
-                    main.chat.display.Text = string.Join(Environment.NewLine, current, $"{message.Sender}:{Encoding.UTF8.GetString(message.Msg)}");
-                }
+                //Display message
+                main.chat.display.Invoke(() =>main.chat.DisplayMessage(message));
             }
         }
         public async Task Disconnect(bool force = false)
@@ -307,22 +301,67 @@ namespace Client
                 try
                 {
                     connected = false;
-                    if (client != null)
+                    if (force || Server == null)
                     {
-                        client.Close();
-                        client.Dispose();
+                        //Disconnect by clicking button
+                        if (client != null)
+                        {
+                            client.Close();
+                            client.Dispose();
+                        }
+                        //start new client
+                        main.client = new Client(main);
+                        await main.client.LoadServers();
+                        //close all
+                        main.CloseDisconnect(force);
+                        main.ManipulateMenue(false);
                     }
-                    //start new client
-                    main.client = new Client(main);
-                    await main.client.LoadServers();
-                    //close all
-                    main.CloseDisconnect(force);
-                    main.ManipulateMenue(false);
+                    else if (!force && ReconnectTimer.Interval < ReconnectTimeOut)
+                    {
+                        //Disconnect due to connection error
+                        //Try reconnect if timer valid
+                        ReconnectTimer.Start();
+                    }
                 }
                 catch (Exception ex)
                 {
                     //Logging
                     await WriteLog(ex);
+                }
+            }
+        }
+        private async void Reconnect(Object? source, System.Timers.ElapsedEventArgs e)
+        {
+            //Dispose old TClient
+            if (client != null)
+            {
+                client.Close();
+                client.Dispose();
+            }
+            //Reset
+            disconnectstarted = false;
+            if (Server != null)
+            {
+                await Connect(Server.Value);
+                if (!connected)
+                {
+                    ReconnectTimer.Interval *= 2;
+                }
+                else
+                {
+                    ReconnectTimer.Stop();
+                    ReconnectTimer.Interval = InitialReconnectInterval;
+                    if(Username != null && Password != null)
+                    {
+                        //We can login back
+                        await Login(Username, Password);
+                    }
+                    else
+                    {
+                        //We can't login back
+                        //Disconnect and reset menue
+                        await Disconnect(true);
+                    }
                 }
             }
         }
