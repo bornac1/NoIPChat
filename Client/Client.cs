@@ -301,7 +301,7 @@ namespace Client
                 try
                 {
                     connected = false;
-                    if (force || Server == null)
+                    if (force || Server == null || ReconnectTimer.Interval > ReconnectTimeOut)
                     {
                         //Disconnect by clicking button
                         if (client != null)
