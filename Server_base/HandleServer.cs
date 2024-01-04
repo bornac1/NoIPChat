@@ -220,7 +220,7 @@ namespace Server_base
         }
         private async Task DisconnectServer(bool force = false)
         {
-            if (force)
+            if (force || ReconnectTimer?.Interval > ReconnectTimeOut)
             {
                 if (connected)
                 {
@@ -254,7 +254,7 @@ namespace Server_base
                     client.Dispose();
                 }
             }
-            else if(isremote && ReconnectTimer != null)
+            else if(isremote && ReconnectTimer != null && ReconnectTimer.Interval < ReconnectTimeOut)
             {
                 //Reconnect only if this is connection to remote server
                 ReconnectTimer.Start();
@@ -293,7 +293,7 @@ namespace Server_base
                 }
                 else
                 {
-                    await Disconnect(true);
+                    await DisconnectServer(true);
                 }
             }
         }
