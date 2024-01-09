@@ -7,8 +7,8 @@ namespace Server_base
 {
     public partial class Client
     {
-        private string user = string.Empty;
-        private string name = string.Empty;
+        private string? user = null;
+        private string? name = null;
         private readonly Server server;
         private bool isserver = false; //This is connection from remote server
         private bool isremote = false; //This is connection to remote server
@@ -263,12 +263,15 @@ namespace Server_base
         }
         private async Task<ReadOnlyMemory<byte>> ReadData(int length)
         {
-            Handlebufferm(length);
             int totalread = 0;
-            while (totalread < length)
+            if (length > 0)
             {
-                int read = await client.ReceiveAsync(bufferm, totalread, length - totalread);
-                totalread += read;
+                Handlebufferm(length);
+                while (totalread < length)
+                {
+                    int read = await client.ReceiveAsync(bufferm, totalread, length - totalread);
+                    totalread += read;
+                }
             }
             return new ReadOnlyMemory<byte>(bufferm, 0, totalread);
         }
@@ -388,7 +391,7 @@ namespace Server_base
                         {
                             message = Encryption.DecryptMessage(message, aeskey);
                         }
-                        if (!await server.AddMessages(user, message))
+                        if (user != null && !await server.AddMessages(user, message))
                         {
                             return false;
                         }
@@ -427,7 +430,7 @@ namespace Server_base
                     {
                         message = Encryption.DecryptMessage(message, aeskey);
                     }
-                    if (!await server.AddMessages(user, message))
+                    if (user != null && !await server.AddMessages(user, message))
                     {
                         //Don't know why
                     }
@@ -439,7 +442,7 @@ namespace Server_base
         }
         public async Task SendAllMessages()
         {
-            if (!isserver && !isremote)
+            if (!isserver && !isremote && user != null)
             {
                 user = user.ToLower();
                 if (server.messages.TryGetValue(user, out DataHandler? handler) && handler != null)
@@ -471,7 +474,7 @@ namespace Server_base
         }
         public async Task SendAllMessagesServer()
         {
-            if (isserver || isremote)
+            if ((isserver || isremote) && name != null)
             {
                 name = name.ToLower();
                 if (server.messages_server.TryGetValue(name, out DataHandler? handler) && handler != null)

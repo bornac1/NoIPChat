@@ -125,21 +125,24 @@ namespace Server_base
                 };
                 await SendMessage(message1);
             }
-            if (!server.clients.TryRemove(user.ToLower(), out _))
+            if (user != null)
             {
-                //Probably already removed or not added at all
-            }
-            string srv = StringProcessing.GetServer(user).ToString();
-            if (!MemoryExtensions.Equals(srv, server.name, StringComparison.OrdinalIgnoreCase))
-            {
-                //User home server is remote
-                await server.SendMessageServer(srv, new Message()
+                if (!server.clients.TryRemove(user.ToLower(), out _))
                 {
-                    Sender = server.name,
-                    Receiver = srv,
-                    User = user,
-                    Disconnect = true
-                });
+                    //Probably already removed or not added at all
+                }
+                string srv = StringProcessing.GetServer(user).ToString();
+                if (!MemoryExtensions.Equals(srv, server.name, StringComparison.OrdinalIgnoreCase))
+                {
+                    //User home server is remote
+                    await server.SendMessageServer(srv, new Message()
+                    {
+                        Sender = server.name,
+                        Receiver = srv,
+                        User = user,
+                        Disconnect = true
+                    });
+                }
             }
             connected = false;
             if (client != null)

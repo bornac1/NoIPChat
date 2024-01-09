@@ -108,29 +108,35 @@ namespace Server_base
         /// <returns>Async Task.</returns>
         private async Task SendUsers()
         {
-            string? users = server.GetUsersServer(name);
-            if (users != null)
+            if (name != null)
             {
-                await SendMessage(new Message()
+                string? users = server.GetUsersServer(name);
+                if (users != null)
                 {
-                    SV = server.SV,
-                    Name = server.name,
-                    Users = users
-                });
+                    await SendMessage(new Message()
+                    {
+                        SV = server.SV,
+                        Name = server.name,
+                        Users = users
+                    });
+                }
             }
         }
         private async Task ProcessUsers(string users)
         {
-            await Task.Run(() =>
+            if (name != null)
             {
-                foreach (string user in StringProcessing.GetUsersServer(users))
+                await Task.Run(() =>
                 {
-                    if (!server.remoteusers.TryAdd(name, user))
+                    foreach (string user in StringProcessing.GetUsersServer(users))
                     {
-                        //Already exists
+                        if (!server.remoteusers.TryAdd(name, user))
+                        {
+                            //Already exists
+                        }
                     }
-                }
-            });
+                });
+            }
         }
         private async Task ProcessServerRelayMessage(Message message)
         {
@@ -166,7 +172,7 @@ namespace Server_base
                             Receiver = message.User,
                             Auth = true
                         });
-                        if (!server.remoteusers.TryAdd(message.User, name))
+                        if (name != null && !server.remoteusers.TryAdd(message.User, name))
                         {
                             //Already exists
                         }
@@ -179,7 +185,10 @@ namespace Server_base
                     //Multi hop
                     message.Sender = server.name;
                     message.Receiver = srv;
-                    await server.SendMessageServer(srv, message, name);
+                    if (name != null)
+                    {
+                        await server.SendMessageServer(srv, message, name);
+                    }
                 }
             }
         }
@@ -230,7 +239,7 @@ namespace Server_base
                     await SendMessage(message1);
                 }
                 connected = false;
-                if (!server.remoteservers.TryRemove(name, out _))
+                if (name != null && !server.remoteservers.TryRemove(name, out _))
                 {
                     //Remote server is already removed
                 }
@@ -268,7 +277,7 @@ namespace Server_base
                 client.Dispose();
             }
             //We have server name
-            if (name != string.Empty)
+            if (name != null)
             {
                 var srv = server.GetServer(name);
                 if (srv.Item1)
