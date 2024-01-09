@@ -194,6 +194,9 @@ namespace Server_base
                                 await SendMessageKnownServer(srvname, message);
                             }
                         }
+                    } else if (received == null)
+                    {
+                        await WriteLog(new Exception("Received is null for multi hop."));
                     }
                 }
             }
