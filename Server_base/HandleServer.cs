@@ -179,7 +179,7 @@ namespace Server_base
                     //Multi hop
                     message.Sender = server.name;
                     message.Receiver = srv;
-                    await server.SendMessageServer(srv, message);
+                    await server.SendMessageServer(srv, message, name);
                 }
             }
         }
@@ -200,7 +200,7 @@ namespace Server_base
                     {
                         //User is not connected to this server
                         //Multi hop
-                        await server.SendMessageServer(srv, message);
+                        await server.SendMessageServer(srv, message, name);
                     }
                 }
             }

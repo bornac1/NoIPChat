@@ -147,7 +147,7 @@ namespace Server_base
         /// <param name="server">Server name.</param>
         /// <param name="message">Message.</param>
         /// <returns>Async Task.</returns>
-        public async Task SendMessageServer(string server, Message message)
+        public async Task SendMessageServer(string server, Message message, string? received = null)
         {
             if (remoteservers.TryGetValue(server, out Client? srv) && srv != null)
             {
@@ -182,13 +182,14 @@ namespace Server_base
                         //This is not first hop
                         message.Hop += 1;
                     }
-                    if (message.Hop <= HopCount)
+                    if (message.Hop <= HopCount && received != null)
                     {
                         //Send to all known servers
                         foreach (string srvname in servers.Keys)
                         {
                             //Make sure we don't send to this server
-                            if (srvname != name)
+                            //Also make sure we don't send back to server from which we received message
+                            if (srvname != name && srvname != received)
                             {
                                 await SendMessageKnownServer(srvname, message);
                             }
