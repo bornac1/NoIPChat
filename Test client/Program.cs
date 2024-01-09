@@ -1,14 +1,8 @@
 ﻿using Messages;
-using System;
 using System.Collections.Concurrent;
-using System.ComponentModel;
-using System.IO;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Test_client
 {
@@ -244,9 +238,10 @@ namespace Test_client
         }
         public static void Main()
         {
-            for (int i = 0; i<100; i++)
+            for (int i = 0; i < 100; i++)
             {
-                Thread T = new Thread(new ThreadStart(async () => {
+                Thread T = new Thread(new ThreadStart(async () =>
+                {
                     var c = new Client();
                     await c.Connect();
                     await c.Login("client" + i + "@server1", "pass");
