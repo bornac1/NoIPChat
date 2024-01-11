@@ -157,7 +157,6 @@ namespace Server_base
         }
         private async Task Receive()
         {
-            int ecount = 0;
             while (connected)
             {
                 try
@@ -174,29 +173,8 @@ namespace Server_base
                         //Console.WriteLine("received from " + name + user);
                         //Print(data);
                         //Console.WriteLine("end receive");
-                        try
-                        {
-                            Message message = await Processing.Deserialize(data.Value);
-                            await ProcessMessage(message);
-                        }
-                        catch (Exception ex)
-                        {
-                            if (ex is MessagePackSerializationException)
-                            {
-                                //Message problem
-                                if (ecount > 2)
-                                {
-                                    //Too many errors
-                                    await Disconnect(true);
-                                }
-                                ecount += 1;
-                            }
-                            else
-                            {
-                                //Logging
-                                await server.WriteLog(ex);
-                            }
-                        }
+                        Message message = await Processing.Deserialize(data.Value);
+                        await ProcessMessage(message);
                         if (timer != null)
                         {
                             //Reset timer
