@@ -12,7 +12,7 @@
         /// <summary>
         /// Closes connection.
         /// </summary>
-        void Close();
+        void Close(bool force);
         /// <summary>
         /// Receives data synchronously.
         /// </summary>

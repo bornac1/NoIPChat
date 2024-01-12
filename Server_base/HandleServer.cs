@@ -238,7 +238,6 @@ namespace Server_base
                     };
                     await SendMessage(message1);
                 }
-                connected = false;
                 if (name != null && !server.remoteservers.TryRemove(name, out _))
                 {
                     //Remote server is already removed
@@ -255,11 +254,6 @@ namespace Server_base
                             }
                         }
                     }
-                }
-                if (client != null)
-                {
-                    client.Close();
-                    client.Dispose();
                 }
             }
             else if (isremote && ReconnectTimer != null && ReconnectTimer.Interval < ReconnectTimeOut)

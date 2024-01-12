@@ -12,7 +12,7 @@ namespace Transport
             Py.GIL();
             scope = Py.CreateScope().Exec("ReticulumClient.py");
         }
-        public void Close()
+        public void Close(bool force)
         {
             PythonEngine.Shutdown();
         }

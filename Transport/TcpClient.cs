@@ -43,9 +43,17 @@ namespace Transport
                 throw new TransportException("Socket exception", ex);
             }
         }
-        public void Close()
+        public void Close(bool force = false)
         {
-            socket.Close();
+            if (force)
+            {
+                socket.Close();
+            }
+            else
+            {
+                socket.LingerState = new LingerOption(true, 0);
+                socket.Close();
+            }
         }
         public void Dispose()
         {

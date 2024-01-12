@@ -92,13 +92,13 @@ namespace Transport
         /// <remarks>Here should other protocols be implemented.</remarks>
         /// <exception cref="NullReferenceException">Protocol specific field is null.</exception>
         /// <exception cref="NotImplementedException">Protocol is not implemented.</exception>
-        public void Close()
+        public void Close(bool force = false)
         {
             if (protocol == Protocol.TCP)
             {
                 if (tcpClient != null)
                 {
-                    tcpClient.Close();
+                    tcpClient.Close(force);
                 }
                 else
                 {

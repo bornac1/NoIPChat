@@ -123,8 +123,15 @@ namespace Server_base
                     //Console.WriteLine("received from " + name + user);
                     //Print(data);
                     //Console.WriteLine("end receive");
-                    Message message = await Processing.Deserialize(data.Value);
-                    await ProcessMessage(message);
+                    try
+                    {
+                        Message message = await Processing.Deserialize(data.Value);
+                        await ProcessMessage(message);
+                    } catch (MessagePackSerializationException)
+                    {
+                        //Message error
+                        await Disconnect();
+                    }
                     if (timer != null)
                     {
                         //Reset timer
@@ -173,8 +180,15 @@ namespace Server_base
                         //Console.WriteLine("received from " + name + user);
                         //Print(data);
                         //Console.WriteLine("end receive");
-                        Message message = await Processing.Deserialize(data.Value);
-                        await ProcessMessage(message);
+                        try
+                        {
+                            Message message = await Processing.Deserialize(data.Value);
+                            await ProcessMessage(message);
+                        } catch (MessagePackSerializationException)
+                        {
+                            //Mewssage error
+                            await Disconnect();
+                        }
                         if (timer != null)
                         {
                             //Reset timer
@@ -212,6 +226,10 @@ namespace Server_base
             {
                 int read = await client.ReceiveAsync(bufferl, totalread, bufferl.Length - totalread);
                 totalread += read;
+                if(read == 0)
+                {
+                    await Disconnect();
+                }
             }
             return IPAddress.NetworkToHostOrder(BitConverter.ToInt32(bufferl, 0));
         }
@@ -249,6 +267,10 @@ namespace Server_base
                 {
                     int read = await client.ReceiveAsync(bufferm, totalread, length - totalread);
                     totalread += read;
+                    if(read == 0)
+                    {
+                        await Disconnect();
+                    }
                 }
             }
             return new ReadOnlyMemory<byte>(bufferm, 0, totalread);
@@ -269,6 +291,12 @@ namespace Server_base
                     {
                         //Disconnect server
                         await DisconnectServer(force);
+                    }
+                    connected = false;
+                    if (client != null)
+                    {
+                        client.Close(force);
+                        client.Dispose();
                     }
                 }
             }
