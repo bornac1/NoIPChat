@@ -94,6 +94,7 @@ namespace Messages
                 Sender = message.Sender,
                 Receiver = message.Receiver,
                 Msg = message.Msg,
+                IsFile = message.IsFile,
                 Data = message.Data,
                 Nounce = message.Nounce,
                 PublicKey = message.PublicKey,

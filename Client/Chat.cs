@@ -1,4 +1,5 @@
 ﻿using Messages;
+using System.IO.IsolatedStorage;
 using System.Text;
 
 namespace Client
@@ -14,13 +15,20 @@ namespace Client
         }
         private async Task SendMessage()
         {
+            byte[]? data = await FiletoData();
+            bool? isfile = null;
+            if(data != null)
+            {
+                isfile = true;
+            }
             Messages.Message message = new()
             {
                 CV = client.CV,
                 Sender = client.Username,
                 Receiver = receivers.Text.Trim(),
                 Msg = Encoding.UTF8.GetBytes(this.message.Text),
-                Data = await FiletoData()
+                IsFile = isfile,
+                Data = data
             };
             if (await client.SendMessage(message))
             {
@@ -109,7 +117,8 @@ namespace Client
         }
         public async Task SaveFile(byte[]? data)
         {
-            if (savefiledialog.ShowDialog() == DialogResult.OK && data != null)
+            DialogResult save = savefiledialog.ShowDialog();
+            if (data != null)
             {
                 try
                 {
@@ -121,7 +130,7 @@ namespace Client
                         {
                             //Default storage location
                             path = Path.Combine("Data", file.Name);
-                            Directory.CreateDirectory(path);
+                            Directory.CreateDirectory("Data");
                         }
                         await System.IO.File.WriteAllBytesAsync(path, file.Content);
                     }
