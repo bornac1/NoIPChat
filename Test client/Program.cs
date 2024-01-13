@@ -39,7 +39,7 @@ namespace Test_client
             try
             {
                 client = new TcpClient();
-                await client.ConnectAsync(IPAddress.Parse("127.0.0.1"), 10001);
+                await client.ConnectAsync(IPAddress.Parse("192.168.2.10"), 10000);
                 stream = client.GetStream();
                 connected = true;
             }
