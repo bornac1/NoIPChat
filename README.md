@@ -107,3 +107,7 @@ If connection between client and server or two servers is lost, it'll automatica
 Errors are logged into the Client.log and Server.log files in the same directory where your Client and Server are located.
 
 Choosing location for log files (WIP).
+
+**Dynamic software update**
+
+Dynamic software update is currently WIP. It'll enable most updates to the Server to be made without restarting Server.
