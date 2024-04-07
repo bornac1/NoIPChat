@@ -304,6 +304,7 @@ namespace Client
                     if (force || Server == null || ReconnectTimer.Interval > ReconnectTimeOut)
                     {
                         //Disconnect by clicking button
+                        await SendMessage(new Messages.Message() { CV = CV, Disconnect = true });
                         if (client != null)
                         {
                             client.Close();
