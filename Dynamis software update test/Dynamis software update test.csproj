@@ -8,4 +8,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Dynamic software update test interface\Dynamic software update test interface.csproj" />
+  </ItemGroup>
+
 </Project>
