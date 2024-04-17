@@ -10,10 +10,12 @@ namespace Dynamis_software_update_test
         delegate void PrintDelegate(string message);
         WeakReference contextref;
 
+        AssemblyLoadContext context;
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Load()
         {
-            AssemblyLoadContext context = new(null, true);
+            context = new(null, true);
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             Assembly loaded = context.LoadFromAssemblyPath(Path.Combine(path,"Dynamic software test library.dll"));
             Type type = loaded.GetType("Dynamic_software_test_library.Class1");
@@ -23,10 +25,11 @@ namespace Dynamis_software_update_test
             class1.Print("Probna poruka");
             class1 = null;
 
-            context.Unload();
         }
         private void Unload()
         {
+            context.Unload();
+            context = null;
             for (int i = 0; contextref.IsAlive && (i < 10); i++)
             {
                 GC.Collect();
