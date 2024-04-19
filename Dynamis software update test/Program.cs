@@ -11,6 +11,8 @@ namespace Dynamis_software_update_test
         WeakReference contextref;
 
         AssemblyLoadContext context;
+        Type type;
+        IClass1 class1;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Load()
@@ -18,16 +20,19 @@ namespace Dynamis_software_update_test
             context = new(null, true);
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             Assembly loaded = context.LoadFromAssemblyPath(Path.Combine(path,"Dynamic software test library.dll"));
-            Type type = loaded.GetType("Dynamic_software_test_library.Class1");
-            var class1 = (IClass1)Activator.CreateInstance(type);
+            type = loaded.GetType("Dynamic_software_test_library.Class1");
             contextref = new(context);
-
+            class1 = CreateClass1();
             class1.Print("Probna poruka");
-            class1 = null;
-
+        }
+        private IClass1 CreateClass1()
+        {
+            return (IClass1)Activator.CreateInstance(type);
         }
         private void Unload()
         {
+            class1 = null;
+            type = null;
             context.Unload();
             context = null;
             for (int i = 0; contextref.IsAlive && (i < 10); i++)

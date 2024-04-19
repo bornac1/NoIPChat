@@ -5,10 +5,11 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
 using Transport;
+using Server_interface;
 
 namespace Server_base
 {
-    public partial class Server
+    public partial class Server : IServer
     {
         public int SV = 1;
         private readonly int HopCount = 10; //Max number of hops between servers
@@ -24,9 +25,14 @@ namespace Server_base
         public ConcurrentDictionary<string, Servers> servers; //Know servers
         public ImmutableList<Interface> interfaces;
         public KeyPair my;
+        public TaskCompletionSource<bool> Closed { get; set; }
 
-        public delegate Task WriteLogAsync(string message);
         public WriteLogAsync? writelogasync;
+
+        public IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync)
+        {
+            return new Server(name, interfaces, ecdh, writelogasync);
+        }
         public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync)
         {
             this.name = name.ToLower();
@@ -40,6 +46,7 @@ namespace Server_base
             servers = new ConcurrentDictionary<string, Servers>();
             List<TListener> listeners1 = [];
             my = ecdh;
+            Closed = new();
             foreach (Interface iface in interfaces)
             {
                 TListener listener = new(new TcpListener(IPAddress.Parse(iface.InterfaceIP), iface.Port));
@@ -61,6 +68,10 @@ namespace Server_base
             }
             while (active)
             {
+                if (!active)
+                {
+                    break;
+                }
                 _ = new Client(this, await listener.AcceptAsync(), localip);
             }
         }
@@ -252,17 +263,17 @@ namespace Server_base
         {
             try
             {
-                string jsonString = await Task.Run(() =>
-                {
+                /*string jsonString = await Task.Run(() =>
+                {*/
                     List<Servers> servers_list = [];
                     foreach (var server in servers)
                     {
                         server.Value.Name = server.Value.Name.ToLower();
                         servers_list.Add(server.Value);
                     }
-                    return Servers.Serialize(servers_list);
-                });
-                await System.IO.File.WriteAllTextAsync("Servers.json", jsonString);
+                    /*return Servers.Serialize(servers_list.ToArray());
+                });*/
+                await System.IO.File.WriteAllTextAsync("Servers.json", Servers.Serialize(servers_list.ToArray()));
             }
             catch (Exception ex)
             {
@@ -337,6 +348,7 @@ namespace Server_base
             try
             {
                 active = false;
+                List<Task> tasklist = [];
                 foreach (TListener listener in listeners)
                 {
                     listener.Stop();
@@ -345,12 +357,12 @@ namespace Server_base
                 //Disconnect clients
                 foreach (var client in clients)
                 {
-                    await client.Value.Disconnect(true);
+                    tasklist.Add(client.Value.Disconnect(true));
                 }
                 //Disconnect remore servers
                 foreach (var remotes in remoteservers)
                 {
-                    await remotes.Value.Disconnect(true);
+                    tasklist.Add(remotes.Value.Disconnect(true));
                 }
                 //Delete remore users
                 foreach (var remoteu in remoteusers)
@@ -361,11 +373,11 @@ namespace Server_base
                     }
                 }
                 //Save servers to the file
-                await SaveServers();
+                tasklist.Add(SaveServers());
                 //Delete DataHandlers for messages
                 foreach (var message in messages)
                 {
-                    await message.Value.Close();
+                    tasklist.Add(message.Value.Close());
                     if (!messages.TryRemove(message))
                     {
                         //Console.WriteLine("Error remove message.");
@@ -374,12 +386,15 @@ namespace Server_base
                 //Delete DataHandlers for messages for remote servers
                 foreach (var rmessage in messages_server)
                 {
-                    await rmessage.Value.Close();
+                    tasklist.Add(rmessage.Value.Close());
                     if (!messages_server.TryRemove(rmessage))
                     {
                         //Console.WriteLine("Error remore message for other server.");
                     }
                 }
+                Servers.Unloading();
+                await Task.WhenAll(tasklist);
+                Closed.SetResult(true);
             }
             catch (Exception ex)
             {

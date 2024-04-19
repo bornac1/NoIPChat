@@ -21,9 +21,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ConfigurationData\ConfigurationData.csproj" />
     <ProjectReference Include="..\Messages\Messages.csproj" />
     <ProjectReference Include="..\Server_API\Server_API.csproj" />
-    <ProjectReference Include="..\Server_base\Server_base.csproj" />
+    <ProjectReference Include="..\Server_interface\Server_interface.csproj" />
   </ItemGroup>
 
   <ItemGroup>

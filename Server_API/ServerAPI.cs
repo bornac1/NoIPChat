@@ -2,6 +2,7 @@
 using Messages;
 using Server_base;
 using Sodium;
+using Server_interface;
 
 namespace ServerAPI
 {
@@ -22,7 +23,7 @@ namespace ServerAPI
         ///</summary>
         ///<param name="name">Name of the server.</param>
         ///<param name="interfaces">List of netwok interfaces used by server</param>
-        public void CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, Server.WriteLogAsync? writelogasync)
+        public void CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, Server_interface.WriteLogAsync? writelogasync)
         {
             server = new Server(name, interfaces, ecdh, writelogasync);
         }

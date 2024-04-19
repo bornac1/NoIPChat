@@ -2,14 +2,83 @@
 using Messages;
 using Server_base;
 using Sodium;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Xml.Serialization;
+using Server_interface;
+using System.Runtime.CompilerServices;
 namespace Server_starter
 {
     internal class Program
     {
-        private Server? server = null;
-        private Remote? remote = null;
-        private Server.WriteLogAsync? writelogasync;
+        private IServer? server = null;
+        //private object? remote = null;
+        private WriteLogAsync? writelogasync;
+
+        private AssemblyLoadContext? context;
+        private WeakReference? contextref;
+        Type? Server_class;
+        Type? Remote_class;
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Load()
+        {
+            context = new(null, true);
+            contextref = new(context);
+            string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            if (path != null)
+            {
+                Assembly? loaded = context.LoadFromAssemblyPath(Path.Combine(path, "Server_base.dll"));
+                Server_class = loaded?.GetType("Server_base.Server");
+                Remote_class = loaded?.GetType("Server.Remote");
+            }
+        }
+        private async Task Unload()
+        {
+            Server_class = null;
+            Remote_class = null;
+            if(server != null)
+            {
+                await server.Close();
+                if(await server.Closed.Task)
+                {
+                    Console.WriteLine("Server closed");
+                }
+                server = null;
+            }
+            /*if(remote != null)
+            {
+                //remote.Close();
+                remote = null;
+            }*/
+            context?.Unload();
+            context = null;
+            if (contextref != null)
+            {
+                for (int i = 0; contextref.IsAlive && (i < 10); i++)
+                {
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
+                Console.WriteLine($"Unload success: {!contextref.IsAlive}");
+            }
+        }
+        private IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync)
+        {
+            if (Server_class != null)
+            {
+                var srv = Activator.CreateInstance(Server_class, name, interfaces, ecdh, writelogasync);
+                if(srv != null)
+                {
+                    return (IServer)srv;
+                }
+            }
+            throw new NullReferenceException();
+        }
+        /*private dynamic CreateRemote(string IP, int port, string username, string password)
+        {
+            return Activator.CreateInstance(Remote_class, IP, port, username, password);
+        }*/
         private async Task StartServer(int attempt = 0)
         {
             KeyPair ecdh;
@@ -55,7 +124,7 @@ namespace Server_starter
                 {
                     try
                     {
-                        server = new(Config.Server.Name, Config.Server.Interfaces, ecdh, writelogasync);
+                        server = CreateServer(Config.Server.Name, Config.Server.Interfaces, ecdh, writelogasync);
                     }
                     catch (Exception ex)
                     {
@@ -63,10 +132,10 @@ namespace Server_starter
                         Console.WriteLine("Server is closed.");
                         string message = ex.ToString();
                         Console.WriteLine(message);
-                        if (remote != null)
+                        /*if (remote != null)
                         {
-                            await remote.SendLog(message);
-                        }
+                            //await remote.SendLog(message);
+                        }*/
                         if (server != null)
                         {
                             await server.Close();
@@ -107,11 +176,11 @@ namespace Server_starter
                     {
                         if (Config.Remote.Active)
                         {
-                            remote = new Remote(Config.Remote.IP, Config.Remote.Port, Config.Remote.User, Config.Remote.Pass);
-                            writelogasync = remote.SendLog;
+                            //remote = CreateRemote(Config.Remote.IP, Config.Remote.Port, Config.Remote.User, Config.Remote.Pass);
+                            //writelogasync = remote.SendLog;
                             if (server != null)
                             {
-                                server.writelogasync = writelogasync;
+                                //server.writelogasync = writelogasync;
                             }
                         }
                     }
@@ -120,16 +189,16 @@ namespace Server_starter
                         //Leaked exceptions from Remote
                         Console.WriteLine("Remote is closed.");
                         Console.WriteLine(ex.ToString());
-                        if (remote != null)
+                        /*if (remote != null)
                         {
-                            remote.Close();
+                            //remote.Close();
                             remote = null;
                             if (attempt <= 5)
                             {
                                 Console.WriteLine("Trying to restart remote");
                                 StartRemote(attempt + 1);
                             }
-                        }
+                        }*/
 
                     }
                 }
@@ -147,11 +216,24 @@ namespace Server_starter
         static async Task Main()
         {
             Program program = new();
-            program.StartRemote();
+            Console.ReadLine();
+            program.Load();
+            //program.StartRemote();
             await program.StartServer();
+            Console.WriteLine("Server started.");
             while (true)
             {
-                Console.ReadLine();
+                if(Console.ReadLine() == "unload")
+                {
+                    if (program.context != null)
+                    {
+                        await program.Unload();
+                    }
+                    if (program.contextref != null)
+                    {
+                        Console.WriteLine($"Unload success: {!program.contextref.IsAlive}");
+                    }
+                }
             }
         }
     }
