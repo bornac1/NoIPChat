@@ -34,6 +34,7 @@ namespace Server_starter
         }
         private async Task Unload()
         {
+            writelogasync = null;
             Server_class = null;
             Remote_class = null;
             if (server != null)
