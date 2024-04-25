@@ -1,11 +1,11 @@
 ﻿using ConfigurationData;
 using Messages;
+using Server_interface;
 using Sodium;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Xml.Serialization;
-using Server_interface;
-using System.Runtime.CompilerServices;
 namespace Server_starter
 {
     internal class Program
@@ -36,16 +36,16 @@ namespace Server_starter
         {
             Server_class = null;
             Remote_class = null;
-            if(server != null)
+            if (server != null)
             {
                 await server.Close();
-                if(await server.Closed.Task)
+                if (await server.Closed.Task)
                 {
                     Console.WriteLine("Server closed");
                 }
                 server = null;
             }
-            if(remote != null)
+            if (remote != null)
             {
                 remote.Close();
                 remote = null;
@@ -67,7 +67,7 @@ namespace Server_starter
             if (Server_class != null)
             {
                 var srv = Activator.CreateInstance(Server_class, name, interfaces, ecdh, writelogasync);
-                if(srv != null)
+                if (srv != null)
                 {
                     return (IServer)srv;
                 }
@@ -79,7 +79,7 @@ namespace Server_starter
             if (Remote_class != null)
             {
                 var rem = Activator.CreateInstance(Remote_class, IP, port, username, password);
-                if(rem != null)
+                if (rem != null)
                 {
                     return (IRemote)rem;
                 }
@@ -201,7 +201,7 @@ namespace Server_starter
                             remote.Close();
                             remote = null;
                             writelogasync = null;
-                            if(server != null)
+                            if (server != null)
                             {
                                 server.Writelogasync = writelogasync;
                             }
@@ -246,7 +246,8 @@ namespace Server_starter
                     {
                         Console.WriteLine($"Unload success: {!program.contextref.IsAlive}");
                     }
-                } else if(x == "load")
+                }
+                else if (x == "load")
                 {
                     program.Load();
                     await program.StartServer();

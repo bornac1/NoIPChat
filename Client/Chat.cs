@@ -1,5 +1,4 @@
 ﻿using Messages;
-using System.IO.IsolatedStorage;
 using System.Text;
 
 namespace Client
@@ -17,7 +16,7 @@ namespace Client
         {
             byte[]? data = await FiletoData();
             bool? isfile = null;
-            if(data != null)
+            if (data != null)
             {
                 isfile = true;
             }

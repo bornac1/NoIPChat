@@ -1,11 +1,11 @@
 ﻿using ConfigurationData;
 using Messages;
+using Server_interface;
 using Sodium;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
 using Transport;
-using Server_interface;
 
 namespace Server_base
 {
@@ -265,14 +265,14 @@ namespace Server_base
             {
                 /*string jsonString = await Task.Run(() =>
                 {*/
-                    List<Servers> servers_list = [];
-                    foreach (var server in servers)
-                    {
-                        server.Value.Name = server.Value.Name.ToLower();
-                        servers_list.Add(server.Value);
-                    }
-                    /*return Servers.Serialize(servers_list.ToArray());
-                });*/
+                List<Servers> servers_list = [];
+                foreach (var server in servers)
+                {
+                    server.Value.Name = server.Value.Name.ToLower();
+                    servers_list.Add(server.Value);
+                }
+                /*return Servers.Serialize(servers_list.ToArray());
+            });*/
                 await System.IO.File.WriteAllTextAsync("Servers.json", Servers.Serialize([.. servers_list]));
             }
             catch (Exception ex)

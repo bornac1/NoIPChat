@@ -127,7 +127,8 @@ namespace Server_base
                     {
                         Message message = await Processing.Deserialize(data.Value);
                         await ProcessMessage(message);
-                    } catch (MessagePackSerializationException)
+                    }
+                    catch (MessagePackSerializationException)
                     {
                         //Message error
                         await Disconnect();
@@ -184,7 +185,8 @@ namespace Server_base
                         {
                             Message message = await Processing.Deserialize(data.Value);
                             await ProcessMessage(message);
-                        } catch (MessagePackSerializationException)
+                        }
+                        catch (MessagePackSerializationException)
                         {
                             //Mewssage error
                             await Disconnect();
@@ -226,7 +228,7 @@ namespace Server_base
             {
                 int read = await client.ReceiveAsync(bufferl, totalread, bufferl.Length - totalread);
                 totalread += read;
-                if(read == 0)
+                if (read == 0)
                 {
                     await Disconnect();
                 }
@@ -267,7 +269,7 @@ namespace Server_base
                 {
                     int read = await client.ReceiveAsync(bufferm, totalread, length - totalread);
                     totalread += read;
-                    if(read == 0)
+                    if (read == 0)
                     {
                         await Disconnect();
                     }

@@ -2,7 +2,6 @@
 using Messages;
 using Server_base;
 using Sodium;
-using Server_interface;
 
 namespace ServerAPI
 {
