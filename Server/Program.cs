@@ -1,6 +1,5 @@
 ﻿using ConfigurationData;
 using Messages;
-using Server_base;
 using Sodium;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -12,7 +11,7 @@ namespace Server_starter
     internal class Program
     {
         private IServer? server = null;
-        //private object? remote = null;
+        private IRemote? remote = null;
         private WriteLogAsync? writelogasync;
 
         private AssemblyLoadContext? context;
@@ -46,11 +45,11 @@ namespace Server_starter
                 }
                 server = null;
             }
-            /*if(remote != null)
+            if(remote != null)
             {
-                //remote.Close();
+                remote.Close();
                 remote = null;
-            }*/
+            }
             context?.Unload();
             context = null;
             if (contextref != null)
@@ -75,10 +74,18 @@ namespace Server_starter
             }
             throw new NullReferenceException();
         }
-        /*private dynamic CreateRemote(string IP, int port, string username, string password)
+        private IRemote CreateRemote(string IP, int port, string username, string password)
         {
-            return Activator.CreateInstance(Remote_class, IP, port, username, password);
-        }*/
+            if (Remote_class != null)
+            {
+                var rem = Activator.CreateInstance(Remote_class, IP, port, username, password);
+                if(rem != null)
+                {
+                    return (IRemote)rem;
+                }
+            }
+            throw new NullReferenceException();
+        }
         private async Task StartServer(int attempt = 0)
         {
             KeyPair ecdh;
@@ -132,10 +139,10 @@ namespace Server_starter
                         Console.WriteLine("Server is closed.");
                         string message = ex.ToString();
                         Console.WriteLine(message);
-                        /*if (remote != null)
+                        if (remote != null)
                         {
-                            //await remote.SendLog(message);
-                        }*/
+                            await remote.SendLog(message);
+                        }
                         if (server != null)
                         {
                             await server.Close();
@@ -176,11 +183,11 @@ namespace Server_starter
                     {
                         if (Config.Remote.Active)
                         {
-                            //remote = CreateRemote(Config.Remote.IP, Config.Remote.Port, Config.Remote.User, Config.Remote.Pass);
-                            //writelogasync = remote.SendLog;
+                            remote = CreateRemote(Config.Remote.IP, Config.Remote.Port, Config.Remote.User, Config.Remote.Pass);
+                            writelogasync = remote.SendLog;
                             if (server != null)
                             {
-                                //server.writelogasync = writelogasync;
+                                server.Writelogasync = writelogasync;
                             }
                         }
                     }
@@ -189,16 +196,21 @@ namespace Server_starter
                         //Leaked exceptions from Remote
                         Console.WriteLine("Remote is closed.");
                         Console.WriteLine(ex.ToString());
-                        /*if (remote != null)
+                        if (remote != null)
                         {
-                            //remote.Close();
+                            remote.Close();
                             remote = null;
+                            writelogasync = null;
+                            if(server != null)
+                            {
+                                server.Writelogasync = writelogasync;
+                            }
                             if (attempt <= 5)
                             {
                                 Console.WriteLine("Trying to restart remote");
                                 StartRemote(attempt + 1);
                             }
-                        }*/
+                        }
 
                     }
                 }
@@ -218,12 +230,13 @@ namespace Server_starter
             Program program = new();
             Console.ReadLine();
             program.Load();
-            //program.StartRemote();
+            program.StartRemote();
             await program.StartServer();
             Console.WriteLine("Server started.");
             while (true)
             {
-                if(Console.ReadLine() == "unload")
+                string? x = Console.ReadLine();
+                if (x == "unload")
                 {
                     if (program.context != null)
                     {
@@ -233,6 +246,11 @@ namespace Server_starter
                     {
                         Console.WriteLine($"Unload success: {!program.contextref.IsAlive}");
                     }
+                } else if(x == "load")
+                {
+                    program.Load();
+                    await program.StartServer();
+                    Console.WriteLine("Server started after unload");
                 }
             }
         }
