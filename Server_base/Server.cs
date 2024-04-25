@@ -27,7 +27,7 @@ namespace Server_base
         public KeyPair my;
         public TaskCompletionSource<bool> Closed { get; set; }
 
-        public WriteLogAsync? writelogasync;
+        public WriteLogAsync? Writelogasync { get; set; }
 
         public IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync)
         {
@@ -36,7 +36,7 @@ namespace Server_base
         public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync)
         {
             this.name = name.ToLower();
-            this.writelogasync = writelogasync;
+            this.Writelogasync = writelogasync;
             active = true;
             clients = new ConcurrentDictionary<string, Client>();
             messages = new ConcurrentDictionary<string, DataHandler>();
@@ -273,7 +273,7 @@ namespace Server_base
                     }
                     /*return Servers.Serialize(servers_list.ToArray());
                 });*/
-                await System.IO.File.WriteAllTextAsync("Servers.json", Servers.Serialize(servers_list.ToArray()));
+                await System.IO.File.WriteAllTextAsync("Servers.json", Servers.Serialize([.. servers_list]));
             }
             catch (Exception ex)
             {
@@ -487,9 +487,9 @@ namespace Server_base
             try
             {
                 await System.IO.File.AppendAllTextAsync("Server.log", log);
-                if (writelogasync != null)
+                if (Writelogasync != null)
                 {
-                    await writelogasync(log);
+                    await Writelogasync(log);
                 }
             }
             catch (Exception)
