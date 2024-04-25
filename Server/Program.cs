@@ -266,7 +266,8 @@ namespace Server_starter
                     program.StartRemote();
                     await program.StartServer();
                     Console.WriteLine("Server started");
-                } else if(x == "clean")
+                }
+                else if (x == "clean")
                 {
                     program.Clean();
                 }
