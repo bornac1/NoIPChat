@@ -117,7 +117,7 @@ namespace Client
         }
         public async Task SaveFile(byte[]? data)
         {
-            DialogResult save = savefiledialog.ShowDialog();
+            _ = savefiledialog.ShowDialog();
             if (data != null)
             {
                 try
