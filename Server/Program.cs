@@ -10,26 +10,38 @@ namespace Server_starter
 {
     internal class Program
     {
-        private IServer? server = null;
-        private IRemote? remote = null;
+        private bool loaded;
+        private IServer? server;
+        private IRemote? remote;
         private WriteLogAsync? writelogasync;
 
         private AssemblyLoadContext? context;
         private WeakReference? contextref;
         Type? Server_class;
         Type? Remote_class;
-
+        public Program()
+        {
+            loaded = false;
+            server = null;
+            remote = null;
+            writelogasync = null;
+            context = null;
+            contextref = null;
+            Server_class = null;
+            Remote_class = null;
+        }
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void Load()
+        private void Load(string name)
         {
             context = new(null, true);
             contextref = new(context);
             string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             if (path != null)
             {
-                Assembly? loaded = context.LoadFromAssemblyPath(Path.Combine(path, "Server_base.dll"));
+                Assembly? loaded = context.LoadFromAssemblyPath(Path.Combine(path, name));
                 Server_class = loaded?.GetType("Server_base.Server");
                 Remote_class = loaded?.GetType("Server.Remote");
+                this.loaded = true;
             }
         }
         private async Task Unload()
@@ -53,6 +65,10 @@ namespace Server_starter
             }
             context?.Unload();
             context = null;
+            loaded = false;
+        }
+        private void Clean()
+        {
             if (contextref != null)
             {
                 for (int i = 0; contextref.IsAlive && (i < 10); i++)
@@ -60,7 +76,7 @@ namespace Server_starter
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                 }
-                Console.WriteLine($"Unload success: {!contextref.IsAlive}");
+                Console.WriteLine($"Unload success: {!contextref?.IsAlive}");
             }
         }
         private IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync)
@@ -229,30 +245,30 @@ namespace Server_starter
         static async Task Main()
         {
             Program program = new();
-            Console.ReadLine();
-            program.Load();
-            program.StartRemote();
-            await program.StartServer();
-            Console.WriteLine("Server started.");
             while (true)
             {
                 string? x = Console.ReadLine();
-                if (x == "unload")
+                if (x == "unload" && program.loaded)
                 {
                     if (program.context != null)
                     {
                         await program.Unload();
+                        program.Clean();
                     }
                     if (program.contextref != null)
                     {
                         Console.WriteLine($"Unload success: {!program.contextref.IsAlive}");
                     }
                 }
-                else if (x == "load")
+                else if (x == "load" && !program.loaded)
                 {
-                    program.Load();
+                    program.Load(Console.ReadLine());
+                    program.StartRemote();
                     await program.StartServer();
-                    Console.WriteLine("Server started after unload");
+                    Console.WriteLine("Server started");
+                } else if(x == "clean")
+                {
+                    program.Clean();
                 }
             }
         }

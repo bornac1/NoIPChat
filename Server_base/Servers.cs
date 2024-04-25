@@ -15,11 +15,11 @@ namespace Server_base
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public static string Serialize(Servers[] servers)
         {
-            return JsonSerializer.Serialize(servers, SourceGenerationContext.Default.ServersArray);
+            return JsonSerializer.Serialize(servers);
         }
         public static Servers[]? Deserialize(string servers)
         {
-            return JsonSerializer.Deserialize(servers, SourceGenerationContext.Default.ServersArray);
+            return JsonSerializer.Deserialize<Servers[]>(servers);
         }
         public static void Unloading()
         {
@@ -28,12 +28,5 @@ namespace Server_base
             var clearCacheMethod = updateHandlerType?.GetMethod("ClearCache", BindingFlags.Static | BindingFlags.Public);
             clearCacheMethod?.Invoke(null, [null]);
         }
-    }
-    [JsonSourceGenerationOptions(WriteIndented = true)]
-    [JsonSerializable(typeof(Servers))]
-    [JsonSerializable(typeof(Servers[]))]
-    [JsonSerializable(typeof(List<Servers>))]
-    internal partial class SourceGenerationContext : JsonSerializerContext
-    {
     }
 }
