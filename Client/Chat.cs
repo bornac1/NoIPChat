@@ -1,6 +1,5 @@
-﻿using Messages;
-using System.IO.IsolatedStorage;
-using System.Text;
+﻿using System.Text;
+using Messages;
 
 namespace Client
 {
@@ -17,7 +16,7 @@ namespace Client
         {
             byte[]? data = await FiletoData();
             bool? isfile = null;
-            if(data != null)
+            if (data != null)
             {
                 isfile = true;
             }
@@ -117,7 +116,7 @@ namespace Client
         }
         public async Task SaveFile(byte[]? data)
         {
-            DialogResult save = savefiledialog.ShowDialog();
+            _ = savefiledialog.ShowDialog();
             if (data != null)
             {
                 try

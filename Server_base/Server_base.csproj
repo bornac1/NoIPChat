@@ -7,8 +7,6 @@
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
 	<SelfContained>true</SelfContained>
 	<OutputType>Library</OutputType>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-	<PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -22,7 +20,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ConfigurationData\ConfigurationData.csproj" />
     <ProjectReference Include="..\Messages\Messages.csproj" />
+    <ProjectReference Include="..\Server_interface\Server_interface.csproj" />
     <ProjectReference Include="..\Transport\Transport.csproj" />
   </ItemGroup>
 

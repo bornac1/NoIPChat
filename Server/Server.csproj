@@ -7,7 +7,6 @@
     <Nullable>enable</Nullable>
 	<GenerateDocumentationFile>False</GenerateDocumentationFile>
 	<SelfContained>true</SelfContained>
-	<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -21,9 +20,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ConfigurationData\ConfigurationData.csproj" />
     <ProjectReference Include="..\Messages\Messages.csproj" />
     <ProjectReference Include="..\Server_API\Server_API.csproj" />
-    <ProjectReference Include="..\Server_base\Server_base.csproj" />
+    <ProjectReference Include="..\Server_interface\Server_interface.csproj" />
   </ItemGroup>
 
   <ItemGroup>

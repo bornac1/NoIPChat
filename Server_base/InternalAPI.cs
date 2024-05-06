@@ -1,10 +1,11 @@
-﻿using Messages;
-using System.Net;
+﻿using System.Net;
+using Messages;
+using Server_interface;
 using Transport;
 
 namespace Server_base
 {
-    public class Remote
+    public class Remote : IRemote
     {
         //Internal part of API used for communication to other processes
         //Used for remote controling of the Server

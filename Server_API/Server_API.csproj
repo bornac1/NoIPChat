@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Messages\Messages.csproj" />
     <ProjectReference Include="..\Server_base\Server_base.csproj" />
+    <ProjectReference Include="..\Server_interface\Server_interface.csproj" />
   </ItemGroup>
 
 </Project>

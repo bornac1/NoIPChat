@@ -1,9 +1,9 @@
-﻿using Messages;
-using Sodium;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Messages;
+using Sodium;
 using Transport;
 
 namespace Client
@@ -18,7 +18,6 @@ namespace Client
         public Servers? Server;
         public TClient client;
         public BindingSource servers;
-        private readonly StringBuilder value;
         public TaskCompletionSource<bool> ischatready = new();
         public Main main;
         private bool disconnectstarted;
@@ -38,7 +37,6 @@ namespace Client
             ReconnectTimer.Elapsed += Reconnect;
             messages_snd = [];
             servers = [];
-            value = new StringBuilder();
             my = Encryption.GenerateECDH();
             _ = LoadServers();
             client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any, 0)));
