@@ -106,9 +106,9 @@ If connection between client and server or two servers is lost, it'll automatica
 
 **Logging errors**
 
-Client error are logged into the Client.log file in the same directory where your Client is located, choosing location for log file (WIP).
+Client errors are logged into the Client.log file in the same directory where your Client is located, choosing location for log file (WIP).
 
-Server erros are logged into the file you set inside <Logfile></Logfile> in Config.xml
+Server errors are logged into the file you set inside <Logfile></Logfile> in Config.xml
 
 **Dynamic software update**
 
