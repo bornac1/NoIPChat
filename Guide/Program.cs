@@ -5,7 +5,10 @@ namespace Guide
 {
     internal class Program
     {
-        static void Client() { }
+        static void Client() {
+            Console.WriteLine("Client currently isn't supported.");
+            Begin();
+        }
         static void Server() {
             Console.WriteLine("What do you need to do with Server?");
             Console.Write("Type I for installation, C for Configuration or B to go back to main menu ");

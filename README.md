@@ -110,6 +110,10 @@ Client errors are logged into the Client.log file in the same directory where yo
 
 Server errors are logged into the file you set in Config.xml
 
+**Guide**
+
+You can use Guide to help you with installation and configuration of NoIPChat. Currently supports only configuration of Server.
+
 **Dynamic software update**
 
 Dynamic software update is currently WIP. It'll enable most updates to the Server to be made without restarting Server.
