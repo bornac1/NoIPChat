@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ConfigurationData\ConfigurationData.csproj" />
+    <ProjectReference Include="..\Guide\Guide.csproj" />
     <ProjectReference Include="..\Messages\Messages.csproj" />
     <ProjectReference Include="..\Server_API\Server_API.csproj" />
     <ProjectReference Include="..\Server_interface\Server_interface.csproj" />
