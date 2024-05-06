@@ -12,7 +12,7 @@ namespace Server_base
         public int RemotePort { get; set; }
         public int TimeOut { get; set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public static string Serialize(List<Servers> servers)
+        public static string Serialize(Servers[] servers)
         {
             return JsonSerializer.Serialize(servers, SourceGenerationContext.Default.ServersArray);
         }

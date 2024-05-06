@@ -1,9 +1,9 @@
-﻿using ConfigurationData;
-using Messages;
-using Sodium;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
+using ConfigurationData;
+using Messages;
+using Sodium;
 using Transport;
 
 namespace Server_base
@@ -260,7 +260,7 @@ namespace Server_base
                         server.Value.Name = server.Value.Name.ToLower();
                         servers_list.Add(server.Value);
                     }
-                    return Servers.Serialize(servers_list);
+                    return Servers.Serialize(servers_list.ToArray());
                 });
                 await System.IO.File.WriteAllTextAsync("Servers.json", jsonString);
             }

@@ -1,9 +1,9 @@
-﻿using Messages;
-using Sodium;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Messages;
+using Sodium;
 using Transport;
 
 namespace Client

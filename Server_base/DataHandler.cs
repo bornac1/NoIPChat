@@ -1,6 +1,6 @@
-﻿using Messages;
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using System.Text;
+using Messages;
 
 namespace Server_base
 {

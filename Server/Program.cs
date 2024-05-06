@@ -1,8 +1,8 @@
-﻿using ConfigurationData;
+﻿using System.Xml.Serialization;
+using ConfigurationData;
 using Messages;
 using Server_base;
 using Sodium;
-using System.Xml.Serialization;
 namespace Server_starter
 {
     internal class Program

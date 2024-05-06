@@ -1,6 +1,6 @@
-﻿using MessagePack;
+﻿using System.Net;
+using MessagePack;
 using Messages;
-using System.Net;
 using Transport;
 
 namespace Server_base

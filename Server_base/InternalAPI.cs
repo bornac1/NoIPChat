@@ -1,5 +1,5 @@
-﻿using Messages;
-using System.Net;
+﻿using System.Net;
+using Messages;
 using Transport;
 
 namespace Server_base
