@@ -25,15 +25,16 @@ namespace Server_base
         public ConcurrentDictionary<string, Servers> servers; //Know servers
         public ImmutableList<Interface> interfaces;
         public KeyPair my;
+        private readonly string logfile;
         public TaskCompletionSource<bool> Closed { get; set; }
 
         public WriteLogAsync? Writelogasync { get; set; }
 
-        public IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync)
+        public IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile)
         {
-            return new Server(name, interfaces, ecdh, writelogasync);
+            return new Server(name, interfaces, ecdh, writelogasync, logfile);
         }
-        public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync)
+        public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile)
         {
             this.name = name.ToLower();
             this.Writelogasync = writelogasync;
@@ -46,6 +47,14 @@ namespace Server_base
             servers = new ConcurrentDictionary<string, Servers>();
             List<TListener> listeners1 = [];
             my = ecdh;
+            if(logfile != null)
+            {
+                this.logfile = logfile;
+            }
+            else
+            {
+                this.logfile = "Server.log";
+            }
             Closed = new();
             foreach (Interface iface in interfaces)
             {
@@ -486,7 +495,7 @@ namespace Server_base
             string log = DateTime.Now.ToString("d.M.yyyy. H:m:s") + " " + ex.ToString() + Environment.NewLine;
             try
             {
-                await System.IO.File.AppendAllTextAsync("Server.log", log);
+                await System.IO.File.AppendAllTextAsync(logfile, log);
                 if (Writelogasync != null)
                 {
                     await Writelogasync(log);

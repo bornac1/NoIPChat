@@ -6,7 +6,7 @@ namespace Server_interface
     public interface IServer
     {
         TaskCompletionSource<bool> Closed { get; set; }
-        IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync);
+        IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile);
         Task Close();
         public WriteLogAsync? Writelogasync { get; set; }
     }

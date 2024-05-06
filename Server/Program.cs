@@ -10,7 +10,6 @@ namespace Server_starter
 {
     internal class Program
     {
-        private bool loaded;
         private IServer? server;
         private IRemote? remote;
         private WriteLogAsync? writelogasync;
@@ -21,7 +20,6 @@ namespace Server_starter
         Type? Remote_class;
         public Program()
         {
-            loaded = false;
             server = null;
             remote = null;
             writelogasync = null;
@@ -41,7 +39,6 @@ namespace Server_starter
                 Assembly? loaded = context.LoadFromAssemblyPath(Path.Combine(path, name));
                 Server_class = loaded?.GetType("Server_base.Server");
                 Remote_class = loaded?.GetType("Server.Remote");
-                this.loaded = true;
             }
         }
         private async Task Unload()
@@ -65,7 +62,6 @@ namespace Server_starter
             }
             context?.Unload();
             context = null;
-            loaded = false;
         }
         private void Clean()
         {

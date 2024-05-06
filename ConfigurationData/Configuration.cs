@@ -33,5 +33,6 @@ namespace ConfigurationData
     {
         public required ServerConfiguration Server { get; set; }
         public RemoteConfiguration? Remote { get; set; }
+        public string? Logfile { get; set; }
     }
 }

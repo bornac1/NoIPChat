@@ -91,6 +91,8 @@ IP is IP address that is used by clients and remote servers to connect (in case 
 
 Port is a port number (port should be opend in firewall)
 
+Logfile is path to Server log file. Default is Server.log
+
 Remote is reserver for future uses and can be deleted
 
 3) Start the server
@@ -104,9 +106,9 @@ If connection between client and server or two servers is lost, it'll automatica
 
 **Logging errors**
 
-Errors are logged into the Client.log and Server.log files in the same directory where your Client and Server are located.
+Client error are logged into the Client.log file in the same directory where your Client is located, choosing location for log file (WIP).
 
-Choosing location for log files (WIP).
+Server erros are logged into the file you set inside <Logfile></Logfile> in Config.xml
 
 **Dynamic software update**
 
