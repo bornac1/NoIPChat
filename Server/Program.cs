@@ -245,33 +245,9 @@ namespace Server_starter
         static async Task Main()
         {
             Program program = new();
-            while (true)
-            {
-                string? x = Console.ReadLine();
-                if (x == "unload" && program.loaded)
-                {
-                    if (program.context != null)
-                    {
-                        await program.Unload();
-                        program.Clean();
-                    }
-                    if (program.contextref != null)
-                    {
-                        Console.WriteLine($"Unload success: {!program.contextref.IsAlive}");
-                    }
-                }
-                else if (x == "load" && !program.loaded)
-                {
-                    program.Load(Console.ReadLine());
-                    program.StartRemote();
-                    await program.StartServer();
-                    Console.WriteLine("Server started");
-                }
-                else if (x == "clean")
-                {
-                    program.Clean();
-                }
-            }
+            program.Load("Server_base.dll");
+            program.StartRemote();
+            await program.StartServer();
         }
     }
 }
