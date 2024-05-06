@@ -1,11 +1,11 @@
-﻿using ConfigurationData;
-using Messages;
-using Server_interface;
-using Sodium;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Xml.Serialization;
+using ConfigurationData;
+using Messages;
+using Server_interface;
+using Sodium;
 namespace Server_starter
 {
     internal class Program

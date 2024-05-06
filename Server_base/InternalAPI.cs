@@ -1,6 +1,6 @@
-﻿using Messages;
+﻿using System.Net;
+using Messages;
 using Server_interface;
-using System.Net;
 using Transport;
 
 namespace Server_base

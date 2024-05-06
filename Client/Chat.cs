@@ -1,5 +1,5 @@
-﻿using Messages;
-using System.Text;
+﻿using System.Text;
+using Messages;
 
 namespace Client
 {
