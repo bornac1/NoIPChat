@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using Messages;
@@ -29,6 +30,7 @@ namespace Client
         private readonly System.Timers.Timer ReconnectTimer;
         private const double ReconnectTimeOut = 60000;//60 seconds
         private const double InitialReconnectInterval = 15;
+        public List<PluginInfo> plugins;
         public Client(Main main)
         {
             this.main = main;
@@ -37,6 +39,7 @@ namespace Client
             ReconnectTimer.Elapsed += Reconnect;
             messages_snd = [];
             servers = [];
+            plugins = [];
             my = Encryption.GenerateECDH();
             _ = LoadServers();
             client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any, 0)));
@@ -426,6 +429,39 @@ namespace Client
             {
                 MessageBox.Show("Can't save log to file.");
                 // Console.WriteLine(log);
+            }
+        }
+        public void LoadPlugins()
+        {
+            try
+            {
+                string[] pluginsnames = Directory.GetDirectories("Plugins");
+                foreach (string name in pluginsnames)
+                {
+                    string pluginname = Path.GetFileName(name);
+                    string name1 = pluginname + ".dll";
+                    string path = Path.Combine(name, name1);
+                    Assembly asm = Assembly.LoadFrom(path);
+                    Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                    if (type != null)
+                    {
+                        var instance = Activator.CreateInstance(type);
+                        if (instance != null)
+                        {
+                            PluginInfo plugininfo = new()
+                            {
+                                Name = pluginname,
+                                Assembly = asm,
+                                Plugin = (IPlugin)instance
+                            };
+                            plugins.Add(plugininfo);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
             }
         }
     }
