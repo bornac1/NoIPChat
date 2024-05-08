@@ -1,6 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.IO;
 using System.Net;
+using System.Reflection;
 using ConfigurationData;
 using Messages;
 using Server_interface;
@@ -26,6 +28,7 @@ namespace Server_base
         public ImmutableList<Interface> interfaces;
         public KeyPair my;
         private readonly string logfile;
+        public List<PluginInfo> plugins;
         public TaskCompletionSource<bool> Closed { get; set; }
 
         public WriteLogAsync? Writelogasync { get; set; }
@@ -46,6 +49,8 @@ namespace Server_base
             remoteusers = new ConcurrentDictionary<string, string>();
             servers = new ConcurrentDictionary<string, Servers>();
             List<TListener> listeners1 = [];
+            plugins = [];
+            LoadPlugins();
             my = ecdh;
             if(logfile != null)
             {
@@ -66,6 +71,19 @@ namespace Server_base
             listeners = [.. listeners1];
             this.interfaces = [.. interfaces];
             _ = LoadMessageDataHandlers();
+            foreach (PluginInfo plugininfo in plugins)
+            {
+                try
+                {
+                    plugininfo.Plugin.ServerStart();
+                } catch (Exception ex)
+                {
+                    if(ex is NotImplementedException)
+                    {
+                        //Disregard
+                    }
+                }
+            }
         }
         private async Task Accept(TListener listener, string localip)
         {
@@ -81,7 +99,21 @@ namespace Server_base
                 {
                     break;
                 }
-                _ = new Client(this, await listener.AcceptAsync(), localip);
+                Client client = new (this, await listener.AcceptAsync(), localip);
+                foreach (PluginInfo plugininfo in plugins)
+                {
+                    try
+                    {
+                        await plugininfo.Plugin.ClientAcceptedAsync(in client);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                    }
+                }
             }
         }
         /// <summary>
@@ -230,11 +262,40 @@ namespace Server_base
         public (bool, string, string, int, int) GetServer(string name)
         {
             //get server by name
+            var info = (false, "", "", 0, 0);
             if (servers.TryGetValue(name.ToLower(), out var server))
             {
-                return (true, server.LocalIP, server.RemoteIP, server.RemotePort, server.TimeOut);
+                info = (true, server.LocalIP, server.RemoteIP, server.RemotePort, server.TimeOut);
+                foreach (PluginInfo plugininfo in plugins)
+                {
+                    try
+                    {
+                        plugininfo.Plugin.GetServerInfo(server.LocalIP, server.RemoteIP, server.RemotePort, server.TimeOut);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                    }
+                }
             }
-            return (false, "", "", 0, 0);
+            foreach (PluginInfo plugininfo in plugins)
+            {
+                try
+                {
+                    info = plugininfo.Plugin.ReturnServerInfo(name);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is NotImplementedException)
+                    {
+                        //Disregard
+                    }
+                }
+            }
+            return info;
         }
         /// <summary>
         /// Loads known servers from Servers.json file.
@@ -263,6 +324,20 @@ namespace Server_base
                 //Logging
                 await WriteLog(ex);
             }
+            foreach (PluginInfo plugininfo in plugins)
+            {
+                try
+                {
+                    await plugininfo.Plugin.ServersLoadAsync();
+                }
+                catch (Exception ex)
+                {
+                    if (ex is NotImplementedException)
+                    {
+                        //Disregard
+                    }
+                }
+            }
         }
         /// <summary>
         /// Saves known servers to Servers.json file.
@@ -288,6 +363,20 @@ namespace Server_base
             {
                 //Logging
                 await WriteLog(ex);
+            }
+            foreach (PluginInfo plugininfo in plugins)
+            {
+                try
+                {
+                    await plugininfo.Plugin.ServersSaveAsync();
+                }
+                catch (Exception ex)
+                {
+                    if (ex is NotImplementedException)
+                    {
+                        //Disregard
+                    }
+                }
             }
         }
         /// <summary>
@@ -505,6 +594,33 @@ namespace Server_base
             {
                 Console.WriteLine("Can't save log to file.");
                 Console.WriteLine(log);
+            }
+        }
+        /// <summary>
+        /// Loads plugins.
+        /// </summary>
+        public void LoadPlugins()
+        {
+            string[] pluginsnames = Directory.GetDirectories("Plugins");
+            foreach (string name in pluginsnames)
+            {
+                string pluginname = Path.GetFileName(name);
+                string name1 = pluginname + ".dll";
+                string path = Path.Combine(name, name1);
+                Assembly asm = Assembly.LoadFrom(path);
+                Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                if (type != null) {
+                    var instance = Activator.CreateInstance(type);
+                    if (instance != null) {
+                        PluginInfo plugininfo = new()
+                        {
+                            Name = pluginname,
+                            Assembly = asm,
+                            Plugin = (IPlugin)instance
+                        };
+                        plugins.Add(plugininfo);
+                    }
+                }
             }
         }
     }
