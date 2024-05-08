@@ -6,6 +6,7 @@
         public Login? login;
         public Chat? chat;
         public ServersForm? serversform;
+        public Files? files;
         public Main()
         {
             InitializeComponent();
@@ -89,7 +90,12 @@
 
         private void SavedFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //TODO: form for files saved in Data
+            files = new Files(this)
+            {
+                MdiParent = this
+            };
+            files.Show();
+
         }
     }
 }
