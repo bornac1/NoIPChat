@@ -40,6 +40,7 @@ namespace Client
             messages_snd = [];
             servers = [];
             plugins = [];
+            LoadPlugins();
             my = Encryption.GenerateECDH();
             _ = LoadServers();
             client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any, 0)));
