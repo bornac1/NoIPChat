@@ -439,24 +439,30 @@ namespace Client
                 string[] pluginsnames = Directory.GetDirectories("Plugins");
                 foreach (string name in pluginsnames)
                 {
-                    string pluginname = Path.GetFileName(name);
-                    string name1 = pluginname + ".dll";
-                    string path = Path.Combine(name, name1);
-                    Assembly asm = Assembly.LoadFrom(path);
-                    Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
-                    if (type != null)
+                    try
                     {
-                        var instance = Activator.CreateInstance(type);
-                        if (instance != null)
+                        string pluginname = Path.GetFileName(name);
+                        string name1 = pluginname + ".dll";
+                        string path = Path.Combine(name, name1);
+                        Assembly asm = Assembly.LoadFrom(path);
+                        Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                        if (type != null)
                         {
-                            PluginInfo plugininfo = new()
+                            var instance = Activator.CreateInstance(type);
+                            if (instance != null)
                             {
-                                Name = pluginname,
-                                Assembly = asm,
-                                Plugin = (IPlugin)instance
-                            };
-                            plugins.Add(plugininfo);
+                                PluginInfo plugininfo = new()
+                                {
+                                    Name = pluginname,
+                                    Assembly = asm,
+                                    Plugin = (IPlugin)instance
+                                };
+                                plugins.Add(plugininfo);
+                            }
                         }
+                    } catch (Exception ex)
+                    {
+
                     }
                 }
             }
