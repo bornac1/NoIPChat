@@ -623,6 +623,7 @@ namespace Server_base
                                     Assembly = asm,
                                     Plugin = (IPlugin)instance
                                 };
+                                plugininfo.Plugin.Initialize();
                                 plugins.Add(plugininfo);
                             }
                         }

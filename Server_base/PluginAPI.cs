@@ -10,6 +10,13 @@
         /// </summary>
         public Server Server { get; set; }
         /// <summary>
+        /// Run during plugin initialization.
+        /// </summary>
+        public void Initialize()
+        {
+            throw new NotImplementedException();
+        }
+        /// <summary>
         /// Run after server is initialised.
         /// </summary>
         public void ServerStart()
