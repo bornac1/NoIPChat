@@ -1,33 +1,36 @@
-﻿using System.IO;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 using ConfigurationData;
 namespace Guide
 {
     internal class Program
     {
-        static void Client() {
+        static void Client()
+        {
             Console.WriteLine("Client currently isn't supported.");
             Begin();
         }
-        static void Server() {
+        static void Server()
+        {
             Console.WriteLine("What do you need to do with Server?");
             Console.Write("Type I for installation, C for Configuration or B to go back to main menu ");
-            serverstart:
+        serverstart:
             string? s = Console.ReadLine();
-            if(s != null)
+            if (s != null)
             {
-                if(s.Equals("I", StringComparison.OrdinalIgnoreCase))
+                if (s.Equals("I", StringComparison.OrdinalIgnoreCase))
                 {
                     //TODO: installation
                     Console.WriteLine("Installation currently isn't supported.");
                     Begin();
 
-                } else if (s.Equals("C", StringComparison.OrdinalIgnoreCase))
+                }
+                else if (s.Equals("C", StringComparison.OrdinalIgnoreCase))
                 {
                     ServerConfig();
                     Begin();
 
-                } else if(s.Equals("B", StringComparison.OrdinalIgnoreCase))
+                }
+                else if (s.Equals("B", StringComparison.OrdinalIgnoreCase))
                 {
                     Begin();
                 }
@@ -92,16 +95,17 @@ namespace Guide
         }
         static void ServerConfig()
         {
-            serverconfigstart:
+        serverconfigstart:
             Console.WriteLine("Welcome to Server configurator for NoIPChat.");
             string path = Directory.GetCurrentDirectory();
-            checkpath:
+        checkpath:
             Console.WriteLine("Path: " + path);
             Console.Write("Is the path above pointing to the NoIPChat Server folder? Type Y for yes or N for no. ");
-            input:
+        input:
             string? c = Console.ReadLine();
-            if(c != null) {
-                if(c.Equals("Y", StringComparison.OrdinalIgnoreCase))
+            if (c != null)
+            {
+                if (c.Equals("Y", StringComparison.OrdinalIgnoreCase))
                 {
                     //Correct path, continue
                     if (File.Exists(Path.Combine(path, "Config.xml")))
@@ -116,12 +120,13 @@ namespace Guide
                         Console.WriteLine("Configuration file doesn't exist and new one will be created.");
                         CreateServerConfig(path);
                     }
-                } else if(c.Equals("N", StringComparison.OrdinalIgnoreCase))
+                }
+                else if (c.Equals("N", StringComparison.OrdinalIgnoreCase))
                 {
                     //Wrong path, ask for path
                     Console.Write("Please provide the correct path to NoIPChat Server folder. ");
                     string? path1 = Console.ReadLine();
-                    if(path1 != null)
+                    if (path1 != null)
                     {
                         path = path1;
                         goto checkpath;
@@ -131,7 +136,8 @@ namespace Guide
                         Console.Write("Type B to go back to Server menue.");
                         goto input;
                     }
-                } else if(c.Equals("B", StringComparison.OrdinalIgnoreCase))
+                }
+                else if (c.Equals("B", StringComparison.OrdinalIgnoreCase))
                 {
                     Server();
                 }
@@ -144,7 +150,7 @@ namespace Guide
         }
         static void Begin()
         {
-            beginstart:
+        beginstart:
             Console.WriteLine("Welcome to NoIPChat.");
             Console.WriteLine("Do you need help with Client or Server?");
             Console.Write("Type C for Client and S for Server ");

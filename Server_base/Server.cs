@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.IO;
 using System.Net;
 using System.Reflection;
 using ConfigurationData;
@@ -52,7 +51,7 @@ namespace Server_base
             plugins = [];
             LoadPlugins();
             my = ecdh;
-            if(logfile != null)
+            if (logfile != null)
             {
                 this.logfile = logfile;
             }
@@ -76,9 +75,10 @@ namespace Server_base
                 try
                 {
                     plugininfo.Plugin.ServerStart();
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
-                    if(ex is NotImplementedException)
+                    if (ex is NotImplementedException)
                     {
                         //Disregard
                     }
@@ -99,7 +99,7 @@ namespace Server_base
                 {
                     break;
                 }
-                Client client = new (this, await listener.AcceptAsync(), localip);
+                Client client = new(this, await listener.AcceptAsync(), localip);
                 foreach (PluginInfo plugininfo in plugins)
                 {
                     try
@@ -626,7 +626,8 @@ namespace Server_base
                         }
                     }
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
 
             }
