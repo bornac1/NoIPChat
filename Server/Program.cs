@@ -75,11 +75,11 @@ namespace Server_starter
                 Console.WriteLine($"Unload success: {!contextref?.IsAlive}");
             }
         }
-        private IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync)
+        private IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile)
         {
             if (Server_class != null)
             {
-                var srv = Activator.CreateInstance(Server_class, name, interfaces, ecdh, writelogasync);
+                var srv = Activator.CreateInstance(Server_class, name, interfaces, ecdh, writelogasync, logfile);
                 if (srv != null)
                 {
                     return (IServer)srv;
@@ -144,7 +144,7 @@ namespace Server_starter
                 {
                     try
                     {
-                        server = CreateServer(Config.Server.Name, Config.Server.Interfaces, ecdh, writelogasync);
+                        server = CreateServer(Config.Server.Name, Config.Server.Interfaces, ecdh, writelogasync, Config.Logfile);
                     }
                     catch (Exception ex)
                     {
@@ -244,6 +244,10 @@ namespace Server_starter
             program.Load("Server_base.dll");
             program.StartRemote();
             await program.StartServer();
+            while (true)
+            {
+                Console.ReadLine();
+            }
         }
     }
 }
