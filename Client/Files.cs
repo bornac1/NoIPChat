@@ -6,7 +6,7 @@ namespace Client
     {
         private readonly Main main;
         private readonly BindingSource files;
-        int rowindex = 0;
+        int rowindex = -1;
         public Files(Main main)
         {
             this.main = main;
@@ -26,6 +26,7 @@ namespace Client
             }
             files.ResetBindings(false);
             grid.Refresh();
+            rowindex = -1;
         }
 
         private void DeleteToolStripMenuItem1_Click(object sender, EventArgs e)
