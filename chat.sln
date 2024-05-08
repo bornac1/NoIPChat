@@ -18,6 +18,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CA6C16D3-8BBE-4830-BA96-7AA37C168D10}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
+		Plugin creation.md = Plugin creation.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test client", "Test client\Test client.csproj", "{B1A2A36D-2EFC-47B7-B478-EDF2E28291C3}"
