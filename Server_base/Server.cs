@@ -13,23 +13,56 @@ namespace Server_base
 {
     public partial class Server : IServer
     {
+        /// <summary>
+        /// Server version.
+        /// </summary>
         public int SV = 1;
         private readonly int HopCount = 10; //Max number of hops between servers
         private readonly TListener[] listeners;
+        /// <summary>
+        /// Name of the Server.
+        /// </summary>
         public string name;
         private bool active;
         private bool serversloaded = false;
-        public ConcurrentDictionary<string, Client> clients; //Connected clients
-        public ConcurrentDictionary<string, Client> remoteservers; //Connected remote servers
-        public ConcurrentDictionary<string, DataHandler> messages; //DataHandlers for messages to be sent to users who's home server is this
-        public ConcurrentDictionary<string, DataHandler> messages_server; //Messages to be sent to remote server
-        public ConcurrentDictionary<string, string> remoteusers; //Users whos home server is this, but are connected to remote one
-        public ConcurrentDictionary<string, Servers> servers; //Know servers
+        /// <summary>
+        /// Connected Clients.
+        /// </summary>
+        public ConcurrentDictionary<string, Client> clients;
+        /// <summary>
+        /// Connected remote servers.
+        /// </summary>
+        public ConcurrentDictionary<string, Client> remoteservers;
+        /// <summary>
+        /// DataHandlers for messages to be sent to users who's home server is this.
+        /// </summary>
+        public ConcurrentDictionary<string, DataHandler> messages;
+        /// <summary>
+        /// Messages to be sent to remote server
+        /// </summary>
+        public ConcurrentDictionary<string, DataHandler> messages_server;
+        /// <summary>
+        /// Users whos home server is this, but are connected to remote one.
+        /// </summary>
+        public ConcurrentDictionary<string, string> remoteusers;
+        /// <summary>
+        /// Know servers.
+        /// </summary>
+        public ConcurrentDictionary<string, Servers> servers;
+        /// <summary>
+        /// Interfaces currently used.
+        /// </summary>
         public ImmutableList<Interface> interfaces;
+        /// <summary>
+        /// Sodium ECDH KeyPair.
+        /// </summary>
         public KeyPair my;
         private readonly string logfile;
+        /// <summary>
+        /// PluginInfos for loaded plugins.
+        /// </summary>
         public List<PluginInfo> plugins;
-        AssemblyLoadContext context;
+        private AssemblyLoadContext context;
         /// <summary>
         /// Returns true when Server is fully closed.
         /// </summary>
