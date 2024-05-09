@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Net;
 using System.Reflection;
+using System.Runtime.Loader;
 using ConfigurationData;
 using Messages;
 using Server_interface;
@@ -28,16 +29,15 @@ namespace Server_base
         public KeyPair my;
         private readonly string logfile;
         public List<PluginInfo> plugins;
+
+        AssemblyLoadContext context;
         public TaskCompletionSource<bool> Closed { get; set; }
 
         public WriteLogAsync? Writelogasync { get; set; }
+        public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile, AssemblyLoadContext context)
+        {
+            this.context = context;
 
-        public IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile)
-        {
-            return new Server(name, interfaces, ecdh, writelogasync, logfile);
-        }
-        public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile)
-        {
             this.name = name.ToLower();
             this.Writelogasync = writelogasync;
             active = true;
@@ -104,7 +104,7 @@ namespace Server_base
                 {
                     try
                     {
-                        await plugininfo.Plugin.ClientAcceptedAsync(in client);
+                        //await plugininfo.Plugin.ClientAcceptedAsync(in client);
                     }
                     catch (Exception ex)
                     {
@@ -609,9 +609,17 @@ namespace Server_base
                     try {
                         string pluginname = Path.GetFileName(name);
                         string name1 = pluginname + ".dll";
-                        string path = Path.Combine(name, name1);
-                        Assembly asm = Assembly.LoadFrom(path);
+                        Assembly asm = context.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
                         Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                        foreach(Type t in asm.GetTypes())
+                        {
+                            Console.WriteLine($"{t.Name} {t.IsAssignableFrom(typeof(IPlugin))} {t.IsAssignableTo(typeof(IPlugin))}");
+                            Console.WriteLine(t.GetInterface("IPlugin"));
+                            if (typeof(IPlugin).IsAssignableFrom(type) && !type.IsInterface)
+                            {
+                                Console.WriteLine("implements");
+                            }
+                        }
                         if (type != null)
                         {
                             var instance = Activator.CreateInstance(type);
@@ -629,7 +637,7 @@ namespace Server_base
                         }
                     } catch (Exception ex)
                     {
-
+                        Console.WriteLine(ex.ToString());
                     }
                     }
             }

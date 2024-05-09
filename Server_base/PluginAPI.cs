@@ -8,7 +8,7 @@
         /// <summary>
         /// Server field.
         /// </summary>
-        public Server Server { get; set; }
+        //public Server Server { get; set; }
         /// <summary>
         /// Run during plugin initialization.
         /// </summary>
@@ -44,10 +44,10 @@
         /// </summary>
         /// <param name="client">Client</param>
         /// <returns>Async Task.</returns>
-        public Task ClientAcceptedAsync(in Client client)
+        /*public Task ClientAcceptedAsync(in Client client)
         {
             throw new NotImplementedException();
-        }
+        }*/
         /// <summary>
         /// Provides informations about known server.
         /// </summary>

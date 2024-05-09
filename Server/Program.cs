@@ -38,7 +38,7 @@ namespace Server_starter
             {
                 Assembly? loaded = context.LoadFromAssemblyPath(Path.Combine(path, name));
                 Server_class = loaded?.GetType("Server_base.Server");
-                Remote_class = loaded?.GetType("Server.Remote");
+                Remote_class = loaded?.GetType("Server_base.Remote");
             }
         }
         private async Task Unload()
@@ -79,7 +79,7 @@ namespace Server_starter
         {
             if (Server_class != null)
             {
-                var srv = Activator.CreateInstance(Server_class, name, interfaces, ecdh, writelogasync, logfile);
+                var srv = Activator.CreateInstance(Server_class, name, interfaces, ecdh, writelogasync, logfile, context);
                 if (srv != null)
                 {
                     return (IServer)srv;
@@ -145,6 +145,7 @@ namespace Server_starter
                     try
                     {
                         server = CreateServer(Config.Server.Name, Config.Server.Interfaces, ecdh, writelogasync, Config.Logfile);
+                        //server = new Server(Config.Server.Name, Config.Server.Interfaces, ecdh, writelogasync, Config.Logfile);
                     }
                     catch (Exception ex)
                     {
@@ -242,7 +243,7 @@ namespace Server_starter
         {
             Program program = new();
             program.Load("Server_base.dll");
-            program.StartRemote();
+            //program.StartRemote();
             await program.StartServer();
             while (true)
             {

@@ -24,7 +24,7 @@ namespace ServerAPI
         ///<param name="interfaces">List of netwok interfaces used by server</param>
         public void CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, Server_interface.WriteLogAsync? writelogasync, string? logfile)
         {
-            server = new Server(name, interfaces, ecdh, writelogasync, logfile);
+            //server = new Server(name, interfaces, ecdh, writelogasync, logfile);
         }
         ///<summary>
         ///Sends message from server to user.
