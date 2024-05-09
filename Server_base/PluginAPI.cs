@@ -8,7 +8,7 @@
         /// <summary>
         /// Server field.
         /// </summary>
-        //public Server Server { get; set; }
+        public Server Server { get; set; }
         /// <summary>
         /// Run during plugin initialization.
         /// </summary>

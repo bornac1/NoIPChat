@@ -145,7 +145,6 @@ namespace Server_starter
                     try
                     {
                         server = CreateServer(Config.Server.Name, Config.Server.Interfaces, ecdh, writelogasync, Config.Logfile);
-                        //server = new Server(Config.Server.Name, Config.Server.Interfaces, ecdh, writelogasync, Config.Logfile);
                     }
                     catch (Exception ex)
                     {
@@ -243,7 +242,7 @@ namespace Server_starter
         {
             Program program = new();
             program.Load("Server_base.dll");
-            //program.StartRemote();
+            program.StartRemote();
             await program.StartServer();
             while (true)
             {

@@ -29,10 +29,8 @@ namespace Server_base
         public KeyPair my;
         private readonly string logfile;
         public List<PluginInfo> plugins;
-
         AssemblyLoadContext context;
         public TaskCompletionSource<bool> Closed { get; set; }
-
         public WriteLogAsync? Writelogasync { get; set; }
         public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile, AssemblyLoadContext context)
         {
@@ -622,6 +620,7 @@ namespace Server_base
                                     Assembly = asm,
                                     Plugin = (IPlugin)instance
                                 };
+                                plugininfo.Plugin.Server = this;
                                 plugininfo.Plugin.Initialize();
                                 plugins.Add(plugininfo);
                             }
