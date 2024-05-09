@@ -1,6 +1,4 @@
-﻿using ConfigurationData;
-using Sodium;
-namespace Server_interface
+﻿namespace Server_interface
 {
     public delegate Task WriteLogAsync(string message);
     public interface IServer

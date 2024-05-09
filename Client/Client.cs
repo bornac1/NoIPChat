@@ -460,7 +460,8 @@ namespace Client
                                 plugins.Add(plugininfo);
                             }
                         }
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
 
                     }

@@ -655,7 +655,8 @@ namespace Server_base
                 string[] pluginsnames = Directory.GetDirectories("Plugins");
                 foreach (string name in pluginsnames)
                 {
-                    try {
+                    try
+                    {
                         string pluginname = Path.GetFileName(name);
                         string name1 = pluginname + ".dll";
                         Assembly asm = context.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
@@ -676,11 +677,12 @@ namespace Server_base
                                 plugins.Add(plugininfo);
                             }
                         }
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         Console.WriteLine(ex.ToString());
                     }
-                    }
+                }
             }
             catch (Exception ex)
             {
