@@ -5,6 +5,9 @@ using Transport;
 
 namespace Server_base
 {
+    /// <summary>
+    /// Client.
+    /// </summary>
     public partial class Client
     {
         private string? user = null;

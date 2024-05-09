@@ -11,6 +11,9 @@ using Transport;
 
 namespace Server_base
 {
+    /// <summary>
+    /// Server.
+    /// </summary>
     public partial class Server : IServer
     {
         /// <summary>
@@ -62,7 +65,7 @@ namespace Server_base
         /// PluginInfos for loaded plugins.
         /// </summary>
         public List<PluginInfo> plugins;
-        private AssemblyLoadContext context;
+        private readonly AssemblyLoadContext context;
         /// <summary>
         /// Returns true when Server is fully closed.
         /// </summary>
@@ -150,7 +153,7 @@ namespace Server_base
                 {
                     try
                     {
-                        //await plugininfo.Plugin.ClientAcceptedAsync(in client);
+                        await plugininfo.Plugin.ClientAcceptedAsync(in client);
                     }
                     catch (Exception ex)
                     {
