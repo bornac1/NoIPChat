@@ -680,7 +680,7 @@ namespace Server_base
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.ToString());
+
                     }
                 }
             }
