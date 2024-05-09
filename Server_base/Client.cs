@@ -25,6 +25,12 @@ namespace Server_base
         private readonly System.Timers.Timer? ReconnectTimer;
         private const double ReconnectTimeOut = 60000;//60 seconds
         private const double InitialReconnectInterval = 15;
+        /// <summary>
+        /// Client contructor.
+        /// </summary>
+        /// <param name="server">Server object.</param>
+        /// <param name="client">TClient object.</param>
+        /// <param name="localip">Local IP of interface where client is connected.</param>
         public Client(Server server, TClient client, string localip)
         {
             this.server = server;
@@ -52,6 +58,16 @@ namespace Server_base
             ReconnectTimer = new(InitialReconnectInterval);
             ReconnectTimer.Elapsed += ReconnectServer;
         }
+        /// <summary>
+        /// Async creation of Client. Used for connection to remote servers.
+        /// </summary>
+        /// <param name="server">Server object.</param>
+        /// <param name="name">Name</param>
+        /// <param name="localip">Local IP of interfaces used.</param>
+        /// <param name="ip">IP of remotre server.</param>
+        /// <param name="port">Remote port.</param>
+        /// <param name="timeout">Timeoit time in seconds.</param>
+        /// <returns>Async Task that completes with Client object.</returns>
         public static async Task<Client> CreateAsync(Server server, string name, string localip, string ip, int port, int timeout)
         {
             Client client = new(server, name, localip, timeout);
@@ -277,6 +293,11 @@ namespace Server_base
             }
             return new ReadOnlyMemory<byte>(bufferm, 0, totalread);
         }
+        /// <summary>
+        /// Disconnects Client.
+        /// </summary>
+        /// <param name="force">True if forced, false if connection failed.</param>
+        /// <returns>Async Task.</returns>
         public async Task Disconnect(bool force = false)
         {
             try
@@ -350,6 +371,12 @@ namespace Server_base
                 await server.WriteLog(ex);
             }
         }
+        /// <summary>
+        /// Sends message to the Client.
+        /// </summary>
+        /// <param name="message">Message to be sent.</param>
+        /// <param name="encrypt">True for encrypted, false for non-encrypted. Should be true.</param>
+        /// <returns>Async Task that complets with bool. True of sent, false if not.</returns>
         public async Task<bool> SendMessage(Message message, bool encrypt = true)
         {
             bool msgerror = false;
@@ -448,6 +475,10 @@ namespace Server_base
             }
             return false;
         }
+        /// <summary>
+        /// Sends all messages saved for this Client.
+        /// </summary>
+        /// <returns>Async Task.</returns>
         public async Task SendAllMessages()
         {
             if (!isserver && !isremote && user != null)
@@ -464,6 +495,11 @@ namespace Server_base
                 }
             }
         }
+        /// <summary>
+        /// Send all messages for given user to this remote server.
+        /// </summary>
+        /// <param name="user">Username.</param>
+        /// <returns>Async Task.</returns>
         public async Task SendAllMessagesRemoteUser(string user)
         {
             if (isserver || isremote)
@@ -480,6 +516,10 @@ namespace Server_base
                 }
             }
         }
+        /// <summary>
+        /// Send all messages saved for this remote server.
+        /// </summary>
+        /// <returns>Async Task</returns>
         public async Task SendAllMessagesServer()
         {
             if ((isserver || isremote) && name != null)

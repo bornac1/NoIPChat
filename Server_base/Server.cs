@@ -30,8 +30,23 @@ namespace Server_base
         private readonly string logfile;
         public List<PluginInfo> plugins;
         AssemblyLoadContext context;
+        /// <summary>
+        /// Returns true when Server is fully closed.
+        /// </summary>
         public TaskCompletionSource<bool> Closed { get; set; }
+        /// <summary>
+        /// Delegate for async log writing.
+        /// </summary>
         public WriteLogAsync? Writelogasync { get; set; }
+        /// <summary>
+        /// Server constructor.
+        /// </summary>
+        /// <param name="name">Name of the server.</param>
+        /// <param name="interfaces">List of interfaces.</param>
+        /// <param name="ecdh">Sodium ECDH KeyPair.</param>
+        /// <param name="writelogasync">Delegate for async log writing.</param>
+        /// <param name="logfile">Path to custom logfile.</param>
+        /// <param name="context">AssemblyLoadContext used for loading plugins. Should be the same as where Server_base is loaded.</param>
         public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile, AssemblyLoadContext context)
         {
             this.context = context;
