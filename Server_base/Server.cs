@@ -611,15 +611,6 @@ namespace Server_base
                         string name1 = pluginname + ".dll";
                         Assembly asm = context.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
                         Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
-                        foreach(Type t in asm.GetTypes())
-                        {
-                            Console.WriteLine($"{t.Name} {t.IsAssignableFrom(typeof(IPlugin))} {t.IsAssignableTo(typeof(IPlugin))}");
-                            Console.WriteLine(t.GetInterface("IPlugin"));
-                            if (typeof(IPlugin).IsAssignableFrom(type) && !type.IsInterface)
-                            {
-                                Console.WriteLine("implements");
-                            }
-                        }
                         if (type != null)
                         {
                             var instance = Activator.CreateInstance(type);
