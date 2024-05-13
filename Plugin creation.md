@@ -1,6 +1,7 @@
 **Plugin creation**
 
 Server plugin is created by implementing IPlugin interface from Server_base namespace.
+
 Client plugin is created by implementing IPlugin from Client namespace.
 
 Inside an assembly there should be only one class that implements IPlugin.

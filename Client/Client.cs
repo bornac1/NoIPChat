@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using System.Text.Json;
 using Messages;
@@ -40,7 +41,7 @@ namespace Client
             messages_snd = [];
             servers = [];
             plugins = [];
-            LoadPlugins();
+            _ = LoadPlugins();
             my = Encryption.GenerateECDH();
             _ = LoadServers();
             client = new TClient(new TcpClient(new IPEndPoint(IPAddress.Any, 0)));
@@ -419,12 +420,37 @@ namespace Client
                 await WriteLog(ex);
             }
         }
-        public static async Task WriteLog(Exception ex)
+        public async Task WriteLog(Exception ex)
         {
             string log = DateTime.Now.ToString("d.M.yyyy. H:m:s") + " " + ex.ToString() + Environment.NewLine;
             try
             {
                 await System.IO.File.AppendAllTextAsync("Client.log", log);
+                foreach (PluginInfo plugininfo in plugins)
+                {
+                    try
+                    {
+                        plugininfo.Plugin.ClientLog(ex);
+                    }
+                    catch (Exception ex1)
+                    {
+                        if (ex1 is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex1);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
+                    }
+                }
             }
             catch (Exception)
             {
@@ -432,10 +458,11 @@ namespace Client
                 // Console.WriteLine(log);
             }
         }
-        public void LoadPlugins()
+        public async Task LoadPlugins()
         {
             try
             {
+                Directory.CreateDirectory("Plugins");
                 string[] pluginsnames = Directory.GetDirectories("Plugins");
                 foreach (string name in pluginsnames)
                 {
@@ -443,8 +470,7 @@ namespace Client
                     {
                         string pluginname = Path.GetFileName(name);
                         string name1 = pluginname + ".dll";
-                        string path = Path.Combine(name, name1);
-                        Assembly asm = Assembly.LoadFrom(path);
+                        Assembly asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
                         Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
                         if (type != null)
                         {
@@ -457,19 +483,42 @@ namespace Client
                                     Assembly = asm,
                                     Plugin = (IPlugin)instance
                                 };
+                                plugininfo.Plugin.Client = this;
+                                try
+                                {
+                                    plugininfo.Plugin.Initialize();
+                                }
+                                catch (Exception ex)
+                                {
+                                    if (ex is NotImplementedException)
+                                    {
+                                        //Disregard
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            plugininfo.Plugin.WriteLog(ex);
+                                        }
+                                        catch
+                                        {
+                                            //Disregard
+                                        }
+                                    }
+                                }
                                 plugins.Add(plugininfo);
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-
+                        await WriteLog(ex);
                     }
                 }
             }
             catch (Exception ex)
             {
-
+                await WriteLog(ex);
             }
         }
     }

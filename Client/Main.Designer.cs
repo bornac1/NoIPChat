@@ -43,22 +43,22 @@
             mainmenu.Items.AddRange(new ToolStripItem[] { loginToolStripMenuItem, disconnectToolStripMenuItem, settingsToolStripMenuItem });
             mainmenu.Location = new Point(0, 0);
             mainmenu.Name = "mainmenu";
-            mainmenu.Padding = new Padding(5, 2, 0, 2);
-            mainmenu.Size = new Size(700, 24);
+            mainmenu.Padding = new Padding(6, 3, 0, 3);
+            mainmenu.Size = new Size(800, 30);
             mainmenu.TabIndex = 1;
             mainmenu.Text = "menuStrip1";
             // 
             // loginToolStripMenuItem
             // 
             loginToolStripMenuItem.Name = "loginToolStripMenuItem";
-            loginToolStripMenuItem.Size = new Size(49, 20);
+            loginToolStripMenuItem.Size = new Size(60, 24);
             loginToolStripMenuItem.Text = "Login";
             loginToolStripMenuItem.Click += LoginToolStripMenuItem_Click;
             // 
             // disconnectToolStripMenuItem
             // 
             disconnectToolStripMenuItem.Name = "disconnectToolStripMenuItem";
-            disconnectToolStripMenuItem.Size = new Size(78, 20);
+            disconnectToolStripMenuItem.Size = new Size(96, 24);
             disconnectToolStripMenuItem.Text = "Disconnect";
             disconnectToolStripMenuItem.Click += DisconnectToolStripMenuItem_Click;
             // 
@@ -66,32 +66,31 @@
             // 
             settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { knownServersToolStripMenuItem, savedFilesToolStripMenuItem });
             settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            settingsToolStripMenuItem.Size = new Size(61, 20);
+            settingsToolStripMenuItem.Size = new Size(76, 24);
             settingsToolStripMenuItem.Text = "Settings";
             // 
             // knownServersToolStripMenuItem
             // 
             knownServersToolStripMenuItem.Name = "knownServersToolStripMenuItem";
-            knownServersToolStripMenuItem.Size = new Size(180, 22);
+            knownServersToolStripMenuItem.Size = new Size(186, 26);
             knownServersToolStripMenuItem.Text = "Known servers";
             knownServersToolStripMenuItem.Click += KnownServersToolStripMenuItem_Click;
             // 
             // savedFilesToolStripMenuItem
             // 
             savedFilesToolStripMenuItem.Name = "savedFilesToolStripMenuItem";
-            savedFilesToolStripMenuItem.Size = new Size(180, 22);
+            savedFilesToolStripMenuItem.Size = new Size(186, 26);
             savedFilesToolStripMenuItem.Text = "Saved files";
             savedFilesToolStripMenuItem.Click += SavedFilesToolStripMenuItem_Click;
             // 
             // Main
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(700, 338);
+            ClientSize = new Size(800, 451);
             Controls.Add(mainmenu);
             IsMdiContainer = true;
             MainMenuStrip = mainmenu;
-            Margin = new Padding(3, 2, 3, 2);
             Name = "Main";
             Text = "Main";
             WindowState = FormWindowState.Maximized;
@@ -102,12 +101,11 @@
         }
 
         #endregion
-
-        private MenuStrip mainmenu;
         private ToolStripMenuItem loginToolStripMenuItem;
         private ToolStripMenuItem settingsToolStripMenuItem;
         private ToolStripMenuItem disconnectToolStripMenuItem;
         private ToolStripMenuItem knownServersToolStripMenuItem;
         private ToolStripMenuItem savedFilesToolStripMenuItem;
+        public MenuStrip mainmenu;
     }
 }
