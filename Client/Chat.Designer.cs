@@ -178,6 +178,9 @@
         private Label label2;
         private Button sendbutton;
         private Button cancelbutton;
+        /// <summary>
+        /// Chat display for received messages.
+        /// </summary>
         public RichTextBox display;
         private Button refreshbutton;
         private OpenFileDialog openfiledialog;

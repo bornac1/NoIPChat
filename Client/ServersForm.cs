@@ -2,9 +2,16 @@
 
 namespace Client
 {
+    /// <summary>
+    /// Known servers form.
+    /// </summary>
     public partial class ServersForm : Form
     {
         private readonly Main main;
+        /// <summary>
+        /// ServersForm constructor.
+        /// </summary>
+        /// <param name="main"></param>
         public ServersForm(Main main)
         {
             this.main = main;

@@ -2,14 +2,18 @@
 
 namespace Client
 {
+    /// <summary>
+    /// Files form.
+    /// </summary>
     public partial class Files : Form
     {
-        private readonly Main main;
         private readonly BindingSource files;
         int rowindex = -1;
-        public Files(Main main)
+        /// <summary>
+        /// Files constructor.
+        /// </summary>
+        public Files()
         {
-            this.main = main;
             files = [];
             InitializeComponent();
             grid.DataSource = files;

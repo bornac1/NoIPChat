@@ -106,6 +106,9 @@
         private ToolStripMenuItem disconnectToolStripMenuItem;
         private ToolStripMenuItem knownServersToolStripMenuItem;
         private ToolStripMenuItem savedFilesToolStripMenuItem;
+        /// <summary>
+        /// Main menu.
+        /// </summary>
         public MenuStrip mainmenu;
     }
 }
