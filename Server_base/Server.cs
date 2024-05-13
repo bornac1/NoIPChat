@@ -743,6 +743,7 @@ namespace Server_base
         {
             try
             {
+                Directory.CreateDirectory("Plugins");
                 string[] pluginsnames = Directory.GetDirectories("Plugins");
                 foreach (string name in pluginsnames)
                 {
