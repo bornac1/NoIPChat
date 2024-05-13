@@ -131,6 +131,15 @@ namespace Server_base
                     {
                         //Disregard
                     }
+                    else
+                    {
+                        try
+                        {
+                            plugininfo.Plugin.WriteLog(ex);
+                        } catch {  
+                            //Disregard
+                        }
+                    }
                 }
             }
         }
@@ -153,13 +162,24 @@ namespace Server_base
                 {
                     try
                     {
-                        await plugininfo.Plugin.ClientAcceptedAsync(in client);
+                        await plugininfo.Plugin.ClientAcceptedAsync(client);
                     }
                     catch (Exception ex)
                     {
                         if (ex is NotImplementedException)
                         {
                             //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
                         }
                     }
                 }
@@ -247,6 +267,7 @@ namespace Server_base
         /// </summary>
         /// <param name="server">Server name.</param>
         /// <param name="message">Message.</param>
+        /// <param name="received">Name of the server from which message was received.</param>
         /// <returns>Async Task.</returns>
         public async Task SendMessageServer(string server, Message message, string? received = null)
         {
@@ -327,6 +348,17 @@ namespace Server_base
                         {
                             //Disregard
                         }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
                     }
                 }
             }
@@ -341,6 +373,17 @@ namespace Server_base
                     if (ex is NotImplementedException)
                     {
                         //Disregard
+                    }
+                    else
+                    {
+                        try
+                        {
+                            plugininfo.Plugin.WriteLog(ex);
+                        }
+                        catch
+                        {
+                            //Disregard
+                        }
                     }
                 }
             }
@@ -385,6 +428,17 @@ namespace Server_base
                     {
                         //Disregard
                     }
+                    else
+                    {
+                        try
+                        {
+                            plugininfo.Plugin.WriteLog(ex);
+                        }
+                        catch
+                        {
+                            //Disregard
+                        }
+                    }
                 }
             }
         }
@@ -424,6 +478,17 @@ namespace Server_base
                     if (ex is NotImplementedException)
                     {
                         //Disregard
+                    }
+                    else
+                    {
+                        try
+                        {
+                            plugininfo.Plugin.WriteLog(ex);
+                        }
+                        catch
+                        {
+                            //Disregard
+                        }
                     }
                 }
             }
@@ -648,7 +713,7 @@ namespace Server_base
         /// <summary>
         /// Loads plugins.
         /// </summary>
-        public void LoadPlugins()
+        public async void LoadPlugins()
         {
             try
             {
@@ -673,20 +738,40 @@ namespace Server_base
                                     Plugin = (IPlugin)instance
                                 };
                                 plugininfo.Plugin.Server = this;
-                                plugininfo.Plugin.Initialize();
+                                try
+                                {
+                                    plugininfo.Plugin.Initialize();
+                                } catch (Exception ex)
+                                {
+                                    if(ex is NotImplementedException)
+                                    {
+                                        //Disregard
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            plugininfo.Plugin.WriteLog(ex);
+                                        }
+                                        catch
+                                        {
+                                            //Disregard
+                                        }
+                                    }
+                                }
                                 plugins.Add(plugininfo);
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-
+                        await WriteLog(ex);
                     }
                 }
             }
             catch (Exception ex)
             {
-
+                await WriteLog(ex);
             }
         }
     }

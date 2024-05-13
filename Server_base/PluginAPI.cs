@@ -8,7 +8,7 @@
         /// <summary>
         /// Server field.
         /// </summary>
-        public Server Server { get; set; }
+        public Server? Server { get; set; }
         /// <summary>
         /// Run during plugin initialization.
         /// </summary>
@@ -44,7 +44,7 @@
         /// </summary>
         /// <param name="client">Client</param>
         /// <returns>Async Task.</returns>
-        public Task ClientAcceptedAsync(in Client client)
+        public Task ClientAcceptedAsync(Client client)
         {
             throw new NotImplementedException();
         }
@@ -55,7 +55,7 @@
         /// <param name="remoteip">IP of remote server.</param>
         /// <param name="remoteport">Port on remote server.</param>
         /// <param name="timeout">Timeout.</param>
-        public void GetServerInfo(in string localip, in string remoteip, in int remoteport, in int timeout)
+        public void GetServerInfo(string localip, string remoteip, int remoteport, int timeout)
         {
             throw new NotImplementedException();
         }
@@ -65,6 +65,13 @@
         /// <param name="name">Name of the known server.</param>
         /// <returns>(bool, localip, remoteip, remoteport, timeout)</returns>
         public (bool, string, string, int, int) ReturnServerInfo(string name)
+        {
+            throw new NotImplementedException();
+        }
+        /// <summary>
+        /// Run when the plugin throws Exception.
+        /// </summary>
+        public void WriteLog(Exception ex)
         {
             throw new NotImplementedException();
         }
