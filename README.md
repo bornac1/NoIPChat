@@ -116,4 +116,15 @@ You can use Guide to help you with installation and configuration of NoIPChat. C
 
 **Dynamic software update**
 
-Dynamic software update is currently WIP. It'll enable most updates to the Server to be made without restarting Server.
+In order to update Server without restarting (hot patch), you need path to folder with update.
+
+Once ready, type update into Server. 
+
+You'll see messaage like the following:
+
+Server closed
+
+Unload success: True
+
+
+Once asked, provide path to update folder and press Enter key. Server will be updated automatically.
