@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System.IO.MemoryMappedFiles;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Xml.Serialization;
@@ -254,19 +256,51 @@ namespace Server_starter
         }
         private void Update()
         {
-            Console.Write("Path to update folder: ");
-            string? path = Console.ReadLine();
-            if(path != null)
+            try
             {
-                string? serverpath = Assembly.GetExecutingAssembly().Location;
-                string[] files = Directory.GetFiles(path);
-                foreach(string file in files) {
-                    Console.WriteLine($"update paths {file} {serverpath}");
+                string? serverpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                Console.Write("Path to update folder: ");
+                string? path = Console.ReadLine();
+                if (path != null && serverpath != null && Directory.Exists(path))
+                {
+                    string[] files = Directory.GetFiles(path);
+                    if (files.Count() > 0)
+                    {
+                        if (Directory.Exists("Backup"))
+                        {
+                            Directory.Delete("Backup", true);
+                        }
+                        Directory.CreateDirectory("Backup");
+                        foreach (string file in files)
+                        {
+                            string file1 = Path.GetFullPath(file);
+                            string filename = Path.GetFileName(file);
+                            string oldpath = Path.Combine(serverpath, filename);
+                            try
+                            {
+                                if (System.IO.File.Exists(oldpath))
+                                {
+                                    //Copy old to Backup
+                                    System.IO.File.Copy(oldpath, Path.Combine("Backup", filename), true);
+                                }
+                                //Copy new to old
+                                System.IO.File.Copy(file1, oldpath, true);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Update error. {ex.ToString()}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Path error.");
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("Path error.");
+                Console.WriteLine(ex.ToString());
             }
         }
         static async Task Main()
@@ -287,7 +321,15 @@ namespace Server_starter
                     }
                     else if (input.Equals("update", StringComparison.OrdinalIgnoreCase))
                     {
-                        program.Update();
+                        program.Unload().Wait();
+                        program.Clean();
+                        if (program.contextref != null && !program.contextref.IsAlive)
+                        {
+                            program.Update();
+                            program.Load("Server_base.dll");
+                            program.StartRemote();
+                            await program.StartServer();
+                        }
                     }
                     else
                     {
