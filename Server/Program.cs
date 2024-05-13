@@ -37,10 +37,11 @@ namespace Server_starter
             if (path != null)
             {
                 Assembly? loaded = context.LoadFromAssemblyPath(Path.Combine(path, name));
-                Server_class = loaded?.GetType("Server_base.Server");
-                Remote_class = loaded?.GetType("Server_base.Remote");
+                Server_class = loaded?.GetTypes().Where(t => typeof(IServer).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                Remote_class = loaded?.GetTypes().Where(t => typeof(IRemote).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
             }
         }
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private async Task Unload()
         {
             writelogasync = null;
@@ -63,6 +64,7 @@ namespace Server_starter
             context?.Unload();
             context = null;
         }
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void Clean()
         {
             if (contextref != null)
