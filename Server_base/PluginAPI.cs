@@ -71,7 +71,16 @@
         /// <summary>
         /// Run when the plugin throws Exception.
         /// </summary>
+        /// <param name="ex">Exception.</param>
         public void WriteLog(Exception ex)
+        {
+            throw new NotImplementedException();
+        }
+        /// <summary>
+        /// Run when Server throws Exception.
+        /// </summary>
+        /// <param name="ex">Exception.</param>
+        public void ServerLog(Exception ex)
         {
             throw new NotImplementedException();
         }

@@ -18,7 +18,7 @@ namespace Server_starter
         private WeakReference? contextref;
         Type? Server_class;
         Type? Remote_class;
-        public Program()
+        private Program()
         {
             server = null;
             remote = null;
@@ -31,38 +31,50 @@ namespace Server_starter
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Load(string name)
         {
-            context = new(null, true);
-            contextref = new(context);
-            string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            if (path != null)
+            try
             {
-                Assembly? loaded = context.LoadFromAssemblyPath(Path.Combine(path, name));
-                Server_class = loaded?.GetTypes().Where(t => typeof(IServer).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
-                Remote_class = loaded?.GetTypes().Where(t => typeof(IRemote).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                context = new(null, true);
+                contextref = new(context);
+                string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                if (path != null)
+                {
+                    Assembly? loaded = context.LoadFromAssemblyPath(Path.Combine(path, name));
+                    Server_class = loaded?.GetTypes().Where(t => typeof(IServer).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                    Remote_class = loaded?.GetTypes().Where(t => typeof(IRemote).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                }
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
             }
         }
         [MethodImpl(MethodImplOptions.NoInlining)]
         private async Task Unload()
         {
-            writelogasync = null;
-            Server_class = null;
-            Remote_class = null;
-            if (server != null)
+            try
             {
-                await server.Close();
-                if (await server.Closed.Task)
+                writelogasync = null;
+                Server_class = null;
+                Remote_class = null;
+                if (server != null)
                 {
-                    Console.WriteLine("Server closed");
+                    await server.Close();
+                    if (await server.Closed.Task)
+                    {
+                        Console.WriteLine("Server closed");
+                    }
+                    server = null;
                 }
-                server = null;
-            }
-            if (remote != null)
+                if (remote != null)
+                {
+                    remote.Close();
+                    remote = null;
+                }
+                context?.Unload();
+                context = null;
+            } catch (Exception ex)
             {
-                remote.Close();
-                remote = null;
+                Console.WriteLine(ex.ToString());
             }
-            context?.Unload();
-            context = null;
         }
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Clean()
@@ -240,6 +252,23 @@ namespace Server_starter
                 Console.WriteLine(ex.ToString());
             }
         }
+        private void Update()
+        {
+            Console.Write("Path to update folder: ");
+            string? path = Console.ReadLine();
+            if(path != null)
+            {
+                string? serverpath = Assembly.GetExecutingAssembly().Location;
+                string[] files = Directory.GetFiles(path);
+                foreach(string file in files) {
+                    Console.WriteLine($"update paths {file} {serverpath}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Path error.");
+            }
+        }
         static async Task Main()
         {
             Program program = new();
@@ -248,7 +277,23 @@ namespace Server_starter
             await program.StartServer();
             while (true)
             {
-                Console.ReadLine();
+                string? input = Console.ReadLine();
+                if (input != null)
+                {
+                    if (input.Equals("exit", StringComparison.OrdinalIgnoreCase))
+                    {
+                        program.Unload().Wait();
+                        break;
+                    }
+                    else if (input.Equals("update", StringComparison.OrdinalIgnoreCase))
+                    {
+                        program.Update();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Unknown command.");
+                    }
+                }
             }
         }
     }

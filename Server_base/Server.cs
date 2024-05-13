@@ -98,9 +98,8 @@ namespace Server_base
             servers = new ConcurrentDictionary<string, Servers>();
             List<TListener> listeners1 = [];
             plugins = [];
-            LoadPlugins();
             my = ecdh;
-            if (logfile != null)
+            if (!string.IsNullOrEmpty(logfile))
             {
                 this.logfile = logfile;
             }
@@ -108,6 +107,7 @@ namespace Server_base
             {
                 this.logfile = "Server.log";
             }
+            LoadPlugins();
             Closed = new();
             foreach (Interface iface in interfaces)
             {
@@ -703,11 +703,37 @@ namespace Server_base
                 {
                     await Writelogasync(log);
                 }
+                foreach (PluginInfo plugininfo in plugins)
+                {
+                    try
+                    {
+                        plugininfo.Plugin.ServerLog(ex);
+                    }
+                    catch (Exception ex1)
+                    {
+                        if (ex1 is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
+                    }
+                }
             }
-            catch (Exception)
+            catch (Exception ex2)
             {
-                Console.WriteLine("Can't save log to file.");
+                Console.WriteLine($"Can't save log to file {logfile}.");
                 Console.WriteLine(log);
+                Console.WriteLine(ex2.ToString());
             }
         }
         /// <summary>
