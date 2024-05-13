@@ -136,25 +136,5 @@ namespace Server_base
                 }
             }
         }
-        private void DisconnectSneakernet()
-        {
-            if (!remoteservers.TryRemove(name, out _))
-            {
-                //Remote server is already removed
-            }
-            foreach (string user in remoteusers.Keys)
-            {
-                if (remoteusers.TryGetValue(user, out string? srv))
-                {
-                    if (srv == name)
-                    {
-                        if (!remoteusers.TryRemove(user, out _))
-                        {
-                            //Is already removed
-                        }
-                    }
-                }
-            }
-        }
     }
 }
