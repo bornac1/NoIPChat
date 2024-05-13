@@ -1,6 +1,4 @@
-﻿using System.IO.MemoryMappedFiles;
-using System.Linq.Expressions;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Xml.Serialization;
@@ -44,7 +42,8 @@ namespace Server_starter
                     Server_class = loaded?.GetTypes().Where(t => typeof(IServer).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
                     Remote_class = loaded?.GetTypes().Where(t => typeof(IRemote).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
@@ -73,7 +72,8 @@ namespace Server_starter
                 }
                 context?.Unload();
                 context = null;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }

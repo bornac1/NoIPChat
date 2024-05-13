@@ -136,7 +136,9 @@ namespace Server_base
                         try
                         {
                             plugininfo.Plugin.WriteLog(ex);
-                        } catch {  
+                        }
+                        catch
+                        {
                             //Disregard
                         }
                     }
@@ -768,9 +770,10 @@ namespace Server_base
                                 try
                                 {
                                     plugininfo.Plugin.Initialize();
-                                } catch (Exception ex)
+                                }
+                                catch (Exception ex)
                                 {
-                                    if(ex is NotImplementedException)
+                                    if (ex is NotImplementedException)
                                     {
                                         //Disregard
                                     }
