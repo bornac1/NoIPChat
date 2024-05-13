@@ -264,7 +264,7 @@ namespace Server_starter
                 if (path != null && serverpath != null && Directory.Exists(path))
                 {
                     string[] files = Directory.GetFiles(path);
-                    if (files.Count() > 0)
+                    if (files.Length > 0)
                     {
                         if (Directory.Exists("Backup"))
                         {
@@ -288,7 +288,7 @@ namespace Server_starter
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Update error. {ex.ToString()}");
+                                Console.WriteLine($"Update error. {ex}");
                             }
                         }
                     }
