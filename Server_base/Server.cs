@@ -739,7 +739,7 @@ namespace Server_base
         /// <summary>
         /// Loads plugins.
         /// </summary>
-        public async void LoadPlugins()
+        public async Task LoadPlugins()
         {
             try
             {
