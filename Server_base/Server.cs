@@ -739,7 +739,7 @@ namespace Server_base
         /// <summary>
         /// Loads plugins.
         /// </summary>
-        public async Task LoadPlugins()
+        public void LoadPlugins()
         {
             try
             {
@@ -792,13 +792,13 @@ namespace Server_base
                     }
                     catch (Exception ex)
                     {
-                        await WriteLog(ex);
+                        WriteLog(ex).Wait();
                     }
                 }
             }
             catch (Exception ex)
             {
-                await WriteLog(ex);
+                WriteLog(ex).Wait();
             }
         }
     }
