@@ -71,6 +71,7 @@ namespace Client
         /// PluginInfos for loaded plugins.
         /// </summary>
         public List<PluginInfo> plugins;
+        private readonly List<ToolStripMenuItem> pluginmenuitems;
         /// <summary>
         /// Client constructor.
         /// </summary>
@@ -84,6 +85,7 @@ namespace Client
             messages_snd = [];
             servers = [];
             plugins = [];
+            pluginmenuitems = [];
             _ = LoadPlugins();
             my = Encryption.GenerateECDH();
             _ = LoadServers();
@@ -388,6 +390,10 @@ namespace Client
                             client.Dispose();
                         }
                         //start new client
+                        foreach(ToolStripMenuItem item in pluginmenuitems)
+                        {
+                            main.mainmenu.Items.Remove(item);
+                        }
                         main.client = new Client(main);
                         await main.client.LoadServers();
                         //close all
@@ -619,6 +625,7 @@ namespace Client
         public void AddMainMenu(ToolStripMenuItem item)
         {
             main.mainmenu.Items.Add(item);
+            pluginmenuitems.Add(item);
         }
     }
 }
