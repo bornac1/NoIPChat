@@ -390,7 +390,7 @@ namespace Client
                             client.Dispose();
                         }
                         //start new client
-                        foreach(ToolStripMenuItem item in pluginmenuitems)
+                        foreach (ToolStripMenuItem item in pluginmenuitems)
                         {
                             main.mainmenu.Items.Remove(item);
                         }
