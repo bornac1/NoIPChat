@@ -3,10 +3,20 @@ using Messages;
 
 namespace Client
 {
+    /// <summary>
+    /// Chat form.
+    /// </summary>
     public partial class Chat : Form
     {
-        public Client client;
+        /// <summary>
+        /// Client object.
+        /// </summary>
+        private readonly Client client;
         private string? filepath = null;
+        /// <summary>
+        /// Chat constructor.
+        /// </summary>
+        /// <param name="main"></param>
         public Chat(Main main)
         {
             InitializeComponent();
@@ -114,9 +124,14 @@ namespace Client
             }
             return null;
         }
+        /// <summary>
+        /// Savws received file.
+        /// </summary>
+        /// <param name="data">Byte array of data serialized as File.</param>
+        /// <returns>Async Task.</returns>
         public async Task SaveFile(byte[]? data)
         {
-            DialogResult save = savefiledialog.ShowDialog();
+            _ = savefiledialog.ShowDialog();
             if (data != null)
             {
                 try
@@ -141,6 +156,10 @@ namespace Client
                 }
             }
         }
+        /// <summary>
+        /// Displays message in Chat form.
+        /// </summary>
+        /// <param name="message">Message object.</param>
         public void DisplayMessage(Messages.Message message)
         {
             if (message.Msg != null)

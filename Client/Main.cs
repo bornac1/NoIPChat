@@ -1,22 +1,46 @@
 ﻿namespace Client
 {
+    /// <summary>
+    /// Main form.
+    /// </summary>
     public partial class Main : Form
     {
+        /// <summary>
+        /// Client object.
+        /// </summary>
         public Client client;
+        /// <summary>
+        /// Login form.
+        /// </summary>
         public Login? login;
+        /// <summary>
+        /// Chat form.
+        /// </summary>
         public Chat? chat;
+        /// <summary>
+        /// ServersForm form.
+        /// </summary>
         public ServersForm? serversform;
+        /// <summary>
+        /// Files form.
+        /// </summary>
+        public Files? files;
+        /// <summary>
+        /// Main constructor.
+        /// </summary>
         public Main()
         {
             InitializeComponent();
             ManipulateMenue(false);
             client = new Client(this);
         }
-
         private void LoginToolStripMenuItem_Click(object sender, EventArgs e)
         {
             StartLogin();
         }
+        /// <summary>
+        /// Starts chat.
+        /// </summary>
         public void StartChat()
         {
             chat = new Chat(this)
@@ -25,6 +49,9 @@
             };
             chat.Show();
         }
+        /// <summary>
+        /// Starts login.
+        /// </summary>
         public void StartLogin()
         {
             login = new Login(this)
@@ -33,6 +60,10 @@
             };
             login.Show();
         }
+        /// <summary>
+        /// Changes main menue based on logedin.
+        /// </summary>
+        /// <param name="logedin">True to enable disconnect, false to enable login.</param>
         public void ManipulateMenue(bool logedin = false)
         {
             //Change mainmenue items based on login state
@@ -47,6 +78,10 @@
                 disconnectToolStripMenuItem.Visible = false;
             }
         }
+        /// <summary>
+        /// Clean up after disconnect.
+        /// </summary>
+        /// <param name="force">True if forced, false if connection failed.</param>
         public void CloseDisconnect(bool force = false)
         {
             if (!force)
@@ -89,7 +124,12 @@
 
         private void SavedFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //TODO: form for files saved in Data
+            files = new Files()
+            {
+                MdiParent = this
+            };
+            files.Show();
+
         }
     }
 }

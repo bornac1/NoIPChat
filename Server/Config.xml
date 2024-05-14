@@ -17,4 +17,5 @@
 		<User>remote</User>
 		<Pass>pass</Pass>
 	</Remote>
+	<Logfile>Server.log</Logfile>
 </Configuration>

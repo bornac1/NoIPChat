@@ -1,13 +1,15 @@
 ﻿using System.Net;
 using Messages;
+using Server_interface;
 using Transport;
 
 namespace Server_base
 {
-    public class Remote
+    /// <summary>
+    /// Internal part of API used for communication to other processes. Used for remote controling of the Server.
+    /// </summary>
+    public class Remote : IRemote
     {
-        //Internal part of API used for communication to other processes
-        //Used for remote controling of the Server
         private readonly TcpListener listener;
         private bool active = true;
         private TcpClient? client;
@@ -17,6 +19,13 @@ namespace Server_base
         private readonly string username;
         private readonly string password;
         private bool auth = false;
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="IP">Local UP used.</param>
+        /// <param name="port">Port.</param>
+        /// <param name="username">Username used for login.</param>
+        /// <param name="password">Password used for login.</param>
         public Remote(string IP, int port, string username, string password)
         {
             listener = new(System.Net.IPAddress.Parse(IP), port);
@@ -25,12 +34,19 @@ namespace Server_base
             listener.Start();
             _ = Accept();
         }
+        /// <summary>
+        /// Closes remote.
+        /// </summary>
         public void Close()
         {
             active = false;
             listener.Stop();
             listener.Dispose();
         }
+        /// <summary>
+        /// Accepts remote connection.
+        /// </summary>
+        /// <returns>Async Task.</returns>
         public async Task Accept()
         {
             while (active)
@@ -45,6 +61,10 @@ namespace Server_base
                 await HandleClient();
             }
         }
+        /// <summary>
+        /// Handles remote client.
+        /// </summary>
+        /// <returns>Async Task.</returns>
         public async Task HandleClient()
         {
             while (connected)
@@ -172,6 +192,11 @@ namespace Server_base
                 client.Dispose();
             }
         }
+        /// <summary>
+        /// Send error log to remote.
+        /// </summary>
+        /// <param name="message">Error log message.</param>
+        /// <returns>Async Task.</returns>
         public async Task SendLog(string message)
         {
             if (auth)

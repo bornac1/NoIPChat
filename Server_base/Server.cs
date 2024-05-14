@@ -1,36 +1,91 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using System.Net;
-using ConfigurationData;
+﻿using ConfigurationData;
 using Messages;
 using Sodium;
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
+using System.Net;
 using Transport;
 
 namespace Server_base
 {
-    public partial class Server
+    /// <summary>
+    /// Server.
+    /// </summary>
+    public partial class Server : IServer
     {
+        /// <summary>
+        /// Server version.
+        /// </summary>
         public int SV = 1;
         private readonly int HopCount = 10; //Max number of hops between servers
         private readonly TListener[] listeners;
+        /// <summary>
+        /// Name of the Server.
+        /// </summary>
         public string name;
         private bool active;
         private bool serversloaded = false;
-        public ConcurrentDictionary<string, Client> clients; //Connected clients
-        public ConcurrentDictionary<string, Client> remoteservers; //Connected remote servers
-        public ConcurrentDictionary<string, DataHandler> messages; //DataHandlers for messages to be sent to users who's home server is this
-        public ConcurrentDictionary<string, DataHandler> messages_server; //Messages to be sent to remote server
-        public ConcurrentDictionary<string, string> remoteusers; //Users whos home server is this, but are connected to remote one
-        public ConcurrentDictionary<string, Servers> servers; //Know servers
+        /// <summary>
+        /// Connected Clients.
+        /// </summary>
+        public ConcurrentDictionary<string, Client> clients;
+        /// <summary>
+        /// Connected remote servers.
+        /// </summary>
+        public ConcurrentDictionary<string, Client> remoteservers;
+        /// <summary>
+        /// DataHandlers for messages to be sent to users who's home server is this.
+        /// </summary>
+        public ConcurrentDictionary<string, DataHandler> messages;
+        /// <summary>
+        /// Messages to be sent to remote server
+        /// </summary>
+        public ConcurrentDictionary<string, DataHandler> messages_server;
+        /// <summary>
+        /// Users whos home server is this, but are connected to remote one.
+        /// </summary>
+        public ConcurrentDictionary<string, string> remoteusers;
+        /// <summary>
+        /// Know servers.
+        /// </summary>
+        public ConcurrentDictionary<string, Servers> servers;
+        /// <summary>
+        /// Interfaces currently used.
+        /// </summary>
         public ImmutableList<Interface> interfaces;
+        /// <summary>
+        /// Sodium ECDH KeyPair.
+        /// </summary>
         public KeyPair my;
-
-        public delegate Task WriteLogAsync(string message);
-        public WriteLogAsync? writelogasync;
-        public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync)
+        private readonly string logfile;
+        /// <summary>
+        /// PluginInfos for loaded plugins.
+        /// </summary>
+        public List<PluginInfo> plugins;
+        private readonly AssemblyLoadContext context;
+        /// <summary>
+        /// Returns true when Server is fully closed.
+        /// </summary>
+        public TaskCompletionSource<bool> Closed { get; set; }
+        /// <summary>
+        /// Delegate for async log writing.
+        /// </summary>
+        public WriteLogAsync? Writelogasync { get; set; }
+        /// <summary>
+        /// Server constructor.
+        /// </summary>
+        /// <param name="name">Name of the server.</param>
+        /// <param name="interfaces">List of interfaces.</param>
+        /// <param name="ecdh">Sodium ECDH KeyPair.</param>
+        /// <param name="writelogasync">Delegate for async log writing.</param>
+        /// <param name="logfile">Path to custom logfile.</param>
+        /// <param name="context">AssemblyLoadContext used for loading plugins. Should be the same as where Server_base is loaded.</param>
+        public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile, AssemblyLoadContext context)
         {
+            this.context = context;
+
             this.name = name.ToLower();
-            this.writelogasync = writelogasync;
+            this.Writelogasync = writelogasync;
             active = true;
             clients = new ConcurrentDictionary<string, Client>();
             messages = new ConcurrentDictionary<string, DataHandler>();
@@ -39,7 +94,18 @@ namespace Server_base
             remoteusers = new ConcurrentDictionary<string, string>();
             servers = new ConcurrentDictionary<string, Servers>();
             List<TListener> listeners1 = [];
+            plugins = [];
             my = ecdh;
+            if (!string.IsNullOrEmpty(logfile))
+            {
+                this.logfile = logfile;
+            }
+            else
+            {
+                this.logfile = "Server.log";
+            }
+            LoadPlugins();
+            Closed = new();
             foreach (Interface iface in interfaces)
             {
                 TListener listener = new(new TcpListener(IPAddress.Parse(iface.InterfaceIP), iface.Port));
@@ -50,6 +116,31 @@ namespace Server_base
             listeners = [.. listeners1];
             this.interfaces = [.. interfaces];
             _ = LoadMessageDataHandlers();
+            foreach (PluginInfo plugininfo in plugins)
+            {
+                try
+                {
+                    plugininfo.Plugin.ServerStart();
+                }
+                catch (Exception ex)
+                {
+                    if (ex is NotImplementedException)
+                    {
+                        //Disregard
+                    }
+                    else
+                    {
+                        try
+                        {
+                            plugininfo.Plugin.WriteLog(ex);
+                        }
+                        catch
+                        {
+                            //Disregard
+                        }
+                    }
+                }
+            }
         }
         private async Task Accept(TListener listener, string localip)
         {
@@ -61,7 +152,36 @@ namespace Server_base
             }
             while (active)
             {
-                _ = new Client(this, await listener.AcceptAsync(), localip);
+                if (!active)
+                {
+                    break;
+                }
+                Client client = new(this, await listener.AcceptAsync(), localip);
+                foreach (PluginInfo plugininfo in plugins)
+                {
+                    try
+                    {
+                        await plugininfo.Plugin.ClientAcceptedAsync(client);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
+                    }
+                }
             }
         }
         /// <summary>
@@ -146,6 +266,7 @@ namespace Server_base
         /// </summary>
         /// <param name="server">Server name.</param>
         /// <param name="message">Message.</param>
+        /// <param name="received">Name of the server from which message was received.</param>
         /// <returns>Async Task.</returns>
         public async Task SendMessageServer(string server, Message message, string? received = null)
         {
@@ -210,11 +331,62 @@ namespace Server_base
         public (bool, string, string, int, int) GetServer(string name)
         {
             //get server by name
+            var info = (false, "", "", 0, 0);
             if (servers.TryGetValue(name.ToLower(), out var server))
             {
-                return (true, server.LocalIP, server.RemoteIP, server.RemotePort, server.TimeOut);
+                info = (true, server.LocalIP, server.RemoteIP, server.RemotePort, server.TimeOut);
+                foreach (PluginInfo plugininfo in plugins)
+                {
+                    try
+                    {
+                        plugininfo.Plugin.GetServerInfo(server.LocalIP, server.RemoteIP, server.RemotePort, server.TimeOut);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
+                    }
+                }
             }
-            return (false, "", "", 0, 0);
+            foreach (PluginInfo plugininfo in plugins)
+            {
+                try
+                {
+                    info = plugininfo.Plugin.ReturnServerInfo(name);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is NotImplementedException)
+                    {
+                        //Disregard
+                    }
+                    else
+                    {
+                        try
+                        {
+                            plugininfo.Plugin.WriteLog(ex);
+                        }
+                        catch
+                        {
+                            //Disregard
+                        }
+                    }
+                }
+            }
+            return info;
         }
         /// <summary>
         /// Loads known servers from Servers.json file.
@@ -243,6 +415,31 @@ namespace Server_base
                 //Logging
                 await WriteLog(ex);
             }
+            foreach (PluginInfo plugininfo in plugins)
+            {
+                try
+                {
+                    await plugininfo.Plugin.ServersLoadAsync();
+                }
+                catch (Exception ex)
+                {
+                    if (ex is NotImplementedException)
+                    {
+                        //Disregard
+                    }
+                    else
+                    {
+                        try
+                        {
+                            plugininfo.Plugin.WriteLog(ex);
+                        }
+                        catch
+                        {
+                            //Disregard
+                        }
+                    }
+                }
+            }
         }
         /// <summary>
         /// Saves known servers to Servers.json file.
@@ -252,22 +449,47 @@ namespace Server_base
         {
             try
             {
-                string jsonString = await Task.Run(() =>
+                /*string jsonString = await Task.Run(() =>
+                {*/
+                List<Servers> servers_list = [];
+                foreach (var server in servers)
                 {
-                    List<Servers> servers_list = [];
-                    foreach (var server in servers)
-                    {
-                        server.Value.Name = server.Value.Name.ToLower();
-                        servers_list.Add(server.Value);
-                    }
-                    return Servers.Serialize(servers_list.ToArray());
-                });
-                await System.IO.File.WriteAllTextAsync("Servers.json", jsonString);
+                    server.Value.Name = server.Value.Name.ToLower();
+                    servers_list.Add(server.Value);
+                }
+                /*return Servers.Serialize(servers_list.ToArray());
+            });*/
+                await System.IO.File.WriteAllTextAsync("Servers.json", Servers.Serialize([.. servers_list]));
             }
             catch (Exception ex)
             {
                 //Logging
                 await WriteLog(ex);
+            }
+            foreach (PluginInfo plugininfo in plugins)
+            {
+                try
+                {
+                    await plugininfo.Plugin.ServersSaveAsync();
+                }
+                catch (Exception ex)
+                {
+                    if (ex is NotImplementedException)
+                    {
+                        //Disregard
+                    }
+                    else
+                    {
+                        try
+                        {
+                            plugininfo.Plugin.WriteLog(ex);
+                        }
+                        catch
+                        {
+                            //Disregard
+                        }
+                    }
+                }
             }
         }
         /// <summary>
@@ -337,6 +559,7 @@ namespace Server_base
             try
             {
                 active = false;
+                List<Task> tasklist = [];
                 foreach (TListener listener in listeners)
                 {
                     listener.Stop();
@@ -345,12 +568,12 @@ namespace Server_base
                 //Disconnect clients
                 foreach (var client in clients)
                 {
-                    await client.Value.Disconnect(true);
+                    tasklist.Add(client.Value.Disconnect(true));
                 }
                 //Disconnect remore servers
                 foreach (var remotes in remoteservers)
                 {
-                    await remotes.Value.Disconnect(true);
+                    tasklist.Add(remotes.Value.Disconnect(true));
                 }
                 //Delete remore users
                 foreach (var remoteu in remoteusers)
@@ -361,11 +584,11 @@ namespace Server_base
                     }
                 }
                 //Save servers to the file
-                await SaveServers();
+                tasklist.Add(SaveServers());
                 //Delete DataHandlers for messages
                 foreach (var message in messages)
                 {
-                    await message.Value.Close();
+                    tasklist.Add(message.Value.Close());
                     if (!messages.TryRemove(message))
                     {
                         //Console.WriteLine("Error remove message.");
@@ -374,12 +597,15 @@ namespace Server_base
                 //Delete DataHandlers for messages for remote servers
                 foreach (var rmessage in messages_server)
                 {
-                    await rmessage.Value.Close();
+                    tasklist.Add(rmessage.Value.Close());
                     if (!messages_server.TryRemove(rmessage))
                     {
                         //Console.WriteLine("Error remore message for other server.");
                     }
                 }
+                Servers.Unloading();
+                await Task.WhenAll(tasklist);
+                Closed.SetResult(true);
             }
             catch (Exception ex)
             {
@@ -471,16 +697,115 @@ namespace Server_base
             string log = DateTime.Now.ToString("d.M.yyyy. H:m:s") + " " + ex.ToString() + Environment.NewLine;
             try
             {
-                await System.IO.File.AppendAllTextAsync("Server.log", log);
-                if (writelogasync != null)
+                await System.IO.File.AppendAllTextAsync(logfile, log);
+                if (Writelogasync != null)
                 {
-                    await writelogasync(log);
+                    await Writelogasync(log);
+                }
+                foreach (PluginInfo plugininfo in plugins)
+                {
+                    try
+                    {
+                        plugininfo.Plugin.ServerLog(ex);
+                    }
+                    catch (Exception ex1)
+                    {
+                        if (ex1 is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
+                    }
                 }
             }
-            catch (Exception)
+            catch (Exception ex2)
             {
-                Console.WriteLine("Can't save log to file.");
+                Console.WriteLine($"Can't save log to file {logfile}.");
                 Console.WriteLine(log);
+                Console.WriteLine(ex2.ToString());
+            }
+        }
+        /// <summary>
+        /// Loads plugins.
+        /// </summary>
+        public void LoadPlugins()
+        {
+            try
+            {
+                Directory.CreateDirectory("Plugins");
+                string[] pluginsnames = Directory.GetDirectories("Plugins");
+                foreach (string name in pluginsnames)
+                {
+                    try
+                    {
+                        if (Verify(Path.GetFullPath(name)))
+                        {
+                            string pluginname = Path.GetFileName(name);
+                            string name1 = pluginname + ".dll";
+                            Assembly asm = context.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
+                            Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                            if (type != null)
+                            {
+                                var instance = Activator.CreateInstance(type);
+                                if (instance != null)
+                                {
+                                    PluginInfo plugininfo = new()
+                                    {
+                                        Name = pluginname,
+                                        Assembly = asm,
+                                        Plugin = (IPlugin)instance
+                                    };
+                                    plugininfo.Plugin.Server = this;
+                                    try
+                                    {
+                                        plugininfo.Plugin.Initialize();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        if (ex is NotImplementedException)
+                                        {
+                                            //Disregard
+                                        }
+                                        else
+                                        {
+                                            try
+                                            {
+                                                plugininfo.Plugin.WriteLog(ex);
+                                            }
+                                            catch
+                                            {
+                                                //Disregard
+                                            }
+                                        }
+                                    }
+                                    plugins.Add(plugininfo);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Plugin signature error");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        WriteLog(ex).Wait();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex).Wait();
             }
         }
     }

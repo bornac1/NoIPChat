@@ -1,15 +1,120 @@
-﻿using System.Xml.Serialization;
+﻿using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
+using System.Xml.Serialization;
 using ConfigurationData;
 using Messages;
-using Server_base;
+using Server_interface;
 using Sodium;
 namespace Server_starter
 {
     internal class Program
     {
-        private Server? server = null;
-        private Remote? remote = null;
-        private Server.WriteLogAsync? writelogasync;
+        private IServer? server;
+        private IRemote? remote;
+        private WriteLogAsync? writelogasync;
+
+        private AssemblyLoadContext? context;
+        private WeakReference? contextref;
+        Type? Server_class;
+        Type? Remote_class;
+        private Program()
+        {
+            server = null;
+            remote = null;
+            writelogasync = null;
+            context = null;
+            contextref = null;
+            Server_class = null;
+            Remote_class = null;
+        }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Load(string name)
+        {
+            try
+            {
+                context = new(null, true);
+                contextref = new(context);
+                string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                if (path != null)
+                {
+                    Assembly? loaded = context.LoadFromAssemblyPath(Path.Combine(path, name));
+                    Server_class = loaded?.GetTypes().Where(t => typeof(IServer).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                    Remote_class = loaded?.GetTypes().Where(t => typeof(IRemote).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private async Task Unload()
+        {
+            try
+            {
+                writelogasync = null;
+                Server_class = null;
+                Remote_class = null;
+                if (server != null)
+                {
+                    await server.Close();
+                    if (await server.Closed.Task)
+                    {
+                        Console.WriteLine("Server closed");
+                    }
+                    server = null;
+                }
+                if (remote != null)
+                {
+                    remote.Close();
+                    remote = null;
+                }
+                context?.Unload();
+                context = null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Clean()
+        {
+            if (contextref != null)
+            {
+                for (int i = 0; contextref.IsAlive && (i < 10); i++)
+                {
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
+                Console.WriteLine($"Unload success: {!contextref?.IsAlive}");
+            }
+        }
+        private IServer CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile)
+        {
+            if (Server_class != null)
+            {
+                var srv = Activator.CreateInstance(Server_class, name, interfaces, ecdh, writelogasync, logfile, context);
+                if (srv != null)
+                {
+                    return (IServer)srv;
+                }
+            }
+            throw new NullReferenceException();
+        }
+        private IRemote CreateRemote(string IP, int port, string username, string password)
+        {
+            if (Remote_class != null)
+            {
+                var rem = Activator.CreateInstance(Remote_class, IP, port, username, password);
+                if (rem != null)
+                {
+                    return (IRemote)rem;
+                }
+            }
+            throw new NullReferenceException();
+        }
         private async Task StartServer(int attempt = 0)
         {
             KeyPair ecdh;
@@ -55,7 +160,7 @@ namespace Server_starter
                 {
                     try
                     {
-                        server = new(Config.Server.Name, Config.Server.Interfaces, ecdh, writelogasync);
+                        server = CreateServer(Config.Server.Name, Config.Server.Interfaces, ecdh, writelogasync, Config.Logfile);
                     }
                     catch (Exception ex)
                     {
@@ -107,11 +212,11 @@ namespace Server_starter
                     {
                         if (Config.Remote.Active)
                         {
-                            remote = new Remote(Config.Remote.IP, Config.Remote.Port, Config.Remote.User, Config.Remote.Pass);
+                            remote = CreateRemote(Config.Remote.IP, Config.Remote.Port, Config.Remote.User, Config.Remote.Pass);
                             writelogasync = remote.SendLog;
                             if (server != null)
                             {
-                                server.writelogasync = writelogasync;
+                                server.Writelogasync = writelogasync;
                             }
                         }
                     }
@@ -124,6 +229,11 @@ namespace Server_starter
                         {
                             remote.Close();
                             remote = null;
+                            writelogasync = null;
+                            if (server != null)
+                            {
+                                server.Writelogasync = writelogasync;
+                            }
                             if (attempt <= 5)
                             {
                                 Console.WriteLine("Trying to restart remote");
@@ -144,14 +254,88 @@ namespace Server_starter
                 Console.WriteLine(ex.ToString());
             }
         }
+        private void Update()
+        {
+            try
+            {
+                string? serverpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                Console.Write("Path to update folder: ");
+                string? path = Console.ReadLine();
+                if (path != null && serverpath != null && Directory.Exists(path))
+                {
+                    string[] files = Directory.GetFiles(path);
+                    if (files.Length > 0)
+                    {
+                        if (Directory.Exists("Backup"))
+                        {
+                            Directory.Delete("Backup", true);
+                        }
+                        Directory.CreateDirectory("Backup");
+                        foreach (string file in files)
+                        {
+                            string file1 = Path.GetFullPath(file);
+                            string filename = Path.GetFileName(file);
+                            string oldpath = Path.Combine(serverpath, filename);
+                            try
+                            {
+                                if (System.IO.File.Exists(oldpath))
+                                {
+                                    //Copy old to Backup
+                                    System.IO.File.Copy(oldpath, Path.Combine("Backup", filename), true);
+                                }
+                                //Copy new to old
+                                System.IO.File.Copy(file1, oldpath, true);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Update error. {ex}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Path error.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
         static async Task Main()
         {
             Program program = new();
+            program.Load("Server_base.dll");
             program.StartRemote();
             await program.StartServer();
             while (true)
             {
-                Console.ReadLine();
+                string? input = Console.ReadLine();
+                if (input != null)
+                {
+                    if (input.Equals("exit", StringComparison.OrdinalIgnoreCase))
+                    {
+                        program.Unload().Wait();
+                        break;
+                    }
+                    else if (input.Equals("update", StringComparison.OrdinalIgnoreCase))
+                    {
+                        program.Unload().Wait();
+                        program.Clean();
+                        if (program.contextref != null && !program.contextref.IsAlive)
+                        {
+                            program.Update();
+                            program.Load("Server_base.dll");
+                            program.StartRemote();
+                            await program.StartServer();
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Unknown command.");
+                    }
+                }
             }
         }
     }

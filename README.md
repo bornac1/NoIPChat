@@ -91,6 +91,8 @@ IP is IP address that is used by clients and remote servers to connect (in case 
 
 Port is a port number (port should be opend in firewall)
 
+Logfile is path to Server log file. Default is Server.log
+
 Remote is reserver for future uses and can be deleted
 
 3) Start the server
@@ -104,6 +106,25 @@ If connection between client and server or two servers is lost, it'll automatica
 
 **Logging errors**
 
-Errors are logged into the Client.log and Server.log files in the same directory where your Client and Server are located.
+Client errors are logged into the Client.log file in the same directory where your Client is located, choosing location for log file (WIP).
 
-Choosing location for log files (WIP).
+Server errors are logged into the file you set in Config.xml
+
+**Guide**
+
+You can use Guide to help you with installation and configuration of NoIPChat. Currently supports only configuration of Server.
+
+**Dynamic software update**
+
+In order to update Server without restarting (hot patch), you need path to folder with update.
+
+Once ready, type update into Server. 
+
+You'll see messaage like the following:
+
+Server closed
+
+Unload success: True
+
+
+Once asked, provide path to update folder and press Enter key. Server will be updated automatically.

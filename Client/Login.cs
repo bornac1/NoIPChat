@@ -1,10 +1,17 @@
 ﻿namespace Client
 {
+    /// <summary>
+    /// Login form.
+    /// </summary>
     public partial class Login : Form
     {
-        public Client client;
+        private readonly Client client;
         private bool loginclicked;
         private readonly Main main;
+        /// <summary>
+        /// Login constructor.
+        /// </summary>
+        /// <param name="main"></param>
         public Login(Main main)
         {
             this.main = main;

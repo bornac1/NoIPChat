@@ -4,6 +4,9 @@ using Messages;
 
 namespace Server_base
 {
+    /// <summary>
+    /// Data handlers for storing messages.
+    /// </summary>
     public class DataHandler
     {
         private const string magicstring = "NOIPCHAT";

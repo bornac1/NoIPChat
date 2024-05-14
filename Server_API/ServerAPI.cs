@@ -1,4 +1,5 @@
-﻿using ConfigurationData;
+﻿using System.Runtime.Loader;
+using ConfigurationData;
 using Messages;
 using Server_base;
 using Sodium;
@@ -22,9 +23,9 @@ namespace ServerAPI
         ///</summary>
         ///<param name="name">Name of the server.</param>
         ///<param name="interfaces">List of netwok interfaces used by server</param>
-        public void CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, Server.WriteLogAsync? writelogasync)
+        public void CreateServer(string name, List<Interface> interfaces, KeyPair ecdh, Server_interface.WriteLogAsync? writelogasync, string? logfile)
         {
-            server = new Server(name, interfaces, ecdh, writelogasync);
+            server = new Server(name, interfaces, ecdh, writelogasync, logfile, AssemblyLoadContext.Default);
         }
         ///<summary>
         ///Sends message from server to user.
