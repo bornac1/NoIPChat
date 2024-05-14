@@ -13,7 +13,7 @@ namespace Client
     /// <summary>
     /// Client class.
     /// </summary>
-    public class Client
+    public partial class Client
     {
         /// <summary>
         /// Client version.
@@ -565,45 +565,48 @@ namespace Client
                 {
                     try
                     {
-                        string pluginname = Path.GetFileName(name);
-                        string name1 = pluginname + ".dll";
-                        Assembly asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
-                        Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
-                        if (type != null)
+                        if (Verify(Path.GetFullPath(name)))
                         {
-                            var instance = Activator.CreateInstance(type);
-                            if (instance != null)
+                            string pluginname = Path.GetFileName(name);
+                            string name1 = pluginname + ".dll";
+                            Assembly asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
+                            Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                            if (type != null)
                             {
-                                PluginInfo plugininfo = new()
+                                var instance = Activator.CreateInstance(type);
+                                if (instance != null)
                                 {
-                                    Name = pluginname,
-                                    Assembly = asm,
-                                    Plugin = (IPlugin)instance
-                                };
-                                plugininfo.Plugin.Client = this;
-                                try
-                                {
-                                    plugininfo.Plugin.Initialize();
-                                }
-                                catch (Exception ex)
-                                {
-                                    if (ex is NotImplementedException)
+                                    PluginInfo plugininfo = new()
                                     {
-                                        //Disregard
+                                        Name = pluginname,
+                                        Assembly = asm,
+                                        Plugin = (IPlugin)instance
+                                    };
+                                    plugininfo.Plugin.Client = this;
+                                    try
+                                    {
+                                        plugininfo.Plugin.Initialize();
                                     }
-                                    else
+                                    catch (Exception ex)
                                     {
-                                        try
-                                        {
-                                            plugininfo.Plugin.WriteLog(ex);
-                                        }
-                                        catch
+                                        if (ex is NotImplementedException)
                                         {
                                             //Disregard
                                         }
+                                        else
+                                        {
+                                            try
+                                            {
+                                                plugininfo.Plugin.WriteLog(ex);
+                                            }
+                                            catch
+                                            {
+                                                //Disregard
+                                            }
+                                        }
                                     }
+                                    plugins.Add(plugininfo);
                                 }
-                                plugins.Add(plugininfo);
                             }
                         }
                     }
