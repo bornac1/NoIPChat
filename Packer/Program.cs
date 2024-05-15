@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.IO.Compression;
 
 namespace Packer
 {
@@ -25,7 +26,7 @@ namespace Packer
                 }
             }
         }
-        private static void Sign(string path)
+        private static void SignAndPack(string path)
         {
             X509Certificate2 cert = new("NoIPChat.pfx");
             var rsaPrivateKey = cert.GetRSAPrivateKey();
@@ -34,8 +35,13 @@ namespace Packer
                 string[] files = Directory.GetFiles(path);
                 byte[] signatures = new byte[256 * files.Length];
                 int i = 0;
+                string name = "Packet.nip";
                 foreach (string file in files)
                 {
+                    if (file.Contains(".dll"))
+                    {
+                        name = Path.GetFileNameWithoutExtension(file)+".nip";
+                    }
                     using (FileStream fs = new(file, FileMode.Open))
                     {
                         using SHA256 sha256 = SHA256.Create();
@@ -45,9 +51,37 @@ namespace Packer
                     }
                     i += 1;
                 }
-                File.WriteAllBytes(Path.Combine(path, "sign"), signatures);
+                if (name != null)
+                {
+                    File.WriteAllBytes(Path.Combine(path, "sign"), signatures);
+                    files = Directory.GetFiles(path);
+                    ZipFiles(files, name, path);
+                }
             }
         }
+        static void ZipFiles(string[] filesToZip, string zipFileName, string directoryPath)
+        {
+            using (FileStream zipToOpen = new FileStream(Path.Combine(directoryPath, zipFileName), FileMode.Create))
+            {
+                using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
+                {
+                    foreach (string file in filesToZip)
+                    {
+                        string filePath = Path.Combine(directoryPath, file);
+                        if (File.Exists(filePath))
+                        {
+                            string fileName = Path.GetFileName(file);
+                            archive.CreateEntryFromFile(filePath, fileName);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"File '{file}' does not exist.");
+                        }
+                    }
+                }
+            }
+        }
+
         private static List<byte[]> SplitByteArray(byte[] byteArray, int chunkSize)
         {
             return Enumerable.Range(0, (byteArray.Length + chunkSize - 1) / chunkSize)
@@ -112,8 +146,10 @@ namespace Packer
             }
             if (!string.IsNullOrEmpty(path))
             {
-                Sign(Path.GetFullPath(path));
+                SignAndPack(Path.GetFullPath(path));
             }
+            Console.Write("Press any key to exit.");
+            Console.ReadLine();
         }
     }
 }

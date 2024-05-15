@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.IO.Compression;
 using System.Net;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -738,11 +739,49 @@ namespace Server_base
                 Console.WriteLine(ex2.ToString());
             }
         }
+        private static void UnpackZip(string zipFilePath, string extractPath)
+        {
+            Directory.CreateDirectory(extractPath);
+            using (ZipArchive archive = ZipFile.OpenRead(zipFilePath))
+            {
+                foreach (ZipArchiveEntry entry in archive.Entries)
+                {
+                    string entryFullName = Path.Combine(extractPath, entry.FullName);
+                    string? directory = Path.GetDirectoryName(entryFullName);
+                    if (directory != null)
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+
+                    entry.ExtractToFile(entryFullName, true);
+                }
+            }
+        }
+        private void UnpackPlugins()
+        {
+            try {
+                Directory.CreateDirectory("Plugins");
+                string[] files = Directory.GetFiles("Plugins");
+                foreach(string file in files)
+                {
+                    if(Path.GetExtension(file).Equals(".nip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        UnpackZip(file, Path.Combine("Plugins", Path.GetFileNameWithoutExtension(file)));
+                        System.IO.File.Delete(file);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex).Wait();
+            }
+        }
         /// <summary>
         /// Loads plugins.
         /// </summary>
         public void LoadPlugins()
         {
+            UnpackPlugins();
             try
             {
                 Directory.CreateDirectory("Plugins");
