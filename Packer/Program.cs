@@ -38,18 +38,20 @@ namespace Packer
                 string name = "Packet.nip";
                 foreach (string file in files)
                 {
-                    if (file.Contains(".dll"))
-                    {
-                        name = Path.GetFileNameWithoutExtension(file)+".nip";
+                    if (file != "sign" && !file.Contains(".nip")) {
+                        if (file.Contains(".dll"))
+                        {
+                            name = Path.GetFileNameWithoutExtension(file) + ".nip";
+                        }
+                        using (FileStream fs = new(file, FileMode.Open))
+                        {
+                            using SHA256 sha256 = SHA256.Create();
+                            byte[] hash = sha256.ComputeHash(fs);
+                            byte[] signature = rsaPrivateKey.SignHash(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                            signature.CopyTo(signatures, i * 256);
+                        }
+                        i += 1;
                     }
-                    using (FileStream fs = new(file, FileMode.Open))
-                    {
-                        using SHA256 sha256 = SHA256.Create();
-                        byte[] hash = sha256.ComputeHash(fs);
-                        byte[] signature = rsaPrivateKey.SignHash(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                        signature.CopyTo(signatures, i * 256);
-                    }
-                    i += 1;
                 }
                 if (name != null)
                 {
