@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.IO.Compression;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Xml.Serialization;
@@ -254,16 +255,39 @@ namespace Server_starter
                 Console.WriteLine(ex.ToString());
             }
         }
+        private static void UnpackZip(string zipFilePath, string extractPath)
+        {
+            Directory.CreateDirectory(extractPath);
+            using (ZipArchive archive = ZipFile.OpenRead(zipFilePath))
+            {
+                foreach (ZipArchiveEntry entry in archive.Entries)
+                {
+                    if (entry.FullName != "sign")
+                    {
+                        string entryFullName = Path.Combine(extractPath, entry.FullName);
+                        string? directory = Path.GetDirectoryName(entryFullName);
+                        if (directory != null)
+                        {
+                            Directory.CreateDirectory(directory);
+                        }
+                        entry.ExtractToFile(entryFullName, true);
+                    }
+                }
+            }
+        }
         private void Update()
         {
             try
             {
                 string? serverpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                Console.Write("Path to update folder: ");
+                Console.Write("Path to update pack: ");
                 string? path = Console.ReadLine();
-                if (path != null && serverpath != null && Directory.Exists(path))
+                if (path != null && serverpath != null)
                 {
-                    string[] files = Directory.GetFiles(path);
+                    string updatepath = Path.Combine(serverpath, "Update");
+                    Directory.CreateDirectory(updatepath);
+                    UnpackZip(path, updatepath);
+                    string[] files = Directory.GetFiles(updatepath);
                     if (files.Length > 0)
                     {
                         if (Directory.Exists("Backup"))
