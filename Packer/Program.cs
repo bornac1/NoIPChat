@@ -36,6 +36,7 @@ namespace Packer
                 byte[] signatures = new byte[256 * files.Length];
                 int i = 0;
                 string name = "Packet.nip";
+                List<string> files1 = [];
                 foreach (string file in files)
                 {
                     if (file != "sign" && !file.Contains(".nip")) {
@@ -51,14 +52,11 @@ namespace Packer
                             signature.CopyTo(signatures, i * 256);
                         }
                         i += 1;
+                        files1.Add(file);
                     }
                 }
-                if (name != null)
-                {
-                    File.WriteAllBytes(Path.Combine(path, "sign"), signatures);
-                    files = Directory.GetFiles(path);
-                    ZipFiles(files, name, path);
-                }
+                File.WriteAllBytes(Path.Combine(path, "sign"), signatures);
+                ZipFiles(files1.ToArray(), name, path);
             }
         }
         static void ZipFiles(string[] filesToZip, string zipFileName, string directoryPath)
