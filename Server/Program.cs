@@ -307,8 +307,9 @@ namespace Server_starter
                                     //Copy old to Backup
                                     System.IO.File.Copy(oldpath, Path.Combine("Backup", filename), true);
                                 }
-                                //Copy new to old
-                                System.IO.File.Copy(file1, oldpath, true);
+                                //Move new to old
+                                //Deletes file from Update folder
+                                System.IO.File.Move(file1, oldpath, true);
                             }
                             catch (Exception ex)
                             {
