@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Diagnostics;
+using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
@@ -314,6 +315,7 @@ namespace Server_starter
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"Update error. {ex}");
+                                Console.WriteLine("Update can't be done without restarting. Type command update-force and Server will restart.");
                             }
                         }
                     }
@@ -328,8 +330,25 @@ namespace Server_starter
                 Console.WriteLine(ex.ToString());
             }
         }
+        static void UpdateForce()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "Updater.exe",
+                    Arguments = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + " "+"server"
+                });
+                Environment.Exit(0);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
         static async Task Main()
         {
+            Console.Clear();
             Program program = new();
             program.Load("Server_base.dll");
             program.StartRemote();
@@ -355,6 +374,9 @@ namespace Server_starter
                             program.StartRemote();
                             await program.StartServer();
                         }
+                    } else if(input.Equals("update-force", StringComparison.OrdinalIgnoreCase))
+                    {
+                        UpdateForce();
                     }
                     else
                     {
