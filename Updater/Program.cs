@@ -56,9 +56,24 @@ namespace Updater
                                 Console.ReadLine();
                             }
                         }
-                        else
+                        else if (type == "client")
                         {
-
+                            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                            {
+                                Process.Start(Path.Combine(path, "Client.exe"));
+                                Environment.Exit(0);
+                            }
+                            else if (Environment.OSVersion.Platform == PlatformID.Unix)
+                            {
+                                Process.Start(Path.Combine(path, "Client"));
+                                Environment.Exit(0);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Client can't be restarted automatically. Please start it manually.");
+                                Console.Write("Press any key to exit.");
+                                Console.ReadLine();
+                            }
                         }
 
                     }
