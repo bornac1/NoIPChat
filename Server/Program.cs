@@ -282,7 +282,7 @@ namespace Server_starter
                 string? serverpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 Console.Write("Path to update pack: ");
                 string? path = Console.ReadLine();
-                if (path != null && serverpath != null)
+                if (!string.IsNullOrEmpty(path) && !string.IsNullOrEmpty(serverpath))
                 {
                     string updatepath = Path.Combine(serverpath, "Update");
                     Directory.CreateDirectory(updatepath);
