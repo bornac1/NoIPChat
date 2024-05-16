@@ -789,7 +789,7 @@ namespace Server_base
                 {
                     try
                     {
-                        if (Verify(Path.GetFullPath(name)))
+                        if (Verify(Path.GetFullPath(name)) && !plugins.Exists(t=> t.Name == Path.GetFileName(name)))
                         {
                             string pluginname = Path.GetFileName(name);
                             string name1 = pluginname + ".dll";
