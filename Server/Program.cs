@@ -259,20 +259,18 @@ namespace Server_starter
         private static void UnpackZip(string zipFilePath, string extractPath)
         {
             Directory.CreateDirectory(extractPath);
-            using (ZipArchive archive = ZipFile.OpenRead(zipFilePath))
+            using ZipArchive archive = ZipFile.OpenRead(zipFilePath);
+            foreach (ZipArchiveEntry entry in archive.Entries)
             {
-                foreach (ZipArchiveEntry entry in archive.Entries)
+                if (entry.FullName != "sign")
                 {
-                    if (entry.FullName != "sign")
+                    string entryFullName = Path.Combine(extractPath, entry.FullName);
+                    string? directory = Path.GetDirectoryName(entryFullName);
+                    if (directory != null)
                     {
-                        string entryFullName = Path.Combine(extractPath, entry.FullName);
-                        string? directory = Path.GetDirectoryName(entryFullName);
-                        if (directory != null)
-                        {
-                            Directory.CreateDirectory(directory);
-                        }
-                        entry.ExtractToFile(entryFullName, true);
+                        Directory.CreateDirectory(directory);
                     }
+                    entry.ExtractToFile(entryFullName, true);
                 }
             }
         }
@@ -337,7 +335,7 @@ namespace Server_starter
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = "Updater.exe",
-                    Arguments = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + " "+"server"
+                    Arguments = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + " " + "server"
                 });
                 Environment.Exit(0);
             }
@@ -374,7 +372,8 @@ namespace Server_starter
                             program.StartRemote();
                             await program.StartServer();
                         }
-                    } else if(input.Equals("update-force", StringComparison.OrdinalIgnoreCase))
+                    }
+                    else if (input.Equals("update-force", StringComparison.OrdinalIgnoreCase))
                     {
                         UpdateForce();
                     }

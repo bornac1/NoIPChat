@@ -1,6 +1,6 @@
-﻿using System.Security.Cryptography;
+﻿using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.IO.Compression;
 
 namespace Packer
 {
@@ -39,7 +39,8 @@ namespace Packer
                 List<string> files1 = [];
                 foreach (string file in files)
                 {
-                    if (file != "sign" && !file.Contains(".nip")) {
+                    if (file != "sign" && !file.Contains(".nip"))
+                    {
                         if (file.Contains(".dll"))
                         {
                             name = Path.GetFileNameWithoutExtension(file) + ".nip";
@@ -56,28 +57,24 @@ namespace Packer
                     }
                 }
                 File.WriteAllBytes(Path.Combine(path, "sign"), signatures);
-                ZipFiles(files1.ToArray(), name, path);
+                ZipFiles([.. files1], name, path);
             }
         }
         static void ZipFiles(string[] filesToZip, string zipFileName, string directoryPath)
         {
-            using (FileStream zipToOpen = new FileStream(Path.Combine(directoryPath, zipFileName), FileMode.Create))
+            using FileStream zipToOpen = new(Path.Combine(directoryPath, zipFileName), FileMode.Create);
+            using ZipArchive archive = new(zipToOpen, ZipArchiveMode.Create);
+            foreach (string file in filesToZip)
             {
-                using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
+                string filePath = Path.Combine(directoryPath, file);
+                if (File.Exists(filePath))
                 {
-                    foreach (string file in filesToZip)
-                    {
-                        string filePath = Path.Combine(directoryPath, file);
-                        if (File.Exists(filePath))
-                        {
-                            string fileName = Path.GetFileName(file);
-                            archive.CreateEntryFromFile(filePath, fileName);
-                        }
-                        else
-                        {
-                            Console.WriteLine($"File '{file}' does not exist.");
-                        }
-                    }
+                    string fileName = Path.GetFileName(file);
+                    archive.CreateEntryFromFile(filePath, fileName);
+                }
+                else
+                {
+                    Console.WriteLine($"File '{file}' does not exist.");
                 }
             }
         }

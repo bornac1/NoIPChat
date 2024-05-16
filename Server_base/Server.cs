@@ -742,29 +742,28 @@ namespace Server_base
         private static void UnpackZip(string zipFilePath, string extractPath)
         {
             Directory.CreateDirectory(extractPath);
-            using (ZipArchive archive = ZipFile.OpenRead(zipFilePath))
+            using ZipArchive archive = ZipFile.OpenRead(zipFilePath);
+            foreach (ZipArchiveEntry entry in archive.Entries)
             {
-                foreach (ZipArchiveEntry entry in archive.Entries)
+                string entryFullName = Path.Combine(extractPath, entry.FullName);
+                string? directory = Path.GetDirectoryName(entryFullName);
+                if (directory != null)
                 {
-                    string entryFullName = Path.Combine(extractPath, entry.FullName);
-                    string? directory = Path.GetDirectoryName(entryFullName);
-                    if (directory != null)
-                    {
-                        Directory.CreateDirectory(directory);
-                    }
-
-                    entry.ExtractToFile(entryFullName, true);
+                    Directory.CreateDirectory(directory);
                 }
+
+                entry.ExtractToFile(entryFullName, true);
             }
         }
         private void UnpackPlugins()
         {
-            try {
+            try
+            {
                 Directory.CreateDirectory("Plugins");
                 string[] files = Directory.GetFiles("Plugins");
-                foreach(string file in files)
+                foreach (string file in files)
                 {
-                    if(Path.GetExtension(file).Equals(".nip", StringComparison.OrdinalIgnoreCase))
+                    if (Path.GetExtension(file).Equals(".nip", StringComparison.OrdinalIgnoreCase))
                     {
                         UnpackZip(file, Path.Combine("Plugins", Path.GetFileNameWithoutExtension(file)));
                         System.IO.File.Delete(file);
