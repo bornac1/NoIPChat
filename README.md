@@ -116,7 +116,7 @@ You can use Guide to help you with installation and configuration of NoIPChat. C
 
 **Dynamic software update**
 
-In order to update Server without restarting (hot patch), you need path to folder with update.
+In order to update Server without restarting (hot patch), you need path to update packgage.
 
 Once ready, type update into Server. 
 
@@ -127,4 +127,4 @@ Server closed
 Unload success: True
 
 
-Once asked, provide path to update folder and press Enter key. Server will be updated automatically.
+Once asked, provide path to update package and press Enter key. Server will be updated automatically.

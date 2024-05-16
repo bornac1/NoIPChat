@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.IO.Compression;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Xml.Serialization;
@@ -254,16 +256,37 @@ namespace Server_starter
                 Console.WriteLine(ex.ToString());
             }
         }
+        private static void UnpackZip(string zipFilePath, string extractPath)
+        {
+            Directory.CreateDirectory(extractPath);
+            using ZipArchive archive = ZipFile.OpenRead(zipFilePath);
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                if (entry.FullName != "sign")
+                {
+                    string entryFullName = Path.Combine(extractPath, entry.FullName);
+                    string? directory = Path.GetDirectoryName(entryFullName);
+                    if (directory != null)
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+                    entry.ExtractToFile(entryFullName, true);
+                }
+            }
+        }
         private void Update()
         {
             try
             {
                 string? serverpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                Console.Write("Path to update folder: ");
+                Console.Write("Path to update pack: ");
                 string? path = Console.ReadLine();
-                if (path != null && serverpath != null && Directory.Exists(path))
+                if (!string.IsNullOrEmpty(path) && !string.IsNullOrEmpty(serverpath))
                 {
-                    string[] files = Directory.GetFiles(path);
+                    string updatepath = Path.Combine(serverpath, "Update");
+                    Directory.CreateDirectory(updatepath);
+                    UnpackZip(path, updatepath);
+                    string[] files = Directory.GetFiles(updatepath);
                     if (files.Length > 0)
                     {
                         if (Directory.Exists("Backup"))
@@ -283,12 +306,14 @@ namespace Server_starter
                                     //Copy old to Backup
                                     System.IO.File.Copy(oldpath, Path.Combine("Backup", filename), true);
                                 }
-                                //Copy new to old
-                                System.IO.File.Copy(file1, oldpath, true);
+                                //Move new to old
+                                //Deletes file from Update folder
+                                System.IO.File.Move(file1, oldpath, true);
                             }
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"Update error. {ex}");
+                                Console.WriteLine("Update can't be done without restarting. Type command update-force and Server will restart.");
                             }
                         }
                     }
@@ -303,8 +328,25 @@ namespace Server_starter
                 Console.WriteLine(ex.ToString());
             }
         }
+        static void UpdateForce()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "Updater.exe",
+                    Arguments = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + " " + "server"
+                });
+                Environment.Exit(0);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
         static async Task Main()
         {
+            Console.Clear();
             Program program = new();
             program.Load("Server_base.dll");
             program.StartRemote();
@@ -330,6 +372,10 @@ namespace Server_starter
                             program.StartRemote();
                             await program.StartServer();
                         }
+                    }
+                    else if (input.Equals("update-force", StringComparison.OrdinalIgnoreCase))
+                    {
+                        UpdateForce();
                     }
                     else
                     {

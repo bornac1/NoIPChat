@@ -8,10 +8,4 @@
 	<SelfContained>true</SelfContained>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Update="NoIPChat.pfx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

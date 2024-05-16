@@ -27,6 +27,7 @@
     <ProjectReference Include="..\Messages\Messages.csproj" />
     <ProjectReference Include="..\Server_API\Server_API.csproj" />
     <ProjectReference Include="..\Server_interface\Server_interface.csproj" />
+    <ProjectReference Include="..\Updater\Updater.csproj" />
   </ItemGroup>
 
   <ItemGroup>

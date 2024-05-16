@@ -31,9 +31,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guide", "Guide\Guide.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test server plugin", "Test server plugin\Test server plugin.csproj", "{3C32E620-1CD6-460B-9154-545CC04C449D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test client plugin", "Test client plugin\Test client plugin.csproj", "{AACAD186-A433-4478-A8FE-C9380B143FF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test client plugin", "Test client plugin\Test client plugin.csproj", "{AACAD186-A433-4478-A8FE-C9380B143FF1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Packer", "Packer\Packer.csproj", "{BDA36DBF-80C6-4156-B21A-691DA426BD20}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Packer", "Packer\Packer.csproj", "{BDA36DBF-80C6-4156-B21A-691DA426BD20}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Updater", "Updater\Updater.csproj", "{607F682D-5409-42FE-A651-F3278F32FD39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -201,6 +203,18 @@ Global
 		{BDA36DBF-80C6-4156-B21A-691DA426BD20}.Release|x64.Build.0 = Release|Any CPU
 		{BDA36DBF-80C6-4156-B21A-691DA426BD20}.Release|x86.ActiveCfg = Release|Any CPU
 		{BDA36DBF-80C6-4156-B21A-691DA426BD20}.Release|x86.Build.0 = Release|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Debug|x64.Build.0 = Debug|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Debug|x86.Build.0 = Debug|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Release|x64.ActiveCfg = Release|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Release|x64.Build.0 = Release|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Release|x86.ActiveCfg = Release|Any CPU
+		{607F682D-5409-42FE-A651-F3278F32FD39}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
