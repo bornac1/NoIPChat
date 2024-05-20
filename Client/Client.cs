@@ -641,6 +641,7 @@ namespace Client
                                         if (plugininfo.Plugin.IsPatch)
                                         {
                                             harmony.PatchAll(plugininfo.Assembly);
+                                            MessageBox.Show("Patched.");
                                         }
                                     }
                                     catch (Exception ex)
