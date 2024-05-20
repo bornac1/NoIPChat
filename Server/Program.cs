@@ -298,7 +298,7 @@ namespace Server_starter
                         {
                             string backuppatch = Path.Combine("Backup", "Patches");
                             Directory.CreateDirectory(backuppatch);
-                            foreach(string pfile in Directory.GetFiles("Patches"))
+                            foreach (string pfile in Directory.GetFiles("Patches"))
                             {
                                 System.IO.File.Copy(pfile, Path.Combine(backuppatch, Path.GetFileName(pfile)));
                             }

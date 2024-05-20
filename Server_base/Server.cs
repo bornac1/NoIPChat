@@ -808,42 +808,42 @@ namespace Server_base
                         if (Verify(Path.GetFullPath(name)))
                         {
                             string pluginname = Path.GetFileName(name);
-                                string name1 = pluginname + ".dll";
-                                Assembly asm = context.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
-                                Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
-                                if (type != null)
+                            string name1 = pluginname + ".dll";
+                            Assembly asm = context.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
+                            Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                            if (type != null)
+                            {
+                                var instance = Activator.CreateInstance(type);
+                                if (instance != null)
                                 {
-                                    var instance = Activator.CreateInstance(type);
-                                    if (instance != null)
+                                    PluginInfo plugininfo = new()
                                     {
-                                        PluginInfo plugininfo = new()
+                                        Name = pluginname,
+                                        Assembly = asm,
+                                        Plugin = (IPlugin)instance
+                                    };
+                                    plugininfo.Plugin.Server = this;
+                                    try
+                                    {
+                                        if (plugininfo.Plugin.IsPatch)
                                         {
-                                            Name = pluginname,
-                                            Assembly = asm,
-                                            Plugin = (IPlugin)instance
-                                        };
-                                        plugininfo.Plugin.Server = this;
-                                        try
-                                        {
-                                            if (plugininfo.Plugin.IsPatch)
-                                            {
-                                                harmony.PatchAll(plugininfo.Assembly);
-                                            }
+                                            harmony.PatchAll(plugininfo.Assembly);
                                         }
-                                        catch (Exception ex)
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        if (ex is NotImplementedException)
                                         {
-                                            if (ex is NotImplementedException)
-                                            {
-                                                //Disregard
-                                            }
-                                            else
-                                            {
-                                                WriteLog(ex).Wait();
-                                            }
+                                            //Disregard
+                                        }
+                                        else
+                                        {
+                                            WriteLog(ex).Wait();
                                         }
                                     }
                                 }
                             }
+                        }
                         else
                         {
                             Console.WriteLine("Patch signature error");
