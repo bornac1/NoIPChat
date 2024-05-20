@@ -16,6 +16,16 @@ namespace Updater
                     {
                         string path = args[0];
                         string type = args[1];
+                        if (Directory.Exists("Patches"))
+                        {
+                            string backuppatch = Path.Combine("Backup", "Patches");
+                            Directory.CreateDirectory(backuppatch);
+                            foreach (string pfile in Directory.GetFiles("Patches"))
+                            {
+                                System.IO.File.Copy(pfile, Path.Combine(backuppatch, Path.GetFileName(pfile)));
+                            }
+                            Directory.Delete("Patches", true);
+                        }
                         foreach (string file in Directory.GetFiles(Path.Combine(path, "Update")))
                         {
                             string file1 = Path.GetFullPath(file);

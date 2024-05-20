@@ -294,6 +294,16 @@ namespace Server_starter
                             Directory.Delete("Backup", true);
                         }
                         Directory.CreateDirectory("Backup");
+                        if (Directory.Exists("Patches"))
+                        {
+                            string backuppatch = Path.Combine("Backup", "Patches");
+                            Directory.CreateDirectory(backuppatch);
+                            foreach(string pfile in Directory.GetFiles("Patches"))
+                            {
+                                System.IO.File.Copy(pfile, Path.Combine(backuppatch, Path.GetFileName(pfile)));
+                            }
+                            Directory.Delete("Patches", true);
+                        }
                         foreach (string file in files)
                         {
                             string file1 = Path.GetFullPath(file);
@@ -346,7 +356,16 @@ namespace Server_starter
         }
         private void Patch()
         {
-            server?.LoadPlugins();
+            if (server != null)
+            {
+                Console.Write("Path to patch pack: ");
+                string? path = Console.ReadLine();
+                if (path != null)
+                {
+                    server.LoadPatch(path);
+                    Console.WriteLine("Patched.");
+                }
+            }
         }
         static async Task Main()
         {

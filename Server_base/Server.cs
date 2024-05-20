@@ -778,6 +778,88 @@ namespace Server_base
                 WriteLog(ex).Wait();
             }
         }
+        private void UnpackPatch(string path)
+        {
+            try
+            {
+                Directory.CreateDirectory("Patches");
+                UnpackZip(path, Path.Combine("Patches", Path.GetFileNameWithoutExtension(path)));
+                System.IO.File.Delete(path);
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex).Wait();
+            }
+        }
+        /// <summary>
+        /// Loads patches.
+        /// </summary>
+        public void LoadPatch(string path)
+        {
+            UnpackPatch(path);
+            try
+            {
+                Directory.CreateDirectory("Patches");
+                string[] pluginsnames = Directory.GetDirectories("Patches");
+                foreach (string name in pluginsnames)
+                {
+                    try
+                    {
+                        if (Verify(Path.GetFullPath(name)))
+                        {
+                            string pluginname = Path.GetFileName(name);
+                                string name1 = pluginname + ".dll";
+                                Assembly asm = context.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
+                                Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                                if (type != null)
+                                {
+                                    var instance = Activator.CreateInstance(type);
+                                    if (instance != null)
+                                    {
+                                        PluginInfo plugininfo = new()
+                                        {
+                                            Name = pluginname,
+                                            Assembly = asm,
+                                            Plugin = (IPlugin)instance
+                                        };
+                                        plugininfo.Plugin.Server = this;
+                                        try
+                                        {
+                                            if (plugininfo.Plugin.IsPatch)
+                                            {
+                                                harmony.PatchAll(plugininfo.Assembly);
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            if (ex is NotImplementedException)
+                                            {
+                                                //Disregard
+                                            }
+                                            else
+                                            {
+                                                WriteLog(ex).Wait();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        else
+                        {
+                            Console.WriteLine("Patch signature error");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        WriteLog(ex).Wait();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex).Wait();
+            }
+        }
         /// <summary>
         /// Loads plugins.
         /// </summary>
@@ -814,10 +896,6 @@ namespace Server_base
                                         plugininfo.Plugin.Server = this;
                                         try
                                         {
-                                            if (plugininfo.Plugin.IsPatch)
-                                            {
-                                                harmony.PatchAll(plugininfo.Assembly);
-                                            }
                                             plugininfo.Plugin.Initialize();
                                         }
                                         catch (Exception ex)
