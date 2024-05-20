@@ -380,7 +380,8 @@ namespace Server_starter
                     else if (input.Equals("update-force", StringComparison.OrdinalIgnoreCase))
                     {
                         UpdateForce();
-                    } else if (input.Equals("patch", StringComparison.OrdinalIgnoreCase))
+                    }
+                    else if (input.Equals("patch", StringComparison.OrdinalIgnoreCase))
                     {
                         program.Patch();
                     }
