@@ -344,6 +344,10 @@ namespace Server_starter
                 Console.WriteLine(ex.ToString());
             }
         }
+        private void Patch()
+        {
+            server?.LoadPlugins();
+        }
         static async Task Main()
         {
             Console.Clear();
@@ -376,6 +380,9 @@ namespace Server_starter
                     else if (input.Equals("update-force", StringComparison.OrdinalIgnoreCase))
                     {
                         UpdateForce();
+                    } else if (input.Equals("patch", StringComparison.OrdinalIgnoreCase))
+                    {
+                        program.Patch();
                     }
                     else
                     {

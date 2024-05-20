@@ -5,6 +5,7 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.Loader;
 using ConfigurationData;
+using HarmonyLib;
 using Messages;
 using Server_interface;
 using Sodium;
@@ -75,6 +76,7 @@ namespace Server_base
         /// Delegate for async log writing.
         /// </summary>
         public WriteLogAsync? Writelogasync { get; set; }
+        private Harmony harmony;
         /// <summary>
         /// Server constructor.
         /// </summary>
@@ -100,6 +102,8 @@ namespace Server_base
             List<TListener> listeners1 = [];
             plugins = [];
             my = ecdh;
+            harmony = new Harmony("patcher");
+            Harmony.DEBUG = true;
             if (!string.IsNullOrEmpty(logfile))
             {
                 this.logfile = logfile;
@@ -789,48 +793,59 @@ namespace Server_base
                 {
                     try
                     {
-                        if (Verify(Path.GetFullPath(name)) && !plugins.Exists(t=> t.Name == Path.GetFileName(name)))
+                        if (Verify(Path.GetFullPath(name)))
                         {
                             string pluginname = Path.GetFileName(name);
-                            string name1 = pluginname + ".dll";
-                            Assembly asm = context.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
-                            Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
-                            if (type != null)
+                            if (!plugins.Exists(t => t.Name == pluginname))
                             {
-                                var instance = Activator.CreateInstance(type);
-                                if (instance != null)
+                                string name1 = pluginname + ".dll";
+                                Assembly asm = context.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
+                                Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                                if (type != null)
                                 {
-                                    PluginInfo plugininfo = new()
+                                    var instance = Activator.CreateInstance(type);
+                                    if (instance != null)
                                     {
-                                        Name = pluginname,
-                                        Assembly = asm,
-                                        Plugin = (IPlugin)instance
-                                    };
-                                    plugininfo.Plugin.Server = this;
-                                    try
-                                    {
-                                        plugininfo.Plugin.Initialize();
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        if (ex is NotImplementedException)
+                                        PluginInfo plugininfo = new()
                                         {
-                                            //Disregard
-                                        }
-                                        else
+                                            Name = pluginname,
+                                            Assembly = asm,
+                                            Plugin = (IPlugin)instance
+                                        };
+                                        plugininfo.Plugin.Server = this;
+                                        try
                                         {
-                                            try
+                                            if (plugininfo.Plugin.IsPatch)
                                             {
-                                                plugininfo.Plugin.WriteLog(ex);
+                                                harmony.PatchAll(plugininfo.Assembly);
                                             }
-                                            catch
+                                            plugininfo.Plugin.Initialize();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            if (ex is NotImplementedException)
                                             {
                                                 //Disregard
                                             }
+                                            else
+                                            {
+                                                try
+                                                {
+                                                    plugininfo.Plugin.WriteLog(ex);
+                                                }
+                                                catch
+                                                {
+                                                    //Disregard
+                                                }
+                                            }
                                         }
+                                        plugins.Add(plugininfo);
                                     }
-                                    plugins.Add(plugininfo);
                                 }
+                            }
+                            else
+                            {
+                                //Console.WriteLine("Plugin already loaded.");
                             }
                         }
                         else
