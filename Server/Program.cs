@@ -274,7 +274,7 @@ namespace Server_starter
                 }
             }
         }
-        private void Update()
+        static void Update()
         {
             try
             {
@@ -294,6 +294,16 @@ namespace Server_starter
                             Directory.Delete("Backup", true);
                         }
                         Directory.CreateDirectory("Backup");
+                        if (Directory.Exists("Patches"))
+                        {
+                            string backuppatch = Path.Combine("Backup", "Patches");
+                            Directory.CreateDirectory(backuppatch);
+                            foreach (string pfile in Directory.GetFiles("Patches"))
+                            {
+                                System.IO.File.Copy(pfile, Path.Combine(backuppatch, Path.GetFileName(pfile)));
+                            }
+                            Directory.Delete("Patches", true);
+                        }
                         foreach (string file in files)
                         {
                             string file1 = Path.GetFullPath(file);
@@ -344,6 +354,19 @@ namespace Server_starter
                 Console.WriteLine(ex.ToString());
             }
         }
+        private void Patch()
+        {
+            if (server != null)
+            {
+                Console.Write("Path to patch pack: ");
+                string? path = Console.ReadLine();
+                if (path != null)
+                {
+                    server.LoadPatch(path);
+                    Console.WriteLine("Patched.");
+                }
+            }
+        }
         static async Task Main()
         {
             Console.Clear();
@@ -367,7 +390,7 @@ namespace Server_starter
                         program.Clean();
                         if (program.contextref != null && !program.contextref.IsAlive)
                         {
-                            program.Update();
+                            Update();
                             program.Load("Server_base.dll");
                             program.StartRemote();
                             await program.StartServer();
@@ -376,6 +399,10 @@ namespace Server_starter
                     else if (input.Equals("update-force", StringComparison.OrdinalIgnoreCase))
                     {
                         UpdateForce();
+                    }
+                    else if (input.Equals("patch", StringComparison.OrdinalIgnoreCase))
+                    {
+                        program.Patch();
                     }
                     else
                     {

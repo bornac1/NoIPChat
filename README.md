@@ -116,7 +116,7 @@ You can use Guide to help you with installation and configuration of NoIPChat. C
 
 **Dynamic software update**
 
-In order to update Server without restarting (hot patch), you need path to update packgage.
+In order to update Server dynamically, you need path to update packgage.
 
 Once ready, type update into Server. 
 
@@ -128,3 +128,16 @@ Unload success: True
 
 
 Once asked, provide path to update package and press Enter key. Server will be updated automatically.
+It's still possible that some updates will require restaring server, which can be done by using update-force command.
+
+**Patching**
+
+There are some small updates that can be done by just replacing certain parts of Server itself and are used for transition period untill next update.
+
+These updates are published as patches that are loaded the same way as plugins.
+
+In order to patch Server, you need path to patch package.
+
+Just type patch and you'll be asked for the path to patch package and press Enter.
+
+Once you update the Server, all patches are deleted.

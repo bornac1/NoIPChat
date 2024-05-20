@@ -10,6 +10,10 @@
         /// </summary>
         public Server? Server { get; set; }
         /// <summary>
+        /// True if plugin is patch, false if not.
+        /// </summary>
+        public bool IsPatch { get; }
+        /// <summary>
         /// Run during plugin initialization.
         /// </summary>
         public void Initialize()

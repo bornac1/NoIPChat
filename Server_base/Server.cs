@@ -5,6 +5,13 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.IO.Compression;
 using System.Net;
+using System.Reflection;
+using System.Runtime.Loader;
+using ConfigurationData;
+using HarmonyLib;
+using Messages;
+using Server_interface;
+using Sodium;
 using Transport;
 
 namespace Server_base
@@ -72,6 +79,7 @@ namespace Server_base
         /// Delegate for async log writing.
         /// </summary>
         public WriteLogAsync? Writelogasync { get; set; }
+        private readonly Harmony harmony;
         /// <summary>
         /// Server constructor.
         /// </summary>
@@ -97,6 +105,7 @@ namespace Server_base
             List<TListener> listeners1 = [];
             plugins = [];
             my = ecdh;
+            harmony = new Harmony("patcher");
             if (!string.IsNullOrEmpty(logfile))
             {
                 this.logfile = logfile;
@@ -772,16 +781,29 @@ namespace Server_base
                 WriteLog(ex).Wait();
             }
         }
-        /// <summary>
-        /// Loads plugins.
-        /// </summary>
-        public void LoadPlugins()
+        private void UnpackPatch(string path)
         {
-            UnpackPlugins();
             try
             {
-                Directory.CreateDirectory("Plugins");
-                string[] pluginsnames = Directory.GetDirectories("Plugins");
+                Directory.CreateDirectory("Patches");
+                UnpackZip(path, Path.Combine("Patches", Path.GetFileNameWithoutExtension(path)));
+                System.IO.File.Delete(path);
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex).Wait();
+            }
+        }
+        /// <summary>
+        /// Loads patches.
+        /// </summary>
+        public void LoadPatch(string path)
+        {
+            UnpackPatch(path);
+            try
+            {
+                Directory.CreateDirectory("Patches");
+                string[] pluginsnames = Directory.GetDirectories("Patches");
                 foreach (string name in pluginsnames)
                 {
                     try
@@ -806,7 +828,10 @@ namespace Server_base
                                     plugininfo.Plugin.Server = this;
                                     try
                                     {
-                                        plugininfo.Plugin.Initialize();
+                                        if (plugininfo.Plugin.IsPatch)
+                                        {
+                                            harmony.PatchAll(plugininfo.Assembly);
+                                        }
                                     }
                                     catch (Exception ex)
                                     {
@@ -816,18 +841,91 @@ namespace Server_base
                                         }
                                         else
                                         {
-                                            try
-                                            {
-                                                plugininfo.Plugin.WriteLog(ex);
-                                            }
-                                            catch
+                                            WriteLog(ex).Wait();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Patch signature error");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        WriteLog(ex).Wait();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex).Wait();
+            }
+        }
+        /// <summary>
+        /// Loads plugins.
+        /// </summary>
+        public void LoadPlugins()
+        {
+            UnpackPlugins();
+            try
+            {
+                Directory.CreateDirectory("Plugins");
+                string[] pluginsnames = Directory.GetDirectories("Plugins");
+                foreach (string name in pluginsnames)
+                {
+                    try
+                    {
+                        if (Verify(Path.GetFullPath(name)))
+                        {
+                            string pluginname = Path.GetFileName(name);
+                            if (!plugins.Exists(t => t.Name == pluginname))
+                            {
+                                string name1 = pluginname + ".dll";
+                                Assembly asm = context.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
+                                Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                                if (type != null)
+                                {
+                                    var instance = Activator.CreateInstance(type);
+                                    if (instance != null)
+                                    {
+                                        PluginInfo plugininfo = new()
+                                        {
+                                            Name = pluginname,
+                                            Assembly = asm,
+                                            Plugin = (IPlugin)instance
+                                        };
+                                        plugininfo.Plugin.Server = this;
+                                        try
+                                        {
+                                            plugininfo.Plugin.Initialize();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            if (ex is NotImplementedException)
                                             {
                                                 //Disregard
                                             }
+                                            else
+                                            {
+                                                try
+                                                {
+                                                    plugininfo.Plugin.WriteLog(ex);
+                                                }
+                                                catch
+                                                {
+                                                    //Disregard
+                                                }
+                                            }
                                         }
+                                        plugins.Add(plugininfo);
                                     }
-                                    plugins.Add(plugininfo);
                                 }
+                            }
+                            else
+                            {
+                                //Console.WriteLine("Plugin already loaded.");
                             }
                         }
                         else

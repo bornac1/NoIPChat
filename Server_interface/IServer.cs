@@ -6,5 +6,6 @@
         TaskCompletionSource<bool> Closed { get; set; }
         Task Close();
         public WriteLogAsync? Writelogasync { get; set; }
+        public void LoadPatch(string path);
     }
 }
