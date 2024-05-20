@@ -76,7 +76,7 @@ namespace Server_base
         /// Delegate for async log writing.
         /// </summary>
         public WriteLogAsync? Writelogasync { get; set; }
-        private Harmony harmony;
+        private readonly Harmony harmony;
         /// <summary>
         /// Server constructor.
         /// </summary>
@@ -103,7 +103,6 @@ namespace Server_base
             plugins = [];
             my = ecdh;
             harmony = new Harmony("patcher");
-            Harmony.DEBUG = true;
             if (!string.IsNullOrEmpty(logfile))
             {
                 this.logfile = logfile;

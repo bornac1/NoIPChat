@@ -274,7 +274,7 @@ namespace Server_starter
                 }
             }
         }
-        private void Update()
+        static void Update()
         {
             try
             {
@@ -371,7 +371,7 @@ namespace Server_starter
                         program.Clean();
                         if (program.contextref != null && !program.contextref.IsAlive)
                         {
-                            program.Update();
+                            Update();
                             program.Load("Server_base.dll");
                             program.StartRemote();
                             await program.StartServer();
