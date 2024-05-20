@@ -598,7 +598,6 @@ namespace Client
             {
                 Directory.CreateDirectory("Patches");
                 UnpackZip(path, Path.Combine("Patches", Path.GetFileNameWithoutExtension(path)));
-                System.IO.File.Delete(path);
             }
             catch (Exception ex)
             {
