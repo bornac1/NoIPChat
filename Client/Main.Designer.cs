@@ -34,6 +34,7 @@
             settingsToolStripMenuItem = new ToolStripMenuItem();
             knownServersToolStripMenuItem = new ToolStripMenuItem();
             savedFilesToolStripMenuItem = new ToolStripMenuItem();
+            patchToolStripMenuItem = new ToolStripMenuItem();
             mainmenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -64,7 +65,7 @@
             // 
             // settingsToolStripMenuItem
             // 
-            settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { knownServersToolStripMenuItem, savedFilesToolStripMenuItem });
+            settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { knownServersToolStripMenuItem, savedFilesToolStripMenuItem, patchToolStripMenuItem });
             settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
             settingsToolStripMenuItem.Size = new Size(76, 24);
             settingsToolStripMenuItem.Text = "Settings";
@@ -72,16 +73,23 @@
             // knownServersToolStripMenuItem
             // 
             knownServersToolStripMenuItem.Name = "knownServersToolStripMenuItem";
-            knownServersToolStripMenuItem.Size = new Size(186, 26);
+            knownServersToolStripMenuItem.Size = new Size(224, 26);
             knownServersToolStripMenuItem.Text = "Known servers";
             knownServersToolStripMenuItem.Click += KnownServersToolStripMenuItem_Click;
             // 
             // savedFilesToolStripMenuItem
             // 
             savedFilesToolStripMenuItem.Name = "savedFilesToolStripMenuItem";
-            savedFilesToolStripMenuItem.Size = new Size(186, 26);
+            savedFilesToolStripMenuItem.Size = new Size(224, 26);
             savedFilesToolStripMenuItem.Text = "Saved files";
             savedFilesToolStripMenuItem.Click += SavedFilesToolStripMenuItem_Click;
+            // 
+            // patchToolStripMenuItem
+            // 
+            patchToolStripMenuItem.Name = "patchToolStripMenuItem";
+            patchToolStripMenuItem.Size = new Size(224, 26);
+            patchToolStripMenuItem.Text = "Patch";
+            patchToolStripMenuItem.Click += PatchToolStripMenuItem_Click;
             // 
             // Main
             // 
@@ -110,5 +118,6 @@
         /// Main menu.
         /// </summary>
         public MenuStrip mainmenu;
+        private ToolStripMenuItem patchToolStripMenuItem;
     }
 }

@@ -114,6 +114,11 @@
         }
         private void KnownServersToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if(serversform != null)
+            {
+                serversform.Close();
+                serversform.Dispose();
+            }
             serversform = new ServersForm(this)
             {
                 MdiParent = this
@@ -124,12 +129,38 @@
 
         private void SavedFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if(files != null)
+            {
+                files.Close();
+                files.Dispose();
+            }
             files = new Files()
             {
                 MdiParent = this
             };
             files.Show();
+        }
 
+        private async void PatchToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using OpenFileDialog dialog = new();
+                dialog.Title = "Open patch package";
+                dialog.Filter = "NoIPChat packet (*.nip)|*.nip";
+                dialog.Multiselect = false;
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (string.IsNullOrEmpty(dialog.FileName))
+                    {
+                        string path = Path.GetFullPath(dialog.FileName);
+                        await client.LoadPatch(path);
+                    }
+                }
+            } catch (Exception ex)
+            {
+                await client.WriteLog(ex);
+            }
         }
     }
 }
