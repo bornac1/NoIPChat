@@ -66,13 +66,13 @@ namespace Server_base
         }
         private async Task ClientUpdate(Message message)
         {
-            if (message.CV != null)
+            if (message.CV != null && message.Runtime != null)
             {
                 if (message.CV < server.CVU)
                 {
                     //Newer version is available
                     //TODO: Send update
-                    string? path = server.GetClientPatch(message.CV);
+                    string? path = server.GetClientPatch(message.Runtime, message.CV);
                     if (path != null)
                     {
                         Messages.File file = new() { Name = Path.GetFileName(path), Content = await System.IO.File.ReadAllBytesAsync(path) };
