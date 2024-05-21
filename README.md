@@ -144,3 +144,11 @@ On Client click on Settings in main menu and than Patch.
 You'll be asked to select Patch packet.
 
 Once you update the Server or Client, all patches are deleted.
+
+**Network update**
+
+In order to update Client via network, click on Settings in main menu and than Request update from Server.
+
+Once you get message that new version is received, click Load update in Settings>Update.
+
+If you receive patch from the server, Client will be patched automatically.
