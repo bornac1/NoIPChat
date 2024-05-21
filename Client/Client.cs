@@ -1,6 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Data.SqlTypes;
-using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
@@ -350,11 +348,13 @@ namespace Client
             {
                 auth.TrySetResult(false);
                 //auth = false;
-            } else if(message.CVU != null && message.CVU > CV && message.Update != true)
+            }
+            else if (message.CVU != null && message.CVU > CV && message.Update != true)
             {
                 //Higher version available
                 await RequestUpdate();
-            } else if (message.Update == true)
+            }
+            else if (message.Update == true)
             {
                 //Received update package
                 await Update(message);
@@ -399,7 +399,8 @@ namespace Client
                         }
                     }
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 await WriteLog(ex);
             }

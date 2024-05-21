@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Messages
+﻿namespace Messages
 {
     public readonly struct Version : IComparable<Version>
     {
@@ -32,7 +26,7 @@ namespace Messages
             Patch = patch;
             this.version = version;
         }
-        public Version (int major, int minor, int patch)
+        public Version(int major, int minor, int patch)
         {
             Major = major;
             Minor = minor;

@@ -1,19 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using HarmonyLib;
-
-namespace Server_base
+﻿namespace Server_base
 {
     public partial class Server
     {
         private static string? ParseName(string name)
         {
             //Format of name: 0.0.0 patch
-            for(int i =0; i< name.Length; i++)
+            for (int i = 0; i < name.Length; i++)
             {
                 if (name[i] == ' ')
                 {
@@ -39,7 +31,8 @@ namespace Server_base
         }
         private async void ClientwatcherOncreated(object sender, FileSystemEventArgs e)
         {
-            try {
+            try
+            {
                 if (e.FullPath != null && File.Exists(e.FullPath) && Path.GetExtension(e.FullPath).Equals(".nip", StringComparison.OrdinalIgnoreCase))
                 {
                     string name = Path.GetFileName(e.FullPath);
@@ -63,9 +56,11 @@ namespace Server_base
         }
         private async void ClientwatcherOndeleted(object sender, FileSystemEventArgs e)
         {
-            try {
+            try
+            {
                 string name = Path.GetFileName(e.FullPath);
-                if (name.Contains("patch", StringComparison.OrdinalIgnoreCase)){
+                if (name.Contains("patch", StringComparison.OrdinalIgnoreCase))
+                {
                     foreach (var patch in clientpatches)
                     {
                         if (e.FullPath == patch.Item2)
@@ -108,10 +103,13 @@ namespace Server_base
                             break;
                         }
                     }
-                } else {
+                }
+                else
+                {
                     clientupdatepath = e.FullPath;
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 await WriteLog(ex);
             }

@@ -25,7 +25,8 @@ namespace Server_base
                 else if (message.Disconnect == true)
                 {
                     await Disconnect();
-                } else if(message.Update == true)
+                }
+                else if (message.Update == true)
                 {
                     await ClientUpdate(message);
                 }
@@ -76,7 +77,8 @@ namespace Server_base
                     {
                         Messages.File file = new() { Name = Path.GetFileName(path), Content = await System.IO.File.ReadAllBytesAsync(path) };
                         await SendMessage(new() { CVU = server.CVU, Update = true, Data = await Processing.SerializeFile(file) });
-                    } else
+                    }
+                    else
                     {
                         //No patch available
                         //Send update

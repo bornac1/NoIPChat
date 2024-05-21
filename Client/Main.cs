@@ -170,7 +170,7 @@ namespace Client
         {
             try
             {
-                if (Directory.Exists("Update") && Directory.GetFiles("Update").Length >0)
+                if (Directory.Exists("Update") && Directory.GetFiles("Update").Length > 0)
                 {
                     //update is already prepared
                     MessageBox.Show("Client will restart.");
@@ -216,7 +216,8 @@ namespace Client
             {
                 await client.RequestUpdate();
                 MessageBox.Show("Update requested.");
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 await client.WriteLog(ex);
             }
