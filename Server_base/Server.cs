@@ -82,6 +82,15 @@ namespace Server_base
         /// </summary>
         public Messages.Version CVU;
         /// <summary>
+        /// Client patches. Item1 is current version, Item2 is path
+        /// </summary>
+        private List<(string, string)> clientpatches;
+        /// <summary>
+        /// Path to client update package.
+        /// </summary>
+        public string? clientupdatepath;
+        private FileSystemWatcher clientwatcher;
+        /// <summary>
         /// Server constructor.
         /// </summary>
         /// <param name="name">Name of the server.</param>
@@ -93,7 +102,6 @@ namespace Server_base
         public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile, AssemblyLoadContext context)
         {
             this.context = context;
-
             this.name = name.ToLower();
             this.Writelogasync = writelogasync;
             active = true;
@@ -107,6 +115,10 @@ namespace Server_base
             plugins = [];
             my = ecdh;
             harmony = new Harmony("patcher");
+            clientpatches = [];
+            clientupdatepath = null;
+            clientwatcher = new();
+            Setupclientwatcher();
             if (!string.IsNullOrEmpty(logfile))
             {
                 this.logfile = logfile;
@@ -943,6 +955,22 @@ namespace Server_base
             {
                 WriteLog(ex).Wait();
             }
+        }
+        /// <summary>
+        /// Gets path to client patch.
+        /// </summary>
+        /// <param name="version">Current client version.</param>
+        /// <returns>Path to client patch.</returns>
+        public string? GetClientPatch(string version)
+        {
+            foreach(var patch in clientpatches)
+            {
+                if(patch.Item1.Equals(version, StringComparison.OrdinalIgnoreCase))
+                {
+                    return patch.Item2;
+                }
+            }
+            return null;
         }
     }
 }

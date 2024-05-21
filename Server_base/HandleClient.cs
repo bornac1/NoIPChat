@@ -71,8 +71,25 @@ namespace Server_base
                 {
                     //Newer version is available
                     //TODO: Send update
-                    Messages.File file = new();
-                    await SendMessage(new() { CVU= server.CVU, Update = true, Data = await Processing.SerializeFile(file)});
+                    string? path = server.GetClientPatch(message.CV);
+                    if (path != null)
+                    {
+                        Messages.File file = new() { Name = Path.GetFileName(path), Content = await System.IO.File.ReadAllBytesAsync(path) };
+                        await SendMessage(new() { CVU = server.CVU, Update = true, Data = await Processing.SerializeFile(file) });
+                    } else
+                    {
+                        //No patch available
+                        //Send update
+                        if (server.clientupdatepath != null)
+                        {
+                            Messages.File file = new() { Name = Path.GetFileName(server.clientupdatepath), Content = await System.IO.File.ReadAllBytesAsync(server.clientupdatepath) };
+                            await SendMessage(new() { CVU = server.CVU, Update = true, Data = await Processing.SerializeFile(file) });
+                        }
+                        else
+                        {
+                            //No update is available
+                        }
+                    }
                 }
                 else
                 {
