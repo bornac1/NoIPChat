@@ -22,7 +22,7 @@ namespace Client
         /// <summary>
         /// Client version.
         /// </summary>
-        public int CV = 1;
+        public Messages.Version CV = "0.4.0";
         /// <summary>
         /// Connected flag.
         /// </summary>

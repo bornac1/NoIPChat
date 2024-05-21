@@ -21,7 +21,7 @@ namespace Server_base
         /// <summary>
         /// Server version.
         /// </summary>
-        public int SV = 1;
+        public Messages.Version SV = "0.4.0";
         private readonly int HopCount = 10; //Max number of hops between servers
         private readonly TListener[] listeners;
         /// <summary>
