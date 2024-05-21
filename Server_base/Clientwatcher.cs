@@ -1,18 +1,19 @@
-﻿namespace Server_base
+﻿using System.Collections.Concurrent;
+
+namespace Server_base
 {
     public partial class Server
     {
-        private static string? ParseName(string name)
+        private static string? ParseNameVersion(string name)
         {
-            //Format of name: 0.0.0 patch
-            for (int i = 0; i < name.Length; i++)
-            {
-                if (name[i] == ' ')
-                {
-                    return name[0..i];
-                }
-            }
-            return null;
+            //Format of name: 0.0.0 patch win-x64 or 0.0.0 win-x64
+            string[] strings = name.Split(' ');
+            return strings[0];
+        }
+        private static string? ParseNameRuntime(string name)
+        {
+            string[] strings = name.Split(' ');
+            return strings[^1];
         }
         private void Setupclientwatcher()
         {
@@ -36,11 +37,23 @@
                 if (e.FullPath != null && File.Exists(e.FullPath) && Path.GetExtension(e.FullPath).Equals(".nip", StringComparison.OrdinalIgnoreCase))
                 {
                     string name = Path.GetFileName(e.FullPath);
-                    string? version = ParseName(name);
+                    string? version = ParseNameVersion(name);
+                    string? runtime = ParseNameRuntime(name);
                     if (name.Contains("patch", StringComparison.OrdinalIgnoreCase) && version != null)
                     {
                         //It's a patch
-                        clientpatches.Add((version, e.FullPath));
+                        if (runtime != null && clientpatches.TryGetValue(runtime, out var patches))
+                        {
+                            patches.Add((version, e.FullPath));
+                        } else if(runtime != null)
+                        {
+                            ConcurrentList<(string, string)> newpatches = [];
+                            newpatches.Add((version, e.FullPath));
+                            if(clientpatches.TryAdd(runtime, newpatches))
+                            {
+                                //Shouldn't fail
+                            }
+                        }
                     }
                     else
                     {
@@ -59,13 +72,21 @@
             try
             {
                 string name = Path.GetFileName(e.FullPath);
-                if (name.Contains("patch", StringComparison.OrdinalIgnoreCase))
+                string? runtime = ParseNameRuntime(name);
+                if (runtime != null && name.Contains("patch", StringComparison.OrdinalIgnoreCase) && clientpatches.TryGetValue(runtime, out var patches))
                 {
-                    foreach (var patch in clientpatches)
+                    foreach (var patch in patches)
                     {
                         if (e.FullPath == patch.Item2)
                         {
-                            clientpatches.Remove(patch);
+                            patches.Remove(patch);
+                            if(patches.Count == 0)
+                            {
+                                if(!clientpatches.TryRemove(runtime, out _))
+                                {
+                                    //Already removed?
+                                }
+                            }
                             break;
                         }
                     }
@@ -88,17 +109,18 @@
             try
             {
                 string name = Path.GetFileName(e.FullPath);
-                if (name.Contains("patch", StringComparison.OrdinalIgnoreCase))
+                string? runtime = ParseNameRuntime(name);
+                if (runtime != null && name.Contains("patch", StringComparison.OrdinalIgnoreCase) && clientpatches.TryGetValue(runtime, out var patches))
                 {
-                    foreach (var patch in clientpatches)
+                    foreach (var patch in patches)
                     {
                         if (e.OldFullPath == patch.Item2)
                         {
-                            clientpatches.Remove(patch);
-                            string? version = ParseName(name);
+                            patches.Remove(patch);
+                            string? version = ParseNameVersion(name);
                             if (version != null)
                             {
-                                clientpatches.Add((version, e.FullPath));
+                                patches.Add((version, e.FullPath));
                             }
                             break;
                         }

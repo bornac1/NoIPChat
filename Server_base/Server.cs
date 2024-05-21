@@ -82,9 +82,9 @@ namespace Server_base
         /// </summary>
         public Messages.Version CVU;
         /// <summary>
-        /// Client patches. Item1 is current version, Item2 is path
+        /// Client patches. Key is runtime, Item1 is client version, Item 2 is path.
         /// </summary>
-        private readonly List<(string, string)> clientpatches;
+        private readonly ConcurrentDictionary<string, ConcurrentList<(string, string)>> clientpatches;
         /// <summary>
         /// Path to client update package.
         /// </summary>
@@ -959,15 +959,18 @@ namespace Server_base
         /// <summary>
         /// Gets path to client patch.
         /// </summary>
+        /// <param name="runtime">Client runtime.</param>
         /// <param name="version">Current client version.</param>
         /// <returns>Path to client patch.</returns>
-        public string? GetClientPatch(string version)
+        public string? GetClientPatch(string runtime, string version)
         {
-            foreach (var patch in clientpatches)
-            {
-                if (patch.Item1.Equals(version, StringComparison.OrdinalIgnoreCase))
+            if (clientpatches.TryGetValue(runtime, out var patches)) {
+                foreach (var patch in patches)
                 {
-                    return patch.Item2;
+                    if (patch.Item1.Equals(version, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return patch.Item2;
+                    }
                 }
             }
             return null;

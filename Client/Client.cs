@@ -22,7 +22,7 @@ namespace Client
         /// Client version.
         /// </summary>
         public Messages.Version CV = "0.4.0";
-        private string runtime = RuntimeInformation.RuntimeIdentifier;
+        private readonly string runtime = RuntimeInformation.RuntimeIdentifier;
         /// <summary>
         /// Connected flag.
         /// </summary>
