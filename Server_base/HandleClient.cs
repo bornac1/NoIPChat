@@ -1,4 +1,5 @@
-﻿using Messages;
+﻿using System.Reflection.Metadata.Ecma335;
+using Messages;
 
 namespace Server_base
 {
@@ -64,6 +65,17 @@ namespace Server_base
                 await server.WriteLog(ex);
             }
         }
+        private static string? GetClientPatchName(string name)
+        {
+            //TODO: optimization
+            //Format: 0.0.0 patch win-x64.nip
+            string[] strings = name.Split(' ');
+            if (strings.Length > 1)
+            {
+                return string.Join(' ', strings[0..1])+".nip";
+            }
+            return null;
+        }
         private async Task ClientUpdate(Message message)
         {
             if (message.CV != null && message.Runtime != null)
@@ -75,8 +87,13 @@ namespace Server_base
                     string? path = server.GetClientPatch(message.Runtime, message.CV);
                     if (path != null)
                     {
-                        Messages.File file = new() { Name = Path.GetFileName(path), Content = await System.IO.File.ReadAllBytesAsync(path) };
-                        await SendMessage(new() { CVU = server.CVU, Update = true, Data = await Processing.SerializeFile(file) });
+                        string? name = GetClientPatchName(Path.GetFileName(path));
+                        if (name != null)
+                        {
+                            Messages.File file = new() { Name = name, Content = await System.IO.File.ReadAllBytesAsync(path) };
+                            await SendMessage(new() { CVU = server.CVU, Update = true, Data = await Processing.SerializeFile(file) });
+
+                        }
                     }
                     else
                     {
