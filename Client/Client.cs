@@ -329,6 +329,31 @@ namespace Client
         }
         private async Task ProcessMessage(Messages.Message message)
         {
+            foreach (PluginInfo plugininfo in plugins)
+            {
+                try
+                {
+                    await plugininfo.Plugin.MessageReceived(message);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is NotImplementedException)
+                    {
+                        //Disregard
+                    }
+                    else
+                    {
+                        try
+                        {
+                            await plugininfo.Plugin.WriteLog(ex);
+                        }
+                        catch
+                        {
+                            //Disregard
+                        }
+                    }
+                }
+            }
             if (aeskey != null)
             {
                 message = Encryption.DecryptMessage(message, aeskey);
@@ -420,6 +445,7 @@ namespace Client
         /// <returns>Async Task.</returns>
         public async Task HandleMessage(Messages.Message message)
         {
+
             if (main.chat != null && await ischatready.Task && message.Msg != null)
             {
                 //Chat is ready
@@ -588,7 +614,7 @@ namespace Client
                 {
                     try
                     {
-                        plugininfo.Plugin.ClientLog(ex);
+                        await plugininfo.Plugin.ClientLog(ex);
                     }
                     catch (Exception ex1)
                     {
@@ -600,7 +626,7 @@ namespace Client
                         {
                             try
                             {
-                                plugininfo.Plugin.WriteLog(ex1);
+                                await plugininfo.Plugin.WriteLog(ex1);
                             }
                             catch
                             {
@@ -771,7 +797,7 @@ namespace Client
                                         plugininfo.Plugin.Client = this;
                                         try
                                         {
-                                            plugininfo.Plugin.Initialize();
+                                            await plugininfo.Plugin.Initialize();
                                         }
                                         catch (Exception ex)
                                         {
@@ -783,7 +809,7 @@ namespace Client
                                             {
                                                 try
                                                 {
-                                                    plugininfo.Plugin.WriteLog(ex);
+                                                    await plugininfo.Plugin.WriteLog(ex);
                                                 }
                                                 catch
                                                 {

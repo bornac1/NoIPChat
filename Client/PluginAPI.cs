@@ -16,7 +16,8 @@
         /// <summary>
         /// Run during plugin initialization.
         /// </summary>
-        public void Initialize()
+        /// <returns>Async Task.</returns>
+        public Task Initialize()
         {
             throw new NotImplementedException();
         }
@@ -24,7 +25,8 @@
         /// Run when the plugin throws Exception.
         /// </summary>
         /// <param name="ex">Exception.</param>
-        public void WriteLog(Exception ex)
+        /// <returns>Async Task.</returns>
+        public Task WriteLog(Exception ex)
         {
             throw new NotImplementedException();
         }
@@ -32,7 +34,17 @@
         /// Run when Client throws Exception.
         /// </summary>
         /// <param name="ex">Exception.</param>
-        public void ClientLog(Exception ex)
+        /// <returns>Async Task.</returns>
+        public Task ClientLog(Exception ex)
+        {
+            throw new NotImplementedException();
+        }
+        /// <summary>
+        /// Run when Client receives messsage.
+        /// </summary>
+        /// <param name="message">Message object.</param>
+        /// <returns>Async Task.</returns>
+        public Task MessageReceived(Messages.Message message)
         {
             throw new NotImplementedException();
         }
