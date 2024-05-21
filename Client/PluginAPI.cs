@@ -12,7 +12,7 @@
         /// <summary>
         /// True if plugin is patch, false if not.
         /// </summary>
-        public bool IsPatch { get; }
+        public bool IsPatch { get { return false; } }
         /// <summary>
         /// Run during plugin initialization.
         /// </summary>
