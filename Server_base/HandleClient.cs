@@ -25,6 +25,9 @@ namespace Server_base
                 else if (message.Disconnect == true)
                 {
                     await Disconnect();
+                } else if(message.Update == true)
+                {
+                    await ClientUpdate(message);
                 }
                 else if (message.Msg != null || message.Data != null)
                 {
@@ -60,6 +63,24 @@ namespace Server_base
                 await server.WriteLog(ex);
             }
         }
+        private async Task ClientUpdate(Message message)
+        {
+            if (message.CV != null)
+            {
+                if (message.CV < server.CVU)
+                {
+                    //Newer version is available
+                    //TODO: Send update
+                    Messages.File file = new();
+                    await SendMessage(new() { CVU= server.CVU, Update = true, Data = await Processing.SerializeFile(file)});
+                }
+                else
+                {
+                    //Client has latest version
+                    await SendMessage(new() { Update = true, CVU = message.CV });
+                }
+            }
+        }
         /// <summary>
         /// Handles login of local client.
         /// </summary>
@@ -83,7 +104,8 @@ namespace Server_base
                     //Send auth message
                     await SendMessage(new Message()
                     {
-                        Auth = auth
+                        Auth = auth,
+                        CVU = server.CVU
                     });
                 }
                 else

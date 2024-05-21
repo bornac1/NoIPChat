@@ -350,11 +350,67 @@ namespace Client
             {
                 auth.TrySetResult(false);
                 //auth = false;
+            } else if(message.CVU != null && message.CVU > CV && message.Update != true)
+            {
+                //Higher version available
+                await RequestUpdate();
+            } else if (message.Update == true)
+            {
+                //Received update package
+                await Update(message);
             }
             else if (message.Msg != null || message.Data != null)
             {
                 await HandleMessage(message);
             }
+        }
+        private async Task Update(Messages.Message message)
+        {
+            try
+            {
+                if (message.CVU != null)
+                {
+                    if (message.CVU == CV)
+                    {
+                        //Same version, there is no update
+                    }
+                    else if (message.CVU > CV && message.Data != null)
+                    {
+                        //We received update package
+                        Messages.File file = await Messages.Processing.DeserializeFile(message.Data);
+                        if (file.Name != null && file.Content != null)
+                        {
+                            Directory.CreateDirectory("Download");
+                            string path = Path.Combine("Download", file.Name);
+                            await System.IO.File.WriteAllBytesAsync(path, file.Content);
+                            if (file.Name.Contains("patch", StringComparison.OrdinalIgnoreCase))
+                            {
+                                //Patch
+                                await LoadPatch(path);
+                                System.IO.File.Delete(path);
+                            }
+                            else
+                            {
+                                //Update
+                                MessageBox.Show("New version of Client received from Server");
+                                PrepareUpdate(path);
+                                System.IO.File.Delete(path);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ex)
+            {
+                await WriteLog(ex);
+            }
+        }
+        /// <summary>
+        /// Requests update from server.
+        /// </summary>
+        /// <returns>Async Task.</returns>
+        public async Task RequestUpdate()
+        {
+            await SendMessage(new() { CV = CV, Update = true });
         }
         /// <summary>
         /// Handles received message.

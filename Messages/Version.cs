@@ -96,5 +96,4 @@ namespace Messages
             return version.ToString();
         }
     }
-
 }

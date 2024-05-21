@@ -78,6 +78,10 @@ namespace Server_base
         public WriteLogAsync? Writelogasync { get; set; }
         private readonly Harmony harmony;
         /// <summary>
+        /// Client update version.
+        /// </summary>
+        public Messages.Version CVU;
+        /// <summary>
         /// Server constructor.
         /// </summary>
         /// <param name="name">Name of the server.</param>

@@ -36,6 +36,8 @@
             savedFilesToolStripMenuItem = new ToolStripMenuItem();
             patchToolStripMenuItem = new ToolStripMenuItem();
             updateToolStripMenuItem = new ToolStripMenuItem();
+            requestUpdateFromServerToolStripMenuItem = new ToolStripMenuItem();
+            loadUpdateToolStripMenuItem = new ToolStripMenuItem();
             mainmenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -94,10 +96,24 @@
             // 
             // updateToolStripMenuItem
             // 
+            updateToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { requestUpdateFromServerToolStripMenuItem, loadUpdateToolStripMenuItem });
             updateToolStripMenuItem.Name = "updateToolStripMenuItem";
             updateToolStripMenuItem.Size = new Size(224, 26);
             updateToolStripMenuItem.Text = "Update";
-            updateToolStripMenuItem.Click += UpdateToolStripMenuItem_Click;
+            // 
+            // requestUpdateFromServerToolStripMenuItem
+            // 
+            requestUpdateFromServerToolStripMenuItem.Name = "requestUpdateFromServerToolStripMenuItem";
+            requestUpdateFromServerToolStripMenuItem.Size = new Size(277, 26);
+            requestUpdateFromServerToolStripMenuItem.Text = "Request update from Server";
+            requestUpdateFromServerToolStripMenuItem.Click += RequestUpdateFromServerToolStripMenuItem_Click;
+            // 
+            // loadUpdateToolStripMenuItem
+            // 
+            loadUpdateToolStripMenuItem.Name = "loadUpdateToolStripMenuItem";
+            loadUpdateToolStripMenuItem.Size = new Size(277, 26);
+            loadUpdateToolStripMenuItem.Text = "Load update";
+            loadUpdateToolStripMenuItem.Click += LoadUpdateToolStripMenuItem_Click;
             // 
             // Main
             // 
@@ -128,5 +144,7 @@
         public MenuStrip mainmenu;
         private ToolStripMenuItem patchToolStripMenuItem;
         private ToolStripMenuItem updateToolStripMenuItem;
+        private ToolStripMenuItem requestUpdateFromServerToolStripMenuItem;
+        private ToolStripMenuItem loadUpdateToolStripMenuItem;
     }
 }
