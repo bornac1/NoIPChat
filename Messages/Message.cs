@@ -13,6 +13,10 @@ namespace Messages
         /// </summary>
         public string? CVU { get; set; }
         /// <summary>
+        /// Runtime. Used to request update.
+        /// </summary>
+        public string? Runtime { get; set; }
+        /// <summary>
         /// Server version.
         /// </summary>
         public string? SV { get; set; }

@@ -2,6 +2,7 @@
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Text;
 using System.Text.Json;
@@ -21,6 +22,7 @@ namespace Client
         /// Client version.
         /// </summary>
         public Messages.Version CV = "0.4.0";
+        private string runtime = RuntimeInformation.RuntimeIdentifier;
         /// <summary>
         /// Connected flag.
         /// </summary>
@@ -436,7 +438,7 @@ namespace Client
         /// <returns>Async Task.</returns>
         public async Task RequestUpdate()
         {
-            await SendMessage(new() { CV = CV, Update = true });
+            await SendMessage(new() { CV = CV, Update = true, Runtime = runtime });
         }
         /// <summary>
         /// Handles received message.

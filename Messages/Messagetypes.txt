@@ -4,7 +4,7 @@
 2)SEND MESSAGE: CV= 1, Sender= username@server, Receiver= receiver1@server;receiver2@server, Msg= text_message, Data= binary_data
 	//Multiple Receivers by separated by ';'
 3)DISCONNECT: CV= 1, Disconnect= true
-4)REQUEST UPDATE: CV= 1, Update= true
+4)REQUEST UPDATE: CV= 1, Update= true, Runtime= win-x64
 	Send to server after message 1) is received from server
 
 From server to client:
