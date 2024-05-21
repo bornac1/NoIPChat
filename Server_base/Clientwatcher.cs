@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-
-namespace Server_base
+﻿namespace Server_base
 {
     public partial class Server
     {
@@ -45,11 +43,12 @@ namespace Server_base
                         if (runtime != null && clientpatches.TryGetValue(runtime, out var patches))
                         {
                             patches.Add((version, e.FullPath));
-                        } else if(runtime != null)
+                        }
+                        else if (runtime != null)
                         {
                             ConcurrentList<(string, string)> newpatches = [];
                             newpatches.Add((version, e.FullPath));
-                            if(clientpatches.TryAdd(runtime, newpatches))
+                            if (clientpatches.TryAdd(runtime, newpatches))
                             {
                                 //Shouldn't fail
                             }
@@ -80,9 +79,9 @@ namespace Server_base
                         if (e.FullPath == patch.Item2)
                         {
                             patches.Remove(patch);
-                            if(patches.Count == 0)
+                            if (patches.Count == 0)
                             {
-                                if(!clientpatches.TryRemove(runtime, out _))
+                                if (!clientpatches.TryRemove(runtime, out _))
                                 {
                                     //Already removed?
                                 }

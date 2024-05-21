@@ -964,7 +964,8 @@ namespace Server_base
         /// <returns>Path to client patch.</returns>
         public string? GetClientPatch(string runtime, string version)
         {
-            if (clientpatches.TryGetValue(runtime, out var patches)) {
+            if (clientpatches.TryGetValue(runtime, out var patches))
+            {
                 foreach (var patch in patches)
                 {
                     if (patch.Item1.Equals(version, StringComparison.OrdinalIgnoreCase))

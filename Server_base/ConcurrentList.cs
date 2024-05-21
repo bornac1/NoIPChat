@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Server_base
+﻿namespace Server_base
 {
     internal class ConcurrentList<T> : List<T>
     {
@@ -13,10 +7,11 @@ namespace Server_base
         public ConcurrentList() { }
         public new void Add(T item)
         {
-            lock(locker) { list.Add(item); }
+            lock (locker) { list.Add(item); }
         }
-        public new void Remove(T item) { 
-            lock(locker) { list.Remove(item); } 
+        public new void Remove(T item)
+        {
+            lock (locker) { list.Remove(item); }
         }
     }
 }
