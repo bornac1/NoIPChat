@@ -4,12 +4,14 @@
     {
         private static string? ParseNameVersion(string name)
         {
+            //TODO: optimize
             //Format of name: 0.0.0 patch win-x64 or 0.0.0 win-x64
             string[] strings = name.Split(' ');
             return strings[0];
         }
         private static string? ParseNameRuntime(string name)
         {
+            //TODO: optimize
             string[] strings = name.Split(' ');
             return strings[^1];
         }
