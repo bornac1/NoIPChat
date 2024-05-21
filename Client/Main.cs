@@ -1,4 +1,7 @@
-﻿namespace Client
+﻿using System.Diagnostics;
+using System.Reflection;
+
+namespace Client
 {
     /// <summary>
     /// Main form.
@@ -114,7 +117,7 @@
         }
         private void KnownServersToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if(serversform != null)
+            if (serversform != null)
             {
                 serversform.Close();
                 serversform.Dispose();
@@ -129,7 +132,7 @@
 
         private void SavedFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if(files != null)
+            if (files != null)
             {
                 files.Close();
                 files.Dispose();
@@ -155,6 +158,36 @@
                     {
                         string path = Path.GetFullPath(dialog.FileName);
                         await client.LoadPatch(path);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await client.WriteLog(ex);
+            }
+        }
+
+        private async void UpdateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using OpenFileDialog dialog = new();
+                dialog.Title = "Open update package";
+                dialog.Filter = "NoIPChat packet (*.nip)|*.nip";
+                dialog.Multiselect = false;
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (string.IsNullOrEmpty(dialog.FileName))
+                    {
+                        string path = Path.GetFullPath(dialog.FileName);
+                        client.PrepareUpdate(path);
+                        MessageBox.Show("Client will restart.");
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "Updater.exe",
+                            Arguments = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + " " + "client"
+                        });
+                        Environment.Exit(0);
                     }
                 }
             } catch (Exception ex)

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Data.SqlTypes;
+using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
@@ -76,6 +77,7 @@ namespace Client
         public List<PluginInfo> plugins;
         private readonly List<ToolStripMenuItem> pluginmenuitems;
         private readonly Harmony harmony;
+        private readonly string? clientpath;
         /// <summary>
         /// Client constructor.
         /// </summary>
@@ -91,6 +93,7 @@ namespace Client
             plugins = [];
             pluginmenuitems = [];
             harmony = new Harmony("patcher");
+            clientpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             _ = LoadPlugins();
             my = Encryption.GenerateECDH();
             _ = LoadServers();
@@ -760,6 +763,19 @@ namespace Client
         {
             main.mainmenu.Items.Add(item);
             pluginmenuitems.Add(item);
+        }
+        /// <summary>
+        /// Prepares Client for update.
+        /// </summary>
+        /// <param name="path">Path to update package.</param>
+        public void PrepareUpdate(string path)
+        {
+            if (!string.IsNullOrEmpty(clientpath))
+            {
+                string updatepath = Path.Combine(clientpath, "Update");
+                Directory.CreateDirectory(updatepath);
+                UnpackZip(path, updatepath);
+            }
         }
     }
 }

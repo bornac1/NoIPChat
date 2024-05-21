@@ -35,6 +35,7 @@
             knownServersToolStripMenuItem = new ToolStripMenuItem();
             savedFilesToolStripMenuItem = new ToolStripMenuItem();
             patchToolStripMenuItem = new ToolStripMenuItem();
+            updateToolStripMenuItem = new ToolStripMenuItem();
             mainmenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -65,7 +66,7 @@
             // 
             // settingsToolStripMenuItem
             // 
-            settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { knownServersToolStripMenuItem, savedFilesToolStripMenuItem, patchToolStripMenuItem });
+            settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { knownServersToolStripMenuItem, savedFilesToolStripMenuItem, patchToolStripMenuItem, updateToolStripMenuItem });
             settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
             settingsToolStripMenuItem.Size = new Size(76, 24);
             settingsToolStripMenuItem.Text = "Settings";
@@ -90,6 +91,13 @@
             patchToolStripMenuItem.Size = new Size(224, 26);
             patchToolStripMenuItem.Text = "Patch";
             patchToolStripMenuItem.Click += PatchToolStripMenuItem_Click;
+            // 
+            // updateToolStripMenuItem
+            // 
+            updateToolStripMenuItem.Name = "updateToolStripMenuItem";
+            updateToolStripMenuItem.Size = new Size(224, 26);
+            updateToolStripMenuItem.Text = "Update";
+            updateToolStripMenuItem.Click += UpdateToolStripMenuItem_Click;
             // 
             // Main
             // 
@@ -119,5 +127,6 @@
         /// </summary>
         public MenuStrip mainmenu;
         private ToolStripMenuItem patchToolStripMenuItem;
+        private ToolStripMenuItem updateToolStripMenuItem;
     }
 }
