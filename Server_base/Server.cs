@@ -84,12 +84,12 @@ namespace Server_base
         /// <summary>
         /// Client patches. Item1 is current version, Item2 is path
         /// </summary>
-        private List<(string, string)> clientpatches;
+        private readonly List<(string, string)> clientpatches;
         /// <summary>
         /// Path to client update package.
         /// </summary>
         public string? clientupdatepath;
-        private FileSystemWatcher clientwatcher;
+        private readonly FileSystemWatcher clientwatcher;
         /// <summary>
         /// Server constructor.
         /// </summary>
