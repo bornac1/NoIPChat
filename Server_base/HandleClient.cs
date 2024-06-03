@@ -83,7 +83,6 @@ namespace Server_base
                 if (message.CV < server.CVU)
                 {
                     //Newer version is available
-                    //TODO: Send update
                     string? path = server.GetClientPatch(message.Runtime, message.CV);
                     if (path != null)
                     {

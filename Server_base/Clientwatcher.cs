@@ -4,10 +4,15 @@
     {
         private static string? ParseNameVersion(string name)
         {
-            //TODO: optimize
             //Format of name: 0.0.0 patch win-x64 or 0.0.0 win-x64
-            string[] strings = name.Split(' ');
-            return strings[0];
+            for(int i = 0; i< name.Length; i++)
+            {
+                if (name[i] == ' ')
+                {
+                    return name[0..i];
+                }
+            }
+            return null;
         }
         private static string? ParseNameRuntime(string name)
         {
