@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using Messages;
+﻿using Messages;
 
 namespace Server_base
 {
@@ -72,7 +71,7 @@ namespace Server_base
             string[] strings = name.Split(' ');
             if (strings.Length > 1)
             {
-                return string.Join(' ', strings[0..1])+".nip";
+                return string.Join(' ', strings[0..1]) + ".nip";
             }
             return null;
         }

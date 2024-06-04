@@ -5,7 +5,7 @@
         private static string? ParseNameVersion(string name)
         {
             //Format of name: 0.0.0 patch win-x64 or 0.0.0 win-x64
-            for(int i = 0; i< name.Length; i++)
+            for (int i = 0; i < name.Length; i++)
             {
                 if (name[i] == ' ')
                 {

@@ -241,7 +241,7 @@ namespace Server_base
                 {
                     try
                     {
-                        if(await plugininfo.Plugin.SendMessageThisServer(user, message))
+                        if (await plugininfo.Plugin.SendMessageThisServer(user, message))
                         {
                             handled = true;
                         }
