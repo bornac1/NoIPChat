@@ -66,7 +66,7 @@ namespace Server_base
         /// <summary>
         /// PluginInfos for loaded plugins.
         /// </summary>
-        public List<PluginInfo> plugins;
+        public ConcurrentList<PluginInfo> plugins;
         private readonly AssemblyLoadContext context;
         /// <summary>
         /// Returns true when Server is fully closed.
@@ -102,6 +102,7 @@ namespace Server_base
         public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile, AssemblyLoadContext context)
         {
             this.context = context;
+            context.Resolving += OnResolving;
             this.name = name.ToLower();
             this.Writelogasync = writelogasync;
             active = true;
