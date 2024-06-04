@@ -1,6 +1,6 @@
 ﻿namespace Server_base
 {
-    internal class ConcurrentList<T> : List<T>
+    public class ConcurrentList<T> : List<T>
     {
         private readonly object locker = new();
         private readonly List<T> list = [];
