@@ -12,7 +12,7 @@ namespace Transport
             {
                 socket = new Socket(localEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
                 throw new TransportException("Socket exception", ex);
             }
@@ -27,7 +27,7 @@ namespace Transport
             {
                 socket.Connect(address, port);
             }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
                 throw new TransportException("Socket exception", ex);
             }
@@ -38,7 +38,7 @@ namespace Transport
             {
                 await socket.ConnectAsync(address, port);
             }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
                 throw new TransportException("Socket exception", ex);
             }
@@ -70,7 +70,7 @@ namespace Transport
             {
                 return socket.Receive(buffer, SocketFlags.None);
             }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
                 throw new TransportException("Socket exception", ex);
             }
@@ -81,7 +81,7 @@ namespace Transport
             {
                 return await socket.ReceiveAsync(buffer, SocketFlags.None);
             }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
                 throw new TransportException("Socket exception", ex);
             }
@@ -92,7 +92,7 @@ namespace Transport
             {
                 return socket.Send(data, SocketFlags.None);
             }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
                 throw new TransportException("Socket exception", ex);
             }
@@ -103,7 +103,7 @@ namespace Transport
             {
                 return await socket.SendAsync(data, SocketFlags.None);
             }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
                 throw new TransportException("Socket exception", ex);
             }
