@@ -235,13 +235,43 @@ namespace Server_base
             else
             {
                 //Client is not connected and not on remote server
-                //Save the message
-                if (!await AddMessages(user, message))
+                //Plugin handles message
+                bool handled = false;
+                foreach (PluginInfo plugininfo in plugins)
                 {
-                    //Don't know why
+                    try
+                    {
+                        if(await plugininfo.Plugin.SendMessageThisServer(user, message))
+                        {
+                            handled = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
+                    }
                 }
-                else
+                if (!handled)
                 {
+                    //Save the message
+                    if (!await AddMessages(user, message))
+                    {
+                        //Don't know why
+                    }
                 }
             }
         }
@@ -260,7 +290,41 @@ namespace Server_base
             }
             else
             {
-                await SendMessageServer(StringProcessing.GetServer(user).ToString(), message);
+                //Client is not connected to this server
+                //Plugin handles message
+                bool handled = false;
+                foreach (PluginInfo plugininfo in plugins)
+                {
+                    try
+                    {
+                        if (await plugininfo.Plugin.SendMessageOtherServer(user, message))
+                        {
+                            handled = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
+                    }
+                }
+                if (!handled)
+                {
+                    await SendMessageServer(StringProcessing.GetServer(user).ToString(), message);
+                }
             }
         }
         private async Task SendMessageKnownServer(string server, Message message)
