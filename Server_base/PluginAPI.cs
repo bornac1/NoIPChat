@@ -88,5 +88,12 @@
         {
             throw new NotImplementedException();
         }
+        /// <summary>
+        /// Run when Server is closed.
+        /// </summary>
+        public void Close()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

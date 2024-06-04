@@ -628,6 +628,31 @@ namespace Server_base
                     }
                 }
                 Servers.Unloading();
+                foreach (PluginInfo plugininfo in plugins)
+                {
+                    try
+                    {
+                        plugininfo.Plugin.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
+                    }
+                }
                 await Task.WhenAll(tasklist);
                 Closed.SetResult(true);
             }
