@@ -323,6 +323,7 @@ namespace Server_base
                 }
                 if (!handled)
                 {
+                    //Send message to uesr's home server
                     await SendMessageServer(StringProcessing.GetServer(user).ToString(), message);
                 }
             }
