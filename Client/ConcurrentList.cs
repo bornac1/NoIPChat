@@ -1,4 +1,4 @@
-﻿namespace Server_base
+﻿namespace Client
 {
     /// <summary>
     /// Concurrent list.

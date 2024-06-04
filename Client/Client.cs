@@ -74,8 +74,8 @@ namespace Client
         /// <summary>
         /// PluginInfos for loaded plugins.
         /// </summary>
-        public List<PluginInfo> plugins;
-        private readonly List<ToolStripMenuItem> pluginmenuitems;
+        public ConcurrentList<PluginInfo> plugins;
+        private readonly ConcurrentList<ToolStripMenuItem> pluginmenuitems;
         private readonly Harmony harmony;
         private readonly string? clientpath;
         /// <summary>
