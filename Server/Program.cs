@@ -367,6 +367,28 @@ namespace Server_starter
                 }
             }
         }
+        private async Task SaveSneakernet()
+        {
+            Console.Write("Path for saving messages:");
+            string? path = Console.ReadLine();
+            Console.Write("Server for which messages are saved:");
+            string? srv = Console.ReadLine();
+            if(!string.IsNullOrEmpty(path) && !string.IsNullOrEmpty(srv) && server != null)
+            {
+                path = Path.GetFullPath(path);
+                await server.SaveSneakernet(path, srv.ToLower());
+            }
+        }
+        private async Task LoadSneakernet()
+        {
+            Console.Write("Path to saved messages:");
+            string? path = Console.ReadLine();
+            if (!string.IsNullOrEmpty(path) && server != null)
+            {
+                path = Path.GetFullPath(path);
+                await server.LoadSneakernet(path);
+            }
+        }
         static async Task Main()
         {
             Console.Clear();
@@ -403,6 +425,14 @@ namespace Server_starter
                     else if (input.Equals("patch", StringComparison.OrdinalIgnoreCase))
                     {
                         program.Patch();
+                    }
+                    else if(input.Equals("save sneakernet", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await program.SaveSneakernet();
+                    }
+                    else if(input.Equals("load sneakernet", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await program.LoadSneakernet();
                     }
                     else
                     {
