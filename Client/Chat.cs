@@ -113,7 +113,6 @@ namespace Client
                 }
                 catch (Exception ex)
                 {
-                    //TODO: error handling
                     MessageBox.Show("File open error." + ex.ToString());
                 }
                 finally
@@ -151,7 +150,6 @@ namespace Client
                 }
                 catch (Exception ex)
                 {
-                    //TODO: error handling
                     MessageBox.Show("File save error." + ex.ToString());
                 }
             }

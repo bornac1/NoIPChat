@@ -26,6 +26,10 @@ namespace Server_base
                 {
                     await Disconnect();
                 }
+                else if (message.Update == true)
+                {
+                    await ClientUpdate(message);
+                }
                 else if (message.Msg != null || message.Data != null)
                 {
                     //Will send whole message to recivers (Msg+Data)
@@ -60,6 +64,57 @@ namespace Server_base
                 await server.WriteLog(ex);
             }
         }
+        private static string? GetClientPatchName(string name)
+        {
+            //TODO: optimization
+            //Format: 0.0.0 patch win-x64.nip
+            string[] strings = name.Split(' ');
+            if (strings.Length > 1)
+            {
+                return string.Join(' ', strings[0..1]) + ".nip";
+            }
+            return null;
+        }
+        private async Task ClientUpdate(Message message)
+        {
+            if (message.CV != null && message.Runtime != null)
+            {
+                if (message.CV < server.CVU)
+                {
+                    //Newer version is available
+                    string? path = server.GetClientPatch(message.Runtime, message.CV);
+                    if (path != null)
+                    {
+                        string? name = GetClientPatchName(Path.GetFileName(path));
+                        if (name != null)
+                        {
+                            Messages.File file = new() { Name = name, Content = await System.IO.File.ReadAllBytesAsync(path) };
+                            await SendMessage(new() { CVU = server.CVU, Update = true, Data = await Processing.SerializeFile(file) });
+
+                        }
+                    }
+                    else
+                    {
+                        //No patch available
+                        //Send update
+                        if (server.clientupdatepath != null)
+                        {
+                            Messages.File file = new() { Name = Path.GetFileName(server.clientupdatepath), Content = await System.IO.File.ReadAllBytesAsync(server.clientupdatepath) };
+                            await SendMessage(new() { CVU = server.CVU, Update = true, Data = await Processing.SerializeFile(file) });
+                        }
+                        else
+                        {
+                            //No update is available
+                        }
+                    }
+                }
+                else
+                {
+                    //Client has latest version
+                    await SendMessage(new() { Update = true, CVU = message.CV });
+                }
+            }
+        }
         /// <summary>
         /// Handles login of local client.
         /// </summary>
@@ -83,7 +138,8 @@ namespace Server_base
                     //Send auth message
                     await SendMessage(new Message()
                     {
-                        Auth = auth
+                        Auth = auth,
+                        CVU = server.CVU
                     });
                 }
                 else

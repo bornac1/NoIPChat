@@ -5,14 +5,24 @@ namespace Messages
     public class Message
     {
         /// <summary>
-        /// CLient version.
+        /// Client version.
         /// </summary>
-        public int? CV { get; set; }
-        public int? CVU { get; set; }
+        public string? CV { get; set; }
+        /// <summary>
+        /// Client version available for update.
+        /// </summary>
+        public string? CVU { get; set; }
+        /// <summary>
+        /// Runtime. Used to request update.
+        /// </summary>
+        public string? Runtime { get; set; }
         /// <summary>
         /// Server version.
         /// </summary>
-        public int? SV { get; set; }
+        public string? SV { get; set; }
+        /// <summary>
+        /// Server version available for update.
+        /// </summary>
         public int? SVU { get; set; }
         public bool? Update { get; set; }
         /// <summary>

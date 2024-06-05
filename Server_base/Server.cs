@@ -24,7 +24,7 @@ namespace Server_base
         /// <summary>
         /// Server version.
         /// </summary>
-        public int SV = 1;
+        public Messages.Version SV = "0.4.0";
         private readonly int HopCount = 10; //Max number of hops between servers
         private readonly TListener[] listeners;
         /// <summary>
@@ -69,7 +69,7 @@ namespace Server_base
         /// <summary>
         /// PluginInfos for loaded plugins.
         /// </summary>
-        public List<PluginInfo> plugins;
+        public ConcurrentList<PluginInfo> plugins;
         private readonly AssemblyLoadContext context;
         /// <summary>
         /// Returns true when Server is fully closed.
@@ -80,6 +80,19 @@ namespace Server_base
         /// </summary>
         public WriteLogAsync? Writelogasync { get; set; }
         private readonly Harmony harmony;
+        /// <summary>
+        /// Client update version.
+        /// </summary>
+        public Messages.Version CVU;
+        /// <summary>
+        /// Client patches. Key is runtime, Item1 is client version, Item 2 is path.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, ConcurrentList<(string, string)>> clientpatches;
+        /// <summary>
+        /// Path to client update package.
+        /// </summary>
+        public string? clientupdatepath;
+        private readonly FileSystemWatcher clientwatcher;
         /// <summary>
         /// Server constructor.
         /// </summary>
@@ -92,7 +105,7 @@ namespace Server_base
         public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile, AssemblyLoadContext context)
         {
             this.context = context;
-
+            context.Resolving += OnResolving;
             this.name = name.ToLower();
             this.Writelogasync = writelogasync;
             active = true;
@@ -106,6 +119,10 @@ namespace Server_base
             plugins = [];
             my = ecdh;
             harmony = new Harmony("patcher");
+            clientpatches = [];
+            clientupdatepath = null;
+            clientwatcher = new();
+            Setupclientwatcher();
             if (!string.IsNullOrEmpty(logfile))
             {
                 this.logfile = logfile;
@@ -221,13 +238,43 @@ namespace Server_base
             else
             {
                 //Client is not connected and not on remote server
-                //Save the message
-                if (!await AddMessages(user, message))
+                //Plugin handles message
+                bool handled = false;
+                foreach (PluginInfo plugininfo in plugins)
                 {
-                    //Don't know why
+                    try
+                    {
+                        if (await plugininfo.Plugin.SendMessageThisServer(user, message))
+                        {
+                            handled = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
+                    }
                 }
-                else
+                if (!handled)
                 {
+                    //Save the message
+                    if (!await AddMessages(user, message))
+                    {
+                        //Don't know why
+                    }
                 }
             }
         }
@@ -246,7 +293,42 @@ namespace Server_base
             }
             else
             {
-                await SendMessageServer(StringProcessing.GetServer(user).ToString(), message);
+                //Client is not connected to this server
+                //Plugin handles message
+                bool handled = false;
+                foreach (PluginInfo plugininfo in plugins)
+                {
+                    try
+                    {
+                        if (await plugininfo.Plugin.SendMessageOtherServer(user, message))
+                        {
+                            handled = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
+                    }
+                }
+                if (!handled)
+                {
+                    //Send message to uesr's home server
+                    await SendMessageServer(StringProcessing.GetServer(user).ToString(), message);
+                }
             }
         }
         private async Task SendMessageKnownServer(string server, Message message)
@@ -614,6 +696,31 @@ namespace Server_base
                     }
                 }
                 Servers.Unloading();
+                foreach (PluginInfo plugininfo in plugins)
+                {
+                    try
+                    {
+                        plugininfo.Plugin.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is NotImplementedException)
+                        {
+                            //Disregard
+                        }
+                        else
+                        {
+                            try
+                            {
+                                plugininfo.Plugin.WriteLog(ex);
+                            }
+                            catch
+                            {
+                                //Disregard
+                            }
+                        }
+                    }
+                }
                 await Task.WhenAll(tasklist);
                 Closed.SetResult(true);
             }
@@ -787,7 +894,6 @@ namespace Server_base
             {
                 Directory.CreateDirectory("Patches");
                 UnpackZip(path, Path.Combine("Patches", Path.GetFileNameWithoutExtension(path)));
-                System.IO.File.Delete(path);
             }
             catch (Exception ex)
             {
@@ -943,6 +1049,26 @@ namespace Server_base
             {
                 WriteLog(ex).Wait();
             }
+        }
+        /// <summary>
+        /// Gets path to client patch.
+        /// </summary>
+        /// <param name="runtime">Client runtime.</param>
+        /// <param name="version">Current client version.</param>
+        /// <returns>Path to client patch.</returns>
+        public string? GetClientPatch(string runtime, string version)
+        {
+            if (clientpatches.TryGetValue(runtime, out var patches))
+            {
+                foreach (var patch in patches)
+                {
+                    if (patch.Item1.Equals(version, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return patch.Item2;
+                    }
+                }
+            }
+            return null;
         }
     }
 }

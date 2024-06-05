@@ -57,6 +57,7 @@ namespace Packer
                     }
                 }
                 File.WriteAllBytes(Path.Combine(path, "sign"), signatures);
+                files1.Add(Path.Combine(path, "sign"));
                 ZipFiles([.. files1], name, path);
             }
         }

@@ -2,9 +2,11 @@
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Text;
 using System.Text.Json;
+using HarmonyLib;
 using Messages;
 using Sodium;
 using Transport;
@@ -19,7 +21,8 @@ namespace Client
         /// <summary>
         /// Client version.
         /// </summary>
-        public int CV = 1;
+        public Messages.Version CV = "0.4.0";
+        private readonly string runtime = RuntimeInformation.RuntimeIdentifier;
         /// <summary>
         /// Connected flag.
         /// </summary>
@@ -71,8 +74,10 @@ namespace Client
         /// <summary>
         /// PluginInfos for loaded plugins.
         /// </summary>
-        public List<PluginInfo> plugins;
-        private readonly List<ToolStripMenuItem> pluginmenuitems;
+        public ConcurrentList<PluginInfo> plugins;
+        private readonly ConcurrentList<ToolStripMenuItem> pluginmenuitems;
+        private readonly Harmony harmony;
+        private readonly string? clientpath;
         /// <summary>
         /// Client constructor.
         /// </summary>
@@ -87,6 +92,8 @@ namespace Client
             servers = [];
             plugins = [];
             pluginmenuitems = [];
+            harmony = new Harmony("patcher");
+            clientpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             _ = LoadPlugins();
             my = Encryption.GenerateECDH();
             _ = LoadServers();
@@ -324,6 +331,31 @@ namespace Client
         }
         private async Task ProcessMessage(Messages.Message message)
         {
+            foreach (PluginInfo plugininfo in plugins)
+            {
+                try
+                {
+                    await plugininfo.Plugin.MessageReceived(message);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is NotImplementedException)
+                    {
+                        //Disregard
+                    }
+                    else
+                    {
+                        try
+                        {
+                            await plugininfo.Plugin.WriteLog(ex);
+                        }
+                        catch
+                        {
+                            //Disregard
+                        }
+                    }
+                }
+            }
             if (aeskey != null)
             {
                 message = Encryption.DecryptMessage(message, aeskey);
@@ -344,10 +376,69 @@ namespace Client
                 auth.TrySetResult(false);
                 //auth = false;
             }
+            else if (message.CVU != null && message.CVU > CV && message.Update != true)
+            {
+                //Higher version available
+                await RequestUpdate();
+            }
+            else if (message.Update == true)
+            {
+                //Received update package
+                await Update(message);
+            }
             else if (message.Msg != null || message.Data != null)
             {
                 await HandleMessage(message);
             }
+        }
+        private async Task Update(Messages.Message message)
+        {
+            try
+            {
+                if (message.CVU != null)
+                {
+                    if (message.CVU == CV)
+                    {
+                        //Same version, there is no update
+                    }
+                    else if (message.CVU > CV && message.Data != null)
+                    {
+                        //We received update package
+                        Messages.File file = await Messages.Processing.DeserializeFile(message.Data);
+                        if (file.Name != null && file.Content != null)
+                        {
+                            Directory.CreateDirectory("Download");
+                            string path = Path.Combine("Download", file.Name);
+                            await System.IO.File.WriteAllBytesAsync(path, file.Content);
+                            if (file.Name.Contains("patch", StringComparison.OrdinalIgnoreCase))
+                            {
+                                //Patch
+                                await LoadPatch(path);
+                                System.IO.File.Delete(path);
+                            }
+                            else
+                            {
+                                //Update
+                                MessageBox.Show("New version of Client received from Server");
+                                PrepareUpdate(path);
+                                System.IO.File.Delete(path);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await WriteLog(ex);
+            }
+        }
+        /// <summary>
+        /// Requests update from server.
+        /// </summary>
+        /// <returns>Async Task.</returns>
+        public async Task RequestUpdate()
+        {
+            await SendMessage(new() { CV = CV, Update = true, Runtime = runtime });
         }
         /// <summary>
         /// Handles received message.
@@ -356,6 +447,7 @@ namespace Client
         /// <returns>Async Task.</returns>
         public async Task HandleMessage(Messages.Message message)
         {
+
             if (main.chat != null && await ischatready.Task && message.Msg != null)
             {
                 //Chat is ready
@@ -524,7 +616,7 @@ namespace Client
                 {
                     try
                     {
-                        plugininfo.Plugin.ClientLog(ex);
+                        await plugininfo.Plugin.ClientLog(ex);
                     }
                     catch (Exception ex1)
                     {
@@ -536,7 +628,7 @@ namespace Client
                         {
                             try
                             {
-                                plugininfo.Plugin.WriteLog(ex1);
+                                await plugininfo.Plugin.WriteLog(ex1);
                             }
                             catch
                             {
@@ -588,17 +680,28 @@ namespace Client
                 await WriteLog(ex);
             }
         }
-        /// <summary>
-        /// Loads plugins.
-        /// </summary>
-        /// <returns>Async Task.</returns>
-        public async Task LoadPlugins()
+        private async Task UnpackPatch(string path)
         {
-            await UnpackPlugins();
             try
             {
-                Directory.CreateDirectory("Plugins");
-                string[] pluginsnames = Directory.GetDirectories("Plugins");
+                Directory.CreateDirectory("Patches");
+                UnpackZip(path, Path.Combine("Patches", Path.GetFileNameWithoutExtension(path)));
+            }
+            catch (Exception ex)
+            {
+                await WriteLog(ex);
+            }
+        }
+        /// <summary>
+        /// Loads patches.
+        /// </summary>
+        public async Task LoadPatch(string path)
+        {
+            await UnpackPatch(path);
+            try
+            {
+                Directory.CreateDirectory("Patches");
+                string[] pluginsnames = Directory.GetDirectories("Patches");
                 foreach (string name in pluginsnames)
                 {
                     try
@@ -623,7 +726,11 @@ namespace Client
                                     plugininfo.Plugin.Client = this;
                                     try
                                     {
-                                        plugininfo.Plugin.Initialize();
+                                        if (plugininfo.Plugin.IsPatch)
+                                        {
+                                            harmony.PatchAll(plugininfo.Assembly);
+                                            MessageBox.Show("Patched.");
+                                        }
                                     }
                                     catch (Exception ex)
                                     {
@@ -633,18 +740,92 @@ namespace Client
                                         }
                                         else
                                         {
-                                            try
-                                            {
-                                                plugininfo.Plugin.WriteLog(ex);
-                                            }
-                                            catch
+                                            await WriteLog(ex);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Patch signature error");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await WriteLog(ex);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await WriteLog(ex);
+            }
+        }
+        /// <summary>
+        /// Loads plugins.
+        /// </summary>
+        /// <returns>Async Task.</returns>
+        public async Task LoadPlugins()
+        {
+            await UnpackPlugins();
+            try
+            {
+                Directory.CreateDirectory("Plugins");
+                string[] pluginsnames = Directory.GetDirectories("Plugins");
+                foreach (string name in pluginsnames)
+                {
+                    try
+                    {
+                        if (Verify(Path.GetFullPath(name)))
+                        {
+                            string pluginname = Path.GetFileName(name);
+                            if (!plugins.Exists(t => t.Name == pluginname))
+                            {
+                                string name1 = pluginname + ".dll";
+                                Assembly asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.GetFullPath(Path.Combine(name, name1)));
+                                Type? type = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface).FirstOrDefault();
+                                if (type != null)
+                                {
+                                    var instance = Activator.CreateInstance(type);
+                                    if (instance != null)
+                                    {
+                                        PluginInfo plugininfo = new()
+                                        {
+                                            Name = pluginname,
+                                            Assembly = asm,
+                                            Plugin = (IPlugin)instance
+                                        };
+                                        plugininfo.Plugin.Client = this;
+                                        try
+                                        {
+                                            await plugininfo.Plugin.Initialize();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            if (ex is NotImplementedException)
                                             {
                                                 //Disregard
                                             }
+                                            else
+                                            {
+                                                try
+                                                {
+                                                    await plugininfo.Plugin.WriteLog(ex);
+                                                }
+                                                catch
+                                                {
+                                                    //Disregard
+                                                }
+                                            }
                                         }
+                                        plugins.Add(plugininfo);
                                     }
-                                    plugins.Add(plugininfo);
                                 }
+                            }
+                            else
+                            {
+                                //Plugin is already loaded
                             }
                         }
                     }
@@ -667,6 +848,19 @@ namespace Client
         {
             main.mainmenu.Items.Add(item);
             pluginmenuitems.Add(item);
+        }
+        /// <summary>
+        /// Prepares Client for update.
+        /// </summary>
+        /// <param name="path">Path to update package.</param>
+        public void PrepareUpdate(string path)
+        {
+            if (!string.IsNullOrEmpty(clientpath))
+            {
+                string updatepath = Path.Combine(clientpath, "Update");
+                Directory.CreateDirectory(updatepath);
+                UnpackZip(path, updatepath);
+            }
         }
     }
 }

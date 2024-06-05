@@ -132,12 +132,23 @@ It's still possible that some updates will require restaring server, which can b
 
 **Patching**
 
-There are some small updates that can be done by just replacing certain parts of Server itself and are used for transition period untill next update.
+There are some small updates that can be done by just replacing certain parts of Server or Client itself and are used for transition period untill next update.
 
 These updates are published as patches that are loaded the same way as plugins.
 
-In order to patch Server, you need path to patch package.
+In order to patch Server or Client, you need path to patch package.
 
-Just type patch and you'll be asked for the path to patch package and press Enter.
+On Server just type patch and you'll be asked for the path to patch package and press Enter.
 
-Once you update the Server, all patches are deleted.
+On Client click on Settings in main menu and than Patch.
+You'll be asked to select Patch packet.
+
+Once you update the Server or Client, all patches are deleted.
+
+**Network update**
+
+In order to update Client via network, click on Settings in main menu and than Request update from Server.
+
+Once you get message that new version is received, click Load update in Settings>Update.
+
+If you receive patch from the server, Client will be patched automatically.

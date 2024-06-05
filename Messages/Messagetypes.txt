@@ -4,21 +4,20 @@
 2)SEND MESSAGE: CV= 1, Sender= username@server, Receiver= receiver1@server;receiver2@server, Msg= text_message, Data= binary_data
 	//Multiple Receivers by separated by ';'
 3)DISCONNECT: CV= 1, Disconnect= true
-//4)REQUEST UPDATE: CV= 1, Update= true
-	//Send to server after message 3) is received from server
+4)REQUEST UPDATE: CV= 1, Update= true, Runtime= win-x64
+	Send to server after message 1) is received from server
 
 From server to client:
 0) PublicKey=...
-1)AUTH: Auth= true
+1)AUTH: Auth= true, CVU = 2
+	//Sends current available version info to client
 2)RELAY MESSAGE FROM OTHER CLIENT: CV= 1, Sender= username@server, Receiver= receiver1@server, Msg= text_message, Data= binary_data
 	//Only one Receiver
 3)DISCONNECT: Disconnect= true
 	//Send when Server initiates disconnection of the client
-//4)OFFER UPDATE TO CLIENT: CVU= 2
-	//Sends current available version info to client, if it's higher than CV
-//5)SEND UPDATE: Update= true, Data= File
+4)SEND UPDATE: CVU = 2, Update= true, Data= File
 	//File is serialized and sent in Data field
-	//Send as many files as needed
+	//Send .nip package
 
 From server to server:
 0) PublicKey=...

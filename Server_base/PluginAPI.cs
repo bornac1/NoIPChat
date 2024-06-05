@@ -1,4 +1,6 @@
-﻿namespace Server_base
+﻿using Messages;
+
+namespace Server_base
 {
     /// <summary>
     /// Plugin interface
@@ -12,7 +14,7 @@
         /// <summary>
         /// True if plugin is patch, false if not.
         /// </summary>
-        public bool IsPatch { get; }
+        public bool IsPatch { get { return false; } }
         /// <summary>
         /// Run during plugin initialization.
         /// </summary>
@@ -85,6 +87,33 @@
         /// </summary>
         /// <param name="ex">Exception.</param>
         public void ServerLog(Exception ex)
+        {
+            throw new NotImplementedException();
+        }
+        /// <summary>
+        /// Run when Server is closed.
+        /// </summary>
+        public void Close()
+        {
+            throw new NotImplementedException();
+        }
+        /// <summary>
+        /// Run when sending message to users for whom this is home server.
+        /// </summary>
+        /// <param name="user">Username.</param>
+        /// <param name="message">Message.</param>
+        /// <returns>Async Task that complets with bool. True if message should be sent by server, false if it's sent by plugin.</returns>
+        public Task<bool> SendMessageThisServer(string user, Message message)
+        {
+            throw new NotImplementedException();
+        }
+        /// <summary>
+        /// Run when sending message to users who's home server is other one
+        /// </summary>
+        /// <param name="user">Username.</param>
+        /// <param name="message">Message.</param>
+        /// <returns>Async Task that complets with bool. True if message should be sent by server, false if it's sent by plugin</returns>
+        public Task<bool> SendMessageOtherServer(string user, Message message)
         {
             throw new NotImplementedException();
         }

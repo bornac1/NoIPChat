@@ -17,7 +17,7 @@ namespace Server_base
         private readonly FileStream file;
         private readonly byte[] intbuffer = new byte[sizeof(int)];
         private byte[] messagebuffer = new byte[1024];
-        private int version;
+        private Messages.Version version;
         private readonly string path;
         private long start = 0;
         private DataHandler(string folder, string name, bool temp = false)
@@ -54,7 +54,7 @@ namespace Server_base
         /// <returns>Task that completes with DataHandler.</returns>
         /// <exception cref="VersionException">File version is newer than server.</exception>
         /// <exception cref="FileException">File error.</exception>
-        public static async Task<DataHandler> CreateData(string name, int version)
+        public static async Task<DataHandler> CreateData(string name, Messages.Version version)
         {
             DataHandler handler = new("Data", name);
             if (handler.file.Length >= sizeof(int))
@@ -82,7 +82,7 @@ namespace Server_base
         /// <returns>Task that completes with DataHandler.</returns>
         /// <exception cref="VersionException">File version is newer than server.</exception>
         /// <exception cref="FileException">File error.</exception>
-        public static async Task<DataHandler> CreateTemp(string name, int version)
+        public static async Task<DataHandler> CreateTemp(string name, Messages.Version version)
         {
             DataHandler handler = new("Temp", name, true);
             if (handler.file.Length >= sizeof(int))
@@ -109,7 +109,7 @@ namespace Server_base
         /// <returns>Task that completes with DataHandler.</returns>
         /// <exception cref="VersionException">File version is newer than server.</exception>
         /// <exception cref="FileException">File error.</exception>
-        public static async Task<DataHandler> CreateSneakernet(string path, int version)
+        public static async Task<DataHandler> CreateSneakernet(string path, Messages.Version version)
         {
             DataHandler handler = new(path);
             if (handler.file.Length >= sizeof(int))
@@ -133,7 +133,9 @@ namespace Server_base
         {
             byte[] data = Encoding.ASCII.GetBytes(magicstring);
             await file.WriteAsync(data);
-            await WriteInt(version);
+            await WriteInt(version.Major);
+            await WriteInt(version.Minor);
+            await WriteInt(version.Patch);
             start = file.Position;
         }
         private async Task ReadHeader()
@@ -146,7 +148,10 @@ namespace Server_base
             }
             if (MemoryExtensions.Equals(Encoding.ASCII.GetString(buffer, 0, buffer.Length), magicstring, StringComparison.OrdinalIgnoreCase))
             {
-                version = await ReadInt();
+                int major = await ReadInt();
+                int minor = await ReadInt();
+                int patch = await ReadInt();
+                version = new(major, minor, patch);
                 await ReadInt();//Reads magic
             }
             else
