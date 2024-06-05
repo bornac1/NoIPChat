@@ -6,6 +6,7 @@ namespace Updater
     {
         static void Main(string[] args)
         {
+            bool err = false;
             Console.Clear();
             try
             {
@@ -16,6 +17,7 @@ namespace Updater
                     {
                         string path = args[0];
                         string type = args[1];
+                        Directory.CreateDirectory("Backup");
                         if (Directory.Exists("Patches"))
                         {
                             string backuppatch = Path.Combine("Backup", "Patches");
@@ -45,7 +47,13 @@ namespace Updater
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"Update error. {ex}");
+                                err = true;
                             }
+                        }
+                        if (err)
+                        {
+                            Console.WriteLine("Not all files were replaced! Check log.");
+                            Console.ReadLine();
                         }
                         if (type == "server")
                         {
