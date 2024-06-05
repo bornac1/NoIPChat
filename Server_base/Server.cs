@@ -172,6 +172,7 @@ namespace Server_base
             if (!serversloaded)
             {
                 await LoadServers();
+                await LoadClientUpdates();
                 serversloaded = true;
             }
             while (active)
@@ -1066,6 +1067,59 @@ namespace Server_base
                 }
             }
             return null;
+        }
+        private async Task LoadClientUpdates()
+        {
+            try
+            {
+                string? version;
+                string? runtime;
+                foreach (string fullpath in Directory.GetFiles("Clientupdates"))
+                {
+                    if (System.IO.File.Exists(fullpath) && Path.GetExtension(fullpath).Equals(".nip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string name = Path.GetFileNameWithoutExtension(fullpath);
+                        version = ParseNameVersion(name);
+                        runtime = ParseNameRuntime(name);
+                        if (name.Contains("patch", StringComparison.OrdinalIgnoreCase) && version != null)
+                        {
+                            //It's a patch
+                            if (runtime != null && clientpatches.TryGetValue(runtime, out var patches))
+                            {
+                                patches.Add((version, fullpath));
+                            }
+                            else if (runtime != null)
+                            {
+                                ConcurrentList<(string, string)> newpatches = [];
+                                newpatches.Add((version, fullpath));
+                                if (clientpatches.TryAdd(runtime, newpatches))
+                                {
+                                    //Shouldn't fail
+                                }
+                            }
+                        }
+                        else
+                        {
+                            //It's update
+                            name = Path.GetFileNameWithoutExtension(fullpath);
+                            version = ParseNameVersion(name);
+                            runtime = ParseNameRuntime(name);
+                            if (version != null && runtime != null)
+                            {
+                                if (clientupdates.TryAdd(runtime, fullpath))
+                                {
+                                    //Shouldn't fail
+                                }
+                                CVU = version;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await WriteLog(ex);
+            }
         }
     }
 }

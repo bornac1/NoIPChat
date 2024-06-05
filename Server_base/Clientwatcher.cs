@@ -43,7 +43,7 @@
                 string? runtime;
                 if (e.FullPath != null && File.Exists(e.FullPath) && Path.GetExtension(e.FullPath).Equals(".nip", StringComparison.OrdinalIgnoreCase))
                 {
-                    string name = Path.GetFileName(e.FullPath);
+                    string name = Path.GetFileNameWithoutExtension(e.FullPath);
                     version = ParseNameVersion(name);
                     runtime = ParseNameRuntime(name);
                     if (name.Contains("patch", StringComparison.OrdinalIgnoreCase) && version != null)
@@ -66,7 +66,7 @@
                     else
                     {
                         //It's update
-                        name = Path.GetFileName(e.FullPath);
+                        name = Path.GetFileNameWithoutExtension(e.FullPath);
                         version = ParseNameVersion(name);
                         runtime = ParseNameRuntime(name);
                         if (version != null && runtime != null)
@@ -89,7 +89,7 @@
         {
             try
             {
-                string name = Path.GetFileName(e.FullPath);
+                string name = Path.GetFileNameWithoutExtension(e.FullPath);
                 string? runtime = ParseNameRuntime(name);
                 if (runtime != null && name.Contains("patch", StringComparison.OrdinalIgnoreCase) && clientpatches.TryGetValue(runtime, out var patches))
                 {
@@ -111,7 +111,7 @@
                 }
                 else
                 {
-                    name = Path.GetFileName(e.FullPath);
+                    name = Path.GetFileNameWithoutExtension(e.FullPath);
                     runtime = ParseNameRuntime(name);
                     if (runtime != null)
                     {
@@ -131,7 +131,7 @@
         {
             try
             {
-                string name = Path.GetFileName(e.FullPath);
+                string name = Path.GetFileNameWithoutExtension(e.FullPath);
                 string? runtime = ParseNameRuntime(name);
                 if (runtime != null && name.Contains("patch", StringComparison.OrdinalIgnoreCase) && clientpatches.TryGetValue(runtime, out var patches))
                 {
@@ -151,7 +151,7 @@
                 }
                 else
                 {
-                    name = Path.GetFileName(e.FullPath);
+                    name = Path.GetFileNameWithoutExtension(e.FullPath);
                     runtime = ParseNameRuntime(name);
                     if (runtime != null)
                     {
