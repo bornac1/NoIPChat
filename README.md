@@ -100,6 +100,14 @@ Remote is reserver for future uses and can be deleted
 
 If you wish to use new key for running server after the setup, just delete Key.bin file and key will be regenerated when server is started again
 
+**Sneakernet**
+
+In order to save messages for other server, type save sneakernet.
+
+You'll be asked to provide path where you want messages to be saved and name of the server for which you are saving messages.
+
+For loading messages type load sneakernet and you'll be asked to provide path to file with saved messages.
+
 **Automatic reconnection**
 
 If connection between client and server or two servers is lost, it'll automatically try to reconnect in intervals starting from 15 ms, up to 60 s with each attempt interval is doubled.
