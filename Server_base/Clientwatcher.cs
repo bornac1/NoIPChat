@@ -39,11 +39,13 @@
         {
             try
             {
+                string? version;
+                string? runtime;
                 if (e.FullPath != null && File.Exists(e.FullPath) && Path.GetExtension(e.FullPath).Equals(".nip", StringComparison.OrdinalIgnoreCase))
                 {
                     string name = Path.GetFileName(e.FullPath);
-                    string? version = ParseNameVersion(name);
-                    string? runtime = ParseNameRuntime(name);
+                    version = ParseNameVersion(name);
+                    runtime = ParseNameRuntime(name);
                     if (name.Contains("patch", StringComparison.OrdinalIgnoreCase) && version != null)
                     {
                         //It's a patch
@@ -64,7 +66,17 @@
                     else
                     {
                         //It's update
-                        clientupdatepath = e.FullPath;
+                        name = Path.GetFileName(e.FullPath);
+                        version = ParseNameVersion(name);
+                        runtime = ParseNameRuntime(name);
+                        if (version != null && runtime != null)
+                        {
+                            if (clientupdates.TryAdd(runtime, e.FullPath))
+                            {
+                                //Shouldn't fail
+                            }
+                            CVU = version;
+                        }
                     }
                 }
             }
@@ -99,9 +111,14 @@
                 }
                 else
                 {
-                    if (clientupdatepath == e.FullPath)
+                    name = Path.GetFileName(e.FullPath);
+                    runtime = ParseNameRuntime(name);
+                    if (runtime != null)
                     {
-                        clientupdatepath = null;
+                        if (clientupdates.TryRemove(runtime, out _))
+                        {
+                            //Shouldn't fail
+                        }
                     }
                 }
             }
@@ -134,7 +151,18 @@
                 }
                 else
                 {
-                    clientupdatepath = e.FullPath;
+                    name = Path.GetFileName(e.FullPath);
+                    runtime = ParseNameRuntime(name);
+                    if (runtime != null)
+                    {
+                        if (clientupdates.TryGetValue(runtime, out string? current) && current != null)
+                        {
+                            if(clientupdates.TryUpdate(runtime, e.FullPath, current))
+                            {
+                                //Shouldn't fail
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)

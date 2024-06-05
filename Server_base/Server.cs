@@ -86,9 +86,9 @@ namespace Server_base
         /// </summary>
         private readonly ConcurrentDictionary<string, ConcurrentList<(string, string)>> clientpatches;
         /// <summary>
-        /// Path to client update package.
+        /// Client updates. Key is runtime, Value is path.
         /// </summary>
-        public string? clientupdatepath;
+        public readonly ConcurrentDictionary<string, string> clientupdates;
         private readonly FileSystemWatcher clientwatcher;
         /// <summary>
         /// Server constructor.
@@ -117,7 +117,7 @@ namespace Server_base
             my = ecdh;
             harmony = new Harmony("patcher");
             clientpatches = [];
-            clientupdatepath = null;
+            clientupdates = [];
             clientwatcher = new();
             Setupclientwatcher();
             if (!string.IsNullOrEmpty(logfile))

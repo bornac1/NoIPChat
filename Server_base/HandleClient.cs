@@ -97,9 +97,9 @@ namespace Server_base
                     {
                         //No patch available
                         //Send update
-                        if (server.clientupdatepath != null)
+                        if (server.clientupdates.TryGetValue(message.Runtime, out string? updatepath) && updatepath != null)
                         {
-                            Messages.File file = new() { Name = Path.GetFileName(server.clientupdatepath), Content = await System.IO.File.ReadAllBytesAsync(server.clientupdatepath) };
+                            Messages.File file = new() { Name = Path.GetFileName(updatepath), Content = await System.IO.File.ReadAllBytesAsync(updatepath) };
                             await SendMessage(new() { CVU = server.CVU, Update = true, Data = await Processing.SerializeFile(file) });
                         }
                         else
