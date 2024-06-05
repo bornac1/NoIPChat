@@ -7,5 +7,7 @@
         Task Close();
         public WriteLogAsync? Writelogasync { get; set; }
         public void LoadPatch(string path);
+        public Task SaveSneakernet(string path, string name);
+        public Task LoadSneakernet(string path);
     }
 }
