@@ -26,7 +26,7 @@ namespace Packer
                 }
             }
         }
-        private static void SignAndPack(string path)
+        private static void SignAndPack(string pathsc, string path)
         {
             X509Certificate2 cert = new("NoIPChat.pfx");
             var rsaPrivateKey = cert.GetRSAPrivateKey();
@@ -37,9 +37,17 @@ namespace Packer
                 int i = 0;
                 string name = "Packet.nip";
                 List<string> files1 = [];
+                List<string> existing = [];
+                foreach(string filesc in Directory.GetFiles(pathsc))
+                {
+                    if (filesc.Contains(".dll"))
+                    {
+                        existing.Add(Path.GetFileName(filesc));
+                    }
+                }
                 foreach (string file in files)
                 {
-                    if (file != "sign" && !file.Contains(".nip"))
+                    if (file != "sign" && !file.Contains(".nip") && !existing.Contains(Path.GetFileName(file)))
                     {
                         if (file.Contains(".dll"))
                         {
@@ -130,21 +138,24 @@ namespace Packer
         }
         static void Main(string[] args)
         {
+            string? pathsc;
             string? path;
             if (args.Length > 0)
             {
                 //Ignore other
-                path = args[0];
-
+                pathsc = args[0];
+                path = args[1];
             }
             else
             {
+                Console.WriteLine("Path to Server or Client");
+                pathsc = Console.ReadLine();
                 Console.Write("Path to directory:");
                 path = Console.ReadLine();
             }
-            if (!string.IsNullOrEmpty(path))
+            if (!string.IsNullOrEmpty(pathsc) && !string.IsNullOrEmpty(path))
             {
-                SignAndPack(Path.GetFullPath(path));
+                SignAndPack(Path.GetFullPath(pathsc), Path.GetFullPath(path));
             }
             Console.Write("Press any key to exit.");
             Console.ReadLine();
