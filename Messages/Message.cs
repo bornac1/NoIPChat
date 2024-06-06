@@ -76,6 +76,10 @@ namespace Messages
         public byte[]? Nounce { get; set; }
         public byte[]? PublicKey { get; set; }
         public int? Hop { get; set; }
+        /// <summary>
+        /// Extra data in dictionary.
+        /// </summary>
+        public Dictionary<string, byte[]?>? Extra { get; set; }
     }
     [MessagePackObject(keyAsPropertyName: true)]
     public class ServerData
