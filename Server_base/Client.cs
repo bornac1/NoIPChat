@@ -99,6 +99,7 @@ namespace Server_base
                         Name = server.name.ToLower(),
                         Server = true,
                         SV = server.SV,
+                        SVU = server.SVU,
                         Data = await Task.Run(() => { return MessagePackSerializer.Serialize(new ServerData() { IP = data.Item1, Port = data.Item2 }); })
                     });
                     _ = Receive();
