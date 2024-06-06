@@ -21,7 +21,7 @@ From server to client:
 
 From server to server:
 0) PublicKey=...
-1)WELCOME: SV= 1, Name= server_name, Server= true, Data = {IP= 127.0.0.1, Port = 100}
+1)WELCOME: SV= 1, SVU= 2, Name= server_name, Server= true, Data = {IP= 127.0.0.1, Port = 100}
 	//Send name and network informations in Data
 2)USERS: SV= 1, Name= server_name, Users = user@server1;user@server2
 	//Send list of users that have this home server, but are connected to server_name
@@ -58,3 +58,8 @@ From server to server:
 		CV= 1, Sender=server2
 		AUTH
 		Sender= sender_server, Receiver= user@server, Auth= true
+	8)REQUEST UPDATE: SV= 1, Update= true, Runtime= win-x64
+		Send after message 1) is received from other server
+	9)SEND UPDATE: SVU = 2, Update= true, Data= File
+		//File is serialized and sent in Data field
+		//Send .nip package
