@@ -23,7 +23,7 @@ namespace Messages
         /// <summary>
         /// Server version available for update.
         /// </summary>
-        public int? SVU { get; set; }
+        public string? SVU { get; set; }
         public bool? Update { get; set; }
         /// <summary>
         /// Username.
