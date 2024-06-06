@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Messages
 {
@@ -41,22 +42,42 @@ namespace Messages
             return file;
         }
         /// <summary>
-        /// Serialise given APIMessage into bytes.
+        /// Serializes given APIMessage into bytes.
         /// </summary>
-        /// <param name="message">Message to be serialised.</param>
+        /// <param name="message">Message to be serialized.</param>
         public static async Task<byte[]> SerializeAPI(APIMessage message)
         {
             byte[] bytes = await Task.Run(() => { return MessagePackSerializer.Serialize(message); });
             return bytes;
         }
         /// <summary>
-        /// Deseliazies bytes into APIMessage.
+        /// Deserializes bytes into APIMessage.
         /// </summary>
         /// <param name="data">Binary data to be deserialized.</param>
         public static async Task<APIMessage> DeserializeAPI(ReadOnlyMemory<byte> data)
         {
             APIMessage message = await Task.Run(() => { return MessagePackSerializer.Deserialize<APIMessage>(data); });
             return message;
+        }
+        /// <summary>
+        /// Serilizes generic type.
+        /// </summary>
+        /// <typeparam name="T">Type.</typeparam>
+        /// <param name="value">Value to be serialized.</param>
+        /// <returns>Async Task that completes with byte[].</returns>
+        public static async Task<byte[]> SerializeGeneric<T>(T value)
+        {
+            return await Task.Run(() => { return MessagePackSerializer.Serialize(value); });
+        }
+        /// <summary>
+        /// Deserialize generic type.
+        /// </summary>
+        /// <typeparam name="T">Type.</typeparam>
+        /// <param name="data">byte[] to be deserialized.</param>
+        /// <returns>Async Task that complets with object of type T.</returns>
+        public static async Task<T> DeserializeGeneric<T>(byte[] data)
+        {
+            return await Task.Run(() => { return MessagePackSerializer.Deserialize<T>(data); });
         }
     }
 }
