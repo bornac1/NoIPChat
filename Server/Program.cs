@@ -37,7 +37,7 @@ namespace Server_starter
             {
                 context = new(null, true);
                 contextref = new(context);
-                string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string? path = Path.GetDirectoryName(AppContext.BaseDirectory);
                 if (path != null)
                 {
                     Assembly? loaded = context.LoadFromAssemblyPath(Path.Combine(path, name));
@@ -278,7 +278,7 @@ namespace Server_starter
         {
             try
             {
-                string? serverpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string? serverpath = Path.GetDirectoryName(AppContext.BaseDirectory);
                 Console.Write("Path to update pack: ");
                 string? path = Console.ReadLine();
                 if (!string.IsNullOrEmpty(path) && !string.IsNullOrEmpty(serverpath))
@@ -345,7 +345,7 @@ namespace Server_starter
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = "Updater.exe",
-                    Arguments = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + " " + "server"
+                    Arguments = Path.GetDirectoryName(AppContext.BaseDirectory) + " " + "server"
                 });
                 Environment.Exit(0);
             }

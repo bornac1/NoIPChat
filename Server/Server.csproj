@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
 	<GenerateDocumentationFile>False</GenerateDocumentationFile>
 	<SelfContained>true</SelfContained>
+	<PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -20,12 +21,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ConfigurationData\ConfigurationData.csproj" />
-    <ProjectReference Include="..\Guide\Guide.csproj" />
-    <ProjectReference Include="..\Messages\Messages.csproj" />
-    <ProjectReference Include="..\Server_API\Server_API.csproj" />
-    <ProjectReference Include="..\Server_interface\Server_interface.csproj" />
-    <ProjectReference Include="..\Updater\Updater.csproj" />
+	  <ProjectReference Include="..\ConfigurationData\ConfigurationData.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
+	  <ProjectReference Include="..\Guide\Guide.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
+	  <ProjectReference Include="..\Messages\Messages.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
+	  <ProjectReference Include="..\Server_API\Server_API.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
+	  <ProjectReference Include="..\Server_interface\Server_interface.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
+	  <ProjectReference Include="..\Updater\Updater.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
+	  <ProjectReference Include="..\Server_base\Server_base.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>

@@ -93,7 +93,7 @@ namespace Client
             plugins = [];
             pluginmenuitems = [];
             harmony = new Harmony("patcher");
-            clientpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            clientpath = Path.GetDirectoryName(AppContext.BaseDirectory);
             _ = LoadPlugins();
             my = Encryption.GenerateECDH();
             _ = LoadServers();

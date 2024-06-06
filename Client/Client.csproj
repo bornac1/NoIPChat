@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	<SelfContained>true</SelfContained>
+	<PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -21,13 +22,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+	  <PackageReference Include="Lib.Harmony" Version="2.3.3">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Messages\Messages.csproj" />
-    <ProjectReference Include="..\Transport\Transport.csproj" />
-    <ProjectReference Include="..\Updater\Updater.csproj" />
+	  <ProjectReference Include="..\Messages\Messages.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
+    <ProjectReference Include="..\Transport\Transport.csproj">
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</ProjectReference>
+	  <ProjectReference Include="..\Updater\Updater.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>

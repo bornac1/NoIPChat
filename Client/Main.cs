@@ -177,7 +177,7 @@ namespace Client
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = "Updater.exe",
-                        Arguments = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + " " + "client"
+                        Arguments = Path.GetDirectoryName(AppContext.BaseDirectory) + " " + "client"
                     });
                     Environment.Exit(0);
                 }
@@ -197,7 +197,7 @@ namespace Client
                             Process.Start(new ProcessStartInfo
                             {
                                 FileName = "Updater.exe",
-                                Arguments = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + " " + "client"
+                                Arguments = Path.GetDirectoryName(AppContext.BaseDirectory) + " " + "client"
                             });
                             Environment.Exit(0);
                         }

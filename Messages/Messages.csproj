@@ -22,8 +22,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="2.5.140" />
-    <PackageReference Include="Sodium.Core" Version="1.3.4" />
+    <PackageReference Include="MessagePack" Version="2.5.140">
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</PackageReference>
+	  <PackageReference Include="Sodium.Core" Version="1.3.4">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </PackageReference>
   </ItemGroup>
 
 </Project>

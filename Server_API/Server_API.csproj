@@ -22,9 +22,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Messages\Messages.csproj" />
-    <ProjectReference Include="..\Server_base\Server_base.csproj" />
-    <ProjectReference Include="..\Server_interface\Server_interface.csproj" />
+	  <ProjectReference Include="..\Messages\Messages.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
+	  <ProjectReference Include="..\Server_base\Server_base.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
+	  <ProjectReference Include="..\Server_interface\Server_interface.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
   </ItemGroup>
 
 </Project>

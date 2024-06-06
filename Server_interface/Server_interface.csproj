@@ -11,7 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ConfigurationData\ConfigurationData.csproj" />
+	  <ProjectReference Include="..\ConfigurationData\ConfigurationData.csproj">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
   </ItemGroup>
 
 </Project>
