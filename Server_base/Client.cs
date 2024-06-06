@@ -19,6 +19,10 @@ namespace Server_base
         private bool connected;
         private readonly System.Timers.Timer? timer;
         private bool disconnectstarted = false;
+        /// <summary>
+        /// Authentication flag. True if client is authenticated, false if not.
+        /// </summary>
+        public bool Authenticated { get { return auth; } }
         private bool auth = false;
         private readonly string localip;
         private readonly byte[] bufferl = new byte[sizeof(int)];
