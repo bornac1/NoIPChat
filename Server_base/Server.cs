@@ -95,7 +95,10 @@ namespace Server_base
         public readonly ConcurrentDictionary<string, string> clientupdates;
         private readonly FileSystemWatcher clientwatcher;
         private readonly ConcurrentDictionary<string, ConcurrentList<(string, string)>> serverpatches;
-        private readonly ConcurrentDictionary<string, string> serverupdates;
+        /// <summary>
+        /// Server updates. Key is runtime, Value is path.
+        /// </summary>
+        public readonly ConcurrentDictionary<string, string> serverupdates;
         private readonly FileSystemWatcher serverwatcher;
         /// <summary>
         /// Server constructor.
@@ -1131,6 +1134,26 @@ namespace Server_base
             {
                 await WriteLog(ex);
             }
+        }
+        /// <summary>
+        /// Gets path to server patch.
+        /// </summary>
+        /// <param name="runtime">Server runtime.</param>
+        /// <param name="version">Current server version.</param>
+        /// <returns>Path to server patch.</returns>
+        public string? GetServerPatch(string runtime, string version)
+        {
+            if (serverpatches.TryGetValue(runtime, out var patches))
+            {
+                foreach (var patch in patches)
+                {
+                    if (patch.Item1.Equals(version, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return patch.Item2;
+                    }
+                }
+            }
+            return null;
         }
     }
 }

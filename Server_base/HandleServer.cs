@@ -44,6 +44,10 @@ namespace Server_base
                 //Message for this server
                 ProcessServerLocalMessage(message);
             }
+            else if (message.Update == true)
+            {
+                await ServerUpdate(message);
+            }
         }
         private async Task ProcessServerWelcomeMessage(Message message)
         {
@@ -296,6 +300,46 @@ namespace Server_base
                 else
                 {
                     await DisconnectServer(true);
+                }
+            }
+        }
+        private async Task ServerUpdate(Message message)
+        {
+            if (message.SV != null && message.Runtime != null)
+            {
+                if (message.SV < server.SVU)
+                {
+                    //Newer version is available
+                    string? path = server.GetServerPatch(message.Runtime, message.SV);
+                    if (path != null)
+                    {
+                        string? name = GetPatchName(Path.GetFileName(path));
+                        if (name != null)
+                        {
+                            Messages.File file = new() { Name = name, Content = await System.IO.File.ReadAllBytesAsync(path) };
+                            await SendMessage(new() { SVU = server.SVU, Update = true, Data = await Processing.SerializeFile(file) });
+
+                        }
+                    }
+                    else
+                    {
+                        //No patch available
+                        //Send update
+                        if (server.serverupdates.TryGetValue(message.Runtime, out string? updatepath) && updatepath != null)
+                        {
+                            Messages.File file = new() { Name = Path.GetFileName(updatepath), Content = await System.IO.File.ReadAllBytesAsync(updatepath) };
+                            await SendMessage(new() { SVU = server.SVU, Update = true, Data = await Processing.SerializeFile(file) });
+                        }
+                        else
+                        {
+                            //No update is available
+                        }
+                    }
+                }
+                else
+                {
+                    //Server has latest version
+                    await SendMessage(new() { Update = true, SVU = message.SV });
                 }
             }
         }

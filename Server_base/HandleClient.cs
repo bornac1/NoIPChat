@@ -64,7 +64,7 @@ namespace Server_base
                 await server.WriteLog(ex);
             }
         }
-        private static string? GetClientPatchName(string name)
+        private static string? GetPatchName(string name)
         {
             //TODO: optimization
             //Format: 0.0.0 patch win-x64.nip
@@ -85,7 +85,7 @@ namespace Server_base
                     string? path = server.GetClientPatch(message.Runtime, message.CV);
                     if (path != null)
                     {
-                        string? name = GetClientPatchName(Path.GetFileName(path));
+                        string? name = GetPatchName(Path.GetFileName(path));
                         if (name != null)
                         {
                             Messages.File file = new() { Name = name, Content = await System.IO.File.ReadAllBytesAsync(path) };
