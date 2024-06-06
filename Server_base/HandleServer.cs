@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using MessagePack;
 using Messages;
+using Python.Runtime;
 using Transport;
 
 namespace Server_base
@@ -44,9 +45,13 @@ namespace Server_base
                 //Message for this server
                 ProcessServerLocalMessage(message);
             }
-            else if (message.Update == true)
+            else if (message.Update == true && message.Runtime != null)
             {
                 await ServerUpdate(message);
+            }
+            else if(message.SVU != null && message.Update == true && message.Data != null)
+            {
+                await UpdateServer(message);
             }
         }
         private async Task ProcessServerWelcomeMessage(Message message)
@@ -104,6 +109,10 @@ namespace Server_base
                 auth = true;
                 await SendUsers();
                 await SendAllMessagesServer();
+                if (message.SVU != null && message.SVU > server.SV && message.Update != true)
+                {
+                    await RequestUpdate();
+                }
             }
         }
         /// <summary>
@@ -303,6 +312,11 @@ namespace Server_base
                 }
             }
         }
+        /// <summary>
+        /// Sends update to remote server.
+        /// </summary>
+        /// <param name="message">Message.</param>
+        /// <returns>Async Task.</returns>
         private async Task ServerUpdate(Message message)
         {
             if (message.SV != null && message.Runtime != null)
@@ -341,6 +355,56 @@ namespace Server_base
                     //Server has latest version
                     await SendMessage(new() { Update = true, SVU = message.SV });
                 }
+            }
+        }
+        private async Task RequestUpdate()
+        {
+            await SendMessage(new() { SV = server.SV, Update = true, Runtime = server.runtime });
+        }
+        /// <summary>
+        /// Handles received update.
+        /// </summary>
+        /// <param name="message">Message.</param>
+        /// <returns>Async Task.</returns>
+        private async Task UpdateServer(Message message)
+        {
+            try
+            {
+                if (message.SVU != null)
+                {
+                    if (message.SVU == server.SV)
+                    {
+                        //Same version, there is no update
+                    }
+                    else if (message.SVU > server.SV && message.Data != null)
+                    {
+                        //We received update package
+                        Messages.File file = await Messages.Processing.DeserializeFile(message.Data);
+                        if (file.Name != null && file.Content != null)
+                        {
+                            Directory.CreateDirectory("Download");
+                            string path = Path.Combine("Download", file.Name);
+                            await System.IO.File.WriteAllBytesAsync(path, file.Content);
+                            if (file.Name.Contains("patch", StringComparison.OrdinalIgnoreCase))
+                            {
+                                //Patch
+                                server.LoadPatch(path);
+                                System.IO.File.Delete(path);
+                            }
+                            else
+                            {
+                                //Update
+                                Console.WriteLine("New version of Server received");
+                                server.PrepareUpdate(path);
+                                System.IO.File.Delete(path);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await server.WriteLog(ex);
             }
         }
     }

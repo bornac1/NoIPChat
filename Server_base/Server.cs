@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using ConfigurationData;
 using HarmonyLib;
@@ -22,6 +23,10 @@ namespace Server_base
         /// Server version.
         /// </summary>
         public Messages.Version SV = "0.5.0";
+        /// <summary>
+        /// /Server runtime.
+        /// </summary>
+        public readonly string runtime = RuntimeInformation.RuntimeIdentifier;
         private readonly int HopCount = 10; //Max number of hops between servers
         private readonly TListener[] listeners;
         /// <summary>
@@ -100,6 +105,7 @@ namespace Server_base
         /// </summary>
         public readonly ConcurrentDictionary<string, string> serverupdates;
         private readonly FileSystemWatcher serverwatcher;
+        private readonly string? serverpath;
         /// <summary>
         /// Server constructor.
         /// </summary>
@@ -111,6 +117,7 @@ namespace Server_base
         /// <param name="context">AssemblyLoadContext used for loading plugins. Should be the same as where Server_base is loaded.</param>
         public Server(string name, List<Interface> interfaces, KeyPair ecdh, WriteLogAsync? writelogasync, string? logfile, AssemblyLoadContext context)
         {
+            serverpath = Path.GetDirectoryName(AppContext.BaseDirectory);
             this.context = context;
             context.Resolving += OnResolving;
             this.name = name.ToLower();
@@ -1154,6 +1161,19 @@ namespace Server_base
                 }
             }
             return null;
+        }
+        /// <summary>
+        /// Prepares Server for update.
+        /// </summary>
+        /// <param name="path">Path to update package.</param>
+        public void PrepareUpdate(string path)
+        {
+            if (!string.IsNullOrEmpty(serverpath))
+            {
+                string updatepath = Path.Combine(serverpath, "Update");
+                Directory.CreateDirectory(updatepath);
+                UnpackZip(path, updatepath);
+            }
         }
     }
 }
