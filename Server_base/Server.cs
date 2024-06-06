@@ -82,6 +82,10 @@ namespace Server_base
         /// </summary>
         public Messages.Version CVU;
         /// <summary>
+        /// Server update version.
+        /// </summary>
+        public Messages.Version SVU;
+        /// <summary>
         /// Client patches. Key is runtime, Item1 is client version, Item 2 is path.
         /// </summary>
         private readonly ConcurrentDictionary<string, ConcurrentList<(string, string)>> clientpatches;
@@ -90,6 +94,9 @@ namespace Server_base
         /// </summary>
         public readonly ConcurrentDictionary<string, string> clientupdates;
         private readonly FileSystemWatcher clientwatcher;
+        private readonly ConcurrentDictionary<string, ConcurrentList<(string, string)>> serverpatches;
+        private readonly ConcurrentDictionary<string, string> serverupdates;
+        private readonly FileSystemWatcher serverwatcher;
         /// <summary>
         /// Server constructor.
         /// </summary>
@@ -120,6 +127,10 @@ namespace Server_base
             clientupdates = [];
             clientwatcher = new();
             Setupclientwatcher();
+            serverpatches = [];
+            serverupdates = [];
+            serverwatcher = new();
+            Setupserverwatcher();
             if (!string.IsNullOrEmpty(logfile))
             {
                 this.logfile = logfile;
