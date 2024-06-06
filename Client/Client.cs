@@ -376,12 +376,6 @@ namespace Client
                 auth.TrySetResult(false);
                 //auth = false;
             }
-            else if (message.CVU != null && message.CVU > CV && message.Update != true)
-            {
-                //Higher version available
-                //TODO: not working
-                await RequestUpdate();
-            }
             else if (message.Update == true)
             {
                 //Received update package
@@ -390,6 +384,11 @@ namespace Client
             else if (message.Msg != null || message.Data != null)
             {
                 await HandleMessage(message);
+            }
+            if (message.CVU != null && message.CVU > CV && message.Update != true)
+            {
+                //Higher version available
+                await RequestUpdate();
             }
         }
         private async Task Update(Messages.Message message)
