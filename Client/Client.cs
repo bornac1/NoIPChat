@@ -379,6 +379,7 @@ namespace Client
             else if (message.CVU != null && message.CVU > CV && message.Update != true)
             {
                 //Higher version available
+                //TODO: not working
                 await RequestUpdate();
             }
             else if (message.Update == true)
