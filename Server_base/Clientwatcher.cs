@@ -157,7 +157,7 @@
                     {
                         if (clientupdates.TryGetValue(runtime, out string? current) && current != null)
                         {
-                            if(clientupdates.TryUpdate(runtime, e.FullPath, current))
+                            if (clientupdates.TryUpdate(runtime, e.FullPath, current))
                             {
                                 //Shouldn't fail
                             }

@@ -139,7 +139,7 @@
                     {
                         if (serverupdates.TryGetValue(runtime, out string? current) && current != null)
                         {
-                            if(serverupdates.TryUpdate(runtime, e.FullPath, current))
+                            if (serverupdates.TryUpdate(runtime, e.FullPath, current))
                             {
                                 //Shouldn't fail
                             }

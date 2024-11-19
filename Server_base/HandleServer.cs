@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using MessagePack;
 using Messages;
-using Python.Runtime;
 using Transport;
 
 namespace Server_base
@@ -49,7 +48,7 @@ namespace Server_base
             {
                 await ServerUpdate(message);
             }
-            else if(message.SVU != null && message.Update == true && message.Data != null)
+            else if (message.SVU != null && message.Update == true && message.Data != null)
             {
                 await UpdateServer(message);
             }

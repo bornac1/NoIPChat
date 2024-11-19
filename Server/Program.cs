@@ -373,7 +373,7 @@ namespace Server_starter
             string? path = Console.ReadLine();
             Console.Write("Server for which messages are saved:");
             string? srv = Console.ReadLine();
-            if(!string.IsNullOrEmpty(path) && !string.IsNullOrEmpty(srv) && server != null)
+            if (!string.IsNullOrEmpty(path) && !string.IsNullOrEmpty(srv) && server != null)
             {
                 path = Path.GetFullPath(path);
                 await server.SaveSneakernet(path, srv.ToLower());
@@ -426,11 +426,11 @@ namespace Server_starter
                     {
                         program.Patch();
                     }
-                    else if(input.Equals("save sneakernet", StringComparison.OrdinalIgnoreCase))
+                    else if (input.Equals("save sneakernet", StringComparison.OrdinalIgnoreCase))
                     {
                         await program.SaveSneakernet();
                     }
-                    else if(input.Equals("load sneakernet", StringComparison.OrdinalIgnoreCase))
+                    else if (input.Equals("load sneakernet", StringComparison.OrdinalIgnoreCase))
                     {
                         await program.LoadSneakernet();
                     }

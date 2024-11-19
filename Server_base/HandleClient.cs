@@ -47,7 +47,6 @@ namespace Server_base
                             {
                                 //This is receiver's home server
                                 await server.SendMessageThisServer(receiver, message);
-                                ;
                             }
                             else
                             {
