@@ -2,7 +2,7 @@
 using Messages;
 using Transport;
 
-namespace ServerAPI
+namespace Server_API
 {
     public class API
     {

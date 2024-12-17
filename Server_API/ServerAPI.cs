@@ -4,7 +4,7 @@ using Messages;
 using Server_base;
 using Sodium;
 
-namespace ServerAPI
+namespace Server_API
 {
     public class ServerAPI
     {
@@ -36,7 +36,7 @@ namespace ServerAPI
         {
             if (server != null)
             {
-                if (MemoryExtensions.Equals(StringProcessing.GetServer(user), server.name, StringComparison.OrdinalIgnoreCase))
+                if (StringProcessing.GetServer(user).Equals(server.name, StringComparison.OrdinalIgnoreCase))
                 {
                     await server.SendMessageThisServer(user, message);
                 }

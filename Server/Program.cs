@@ -8,7 +8,7 @@ using ConfigurationData;
 using Messages;
 using Server_interface;
 using Sodium;
-namespace Server_starter
+namespace Server
 {
     internal class Program
     {
@@ -85,7 +85,7 @@ namespace Server_starter
         {
             if (contextref != null)
             {
-                for (int i = 0; contextref.IsAlive && (i < 10); i++)
+                for (int i = 0; contextref.IsAlive && i < 10; i++)
                 {
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
