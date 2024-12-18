@@ -28,6 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
+	  <ProjectReference Include="..\ConfigurationData\ConfigurationData.csproj" />
+	  <ProjectReference Include="..\Guide\Guide.csproj" />
 	  <ProjectReference Include="..\Messages\Messages.csproj">
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </ProjectReference>
