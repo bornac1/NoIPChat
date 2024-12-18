@@ -22,7 +22,7 @@ namespace Server_base
         /// <summary>
         /// Server version.
         /// </summary>
-        public Messages.Version SV = "0.5.1";
+        public Messages.Version SV = "0.5.2";
         /// <summary>
         /// /Server runtime.
         /// </summary>
