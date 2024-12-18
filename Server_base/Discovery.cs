@@ -26,6 +26,10 @@ namespace Server_base
         private readonly Server server;
         private readonly UdpClient[] listeners;
         private bool active = true;
+        /// <summary>
+        /// Discovery constructor.
+        /// </summary>
+        /// <param name="server">Server object.</param>
         public Discovery(Server server)
         {
             this.server = server;
