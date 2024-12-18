@@ -59,16 +59,35 @@ namespace Server_base
             {
                 name = message.Name.ToLower();
                 //Add to servers
+                foreach(var s in server.remoteservers)
+                {
+                    if(s.Value == this)
+                    {
+                        if(s.Key != name)
+                        {
+                            if(server.remoteservers.TryRemove(s)){
+                                if(!server.remoteservers.TryAdd(name, this))
+                                {
+                                    //Shouldn't fail
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
                 if (!server.remoteservers.TryAdd(name, this))
                 {
                     //Already exsists
                     if (server.remoteservers.TryGetValue(name, out Client? cli) && cli != null)
                     {
-                        //Disconnect it
-                        await cli.Disconnect();
-                        if (!server.remoteservers.TryAdd(name, this))
+                        if (cli != this)
                         {
-                            //Don't know why
+                            //Disconnect it
+                            await cli.Disconnect();
+                            if (!server.remoteservers.TryAdd(name, this))
+                            {
+                                //Don't know why
+                            }
                         }
                     }
                 }
@@ -90,6 +109,7 @@ namespace Server_base
                             //Server data has changed
 
                             //Update values
+                            srv.Name = message.Name.ToLower();
                             srv.LocalIP = localip;
                             srv.RemoteIP = data.IP;
                             srv.RemotePort = (int)data.Port;
