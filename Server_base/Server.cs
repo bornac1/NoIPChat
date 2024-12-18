@@ -56,7 +56,7 @@ namespace Server_base
         /// </summary>
         public ConcurrentDictionary<string, string> remoteusers;
         /// <summary>
-        /// Know servers.
+        /// Known servers.
         /// </summary>
         public ConcurrentDictionary<string, Servers> servers;
         /// <summary>

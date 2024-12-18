@@ -73,7 +73,7 @@ namespace Server_base
         /// <param name="localip">Local IP of interfaces used.</param>
         /// <param name="ip">IP of remotre server.</param>
         /// <param name="port">Remote port.</param>
-        /// <param name="timeout">Timeoit time in seconds.</param>
+        /// <param name="timeout">Timeout time in seconds.</param>
         /// <returns>Async Task that completes with Client object.</returns>
         public static async Task<Client> CreateAsync(Server server, string name, string localip, string ip, int port, int timeout)
         {
