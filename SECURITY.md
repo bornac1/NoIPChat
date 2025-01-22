@@ -5,6 +5,7 @@
 
 | Version | Supported          | Audited            |
 | ------- | ------------------ | ------------------ |
+| 0.5.2   | :white_check_mark: | :x:                |
 | 0.5.1   | :white_check_mark: | :x:                |
 | C0.5.0  | :x:                | :white_check_mark: |
 | 0.4.0   | :x:                | :x:                |
