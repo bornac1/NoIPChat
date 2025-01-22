@@ -9,5 +9,6 @@
         public void LoadPatch(string path);
         public Task SaveSneakernet(string path, string name);
         public Task LoadSneakernet(string path);
+        public Task StartDiscovery();
     }
 }

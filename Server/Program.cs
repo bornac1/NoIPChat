@@ -434,6 +434,13 @@ namespace Server
                     {
                         await program.LoadSneakernet();
                     }
+                    else if (input.Equals("start discovery", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (program.server != null)
+                        {
+                            await program.server.StartDiscovery();
+                        }
+                    }
                     else
                     {
                         Console.WriteLine("Unknown command.");

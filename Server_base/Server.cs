@@ -106,6 +106,7 @@ namespace Server_base
         public readonly ConcurrentDictionary<string, string> serverupdates;
         private readonly FileSystemWatcher serverwatcher;
         private readonly string? serverpath;
+        private readonly Discovery discovery;
         /// <summary>
         /// Server constructor.
         /// </summary>
@@ -161,6 +162,7 @@ namespace Server_base
             listeners = [.. listeners1];
             this.interfaces = [.. interfaces];
             _ = LoadMessageDataHandlers();
+            discovery = new(this);
             foreach (PluginInfo plugininfo in plugins)
             {
                 try
@@ -714,6 +716,8 @@ namespace Server_base
                         //Console.WriteLine("Error remore message for other server.");
                     }
                 }
+                //Close Discovery
+                discovery.Close();
                 Servers.Unloading();
                 foreach (PluginInfo plugininfo in plugins)
                 {
@@ -1174,6 +1178,14 @@ namespace Server_base
                 Directory.CreateDirectory(updatepath);
                 UnpackZip(path, updatepath);
             }
+        }
+        /// <summary>
+        /// Starts discovery of new servers.
+        /// </summary>
+        /// <returns>Async Task.</returns>
+        public async Task StartDiscovery()
+        {
+            await discovery.DiscoverNew();
         }
     }
 }

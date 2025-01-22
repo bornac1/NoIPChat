@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Xml.Linq;
@@ -91,6 +92,7 @@ namespace Server_base
                 {
                     if (server.servers.TryGetValue(servername, out Servers? srv) && srv != null)
                     {
+                        Servers current = srv;
                         if (srv.LocalIP != localip || srv.RemoteIP != serverip || srv.RemotePort != serverport)
                         {
                             //Server data has changed
@@ -99,6 +101,10 @@ namespace Server_base
                             srv.LocalIP = localip;
                             srv.RemoteIP = serverip;
                             srv.RemotePort = serverport;
+                            if(!server.servers.TryUpdate(servername, srv, current))
+                            {
+                                //Don't know why it would fail
+                            }
                         }
                     }
                     else
@@ -122,7 +128,125 @@ namespace Server_base
                 }
             }
         }
-        private void Close()
+        private static IPAddress GetBroadcastAddress(IPAddress ip, IPAddress? subnetMask)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork && subnetMask != null) // IPv4
+            {
+                byte[] ipBytes = ip.GetAddressBytes();
+                byte[] maskBytes = subnetMask.GetAddressBytes();
+
+                if (ipBytes.Length != maskBytes.Length)
+                {
+                    throw new ArgumentException("IP address and subnet mask lengths do not match.");
+                }
+
+                byte[] broadcastBytes = new byte[ipBytes.Length];
+                for (int i = 0; i < ipBytes.Length; i++)
+                {
+                    broadcastBytes[i] = (byte)(ipBytes[i] | ~maskBytes[i]);
+                }
+
+                return new IPAddress(broadcastBytes);
+            }
+            else if (ip.AddressFamily == AddressFamily.InterNetworkV6) // IPv6
+            {
+                // No broadcast address for IPv6. Use the all-nodes multicast address.
+                return IPAddress.Parse("ff02::1");
+            }
+            else
+            {
+                throw new NotSupportedException("Unsupported address family.");
+            }
+        }
+        private async Task<byte[]?> CreateDiscoveryPacket(IPAddress serverIP, int port, string name)
+        {
+            try
+            {
+                // Packet details
+                bool isIPv6 = serverIP.AddressFamily == AddressFamily.InterNetworkV6;
+                bool isServerNameComplete = true; // Assume the server's name is complete.
+                byte[] nameBytes = Encoding.UTF8.GetBytes(name);
+
+                // Encode the packet
+                using MemoryStream stream = new();
+                using BinaryWriter writer = new(stream);
+
+                // 1. Is IPv6 (1 byte)
+                writer.Write(isIPv6);
+
+                // 2. Server public IP (4 bytes for IPv4, 16 bytes for IPv6)
+                byte[] ipBytes = serverIP.GetAddressBytes();
+                writer.Write(ipBytes);
+
+                // 3. Server port (4 bytes)
+                writer.Write(port);
+
+                if (nameBytes.Length > 490)
+                {
+                    isServerNameComplete = false;
+                }
+                // 4. Is server name complete (1 byte)
+                writer.Write(isServerNameComplete);
+                // 5. Server name (UTF-8 encoded, up to 490 bytes)
+                writer.Write(nameBytes);
+
+                return stream.ToArray();
+            } catch (Exception ex)
+            {
+                await server.WriteLog(ex);
+            }
+            return null;
+        }
+        private static IPAddress? GetSubnetMask(Interface inf)
+        {
+            foreach (NetworkInterface networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                foreach (UnicastIPAddressInformation unicastInfo in networkInterface.GetIPProperties().UnicastAddresses)
+                {
+                    if (unicastInfo.Address.Equals(inf.InterfaceIP))
+                    {
+                        return unicastInfo.IPv4Mask;
+                    }
+                }
+            }
+            return null;
+        }
+        /// <summary>
+        /// Discovers new servers from current interfaces.
+        /// </summary>
+        /// <returns>Async Task.</returns>
+        public async Task DiscoverNew()
+        {
+
+            foreach (var listener in listeners)
+            {
+                try
+                {
+                    var inf = server.interfaces.Where(i => i.InterfaceIP == listener.Client?.LocalEndPoint?.ToString()).FirstOrDefault();
+                    if (inf != null && IPAddress.TryParse(inf.IP, out IPAddress? ip) && ip != null)
+                    {
+                        byte[]? message = await CreateDiscoveryPacket(ip, inf.Port, server.name);
+                        IPAddress? subnetMask = GetSubnetMask(inf);
+                        if (listener.Client.LocalEndPoint is IPEndPoint endpoint && (subnetMask != null || endpoint.AddressFamily == AddressFamily.InterNetworkV6))
+                        {
+                            // Determine the broadcast address for the interface
+                            var broadcastAddress = GetBroadcastAddress(endpoint.Address, subnetMask);
+                            if (message != null)
+                            {
+                                await listener.SendAsync(message, message.Length, new IPEndPoint(broadcastAddress, port));
+                            }
+                        }
+                    }
+                } catch (Exception ex)
+                {
+                    await server.WriteLog(ex);
+                }
+            }
+        }
+        /// <summary>
+        /// Close and dispose Discovery.
+        /// </summary>
+        public void Close()
         {
             active = false;
             foreach(UdpClient c in listeners)
